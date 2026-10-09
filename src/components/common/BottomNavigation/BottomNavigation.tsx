@@ -72,7 +72,7 @@ export function BottomNavigation({
                 <>
                   <span
                     className={cn(
-                      'flex h-6 w-10 items-center justify-center rounded-control transition-colors',
+                      'flex h-6 w-10 items-center justify-center rounded-control text-primary-700 transition-colors',
                       active ? 'bg-primary-100' : 'bg-transparent',
                     )}
                   >
