@@ -1,10 +1,53 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans:
+    "Pretendard Variable", Pretendard, Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-primary-900: #123d31;
+  --color-primary-800: #175440;
+  --color-primary-700: #1f7a60;
+  --color-primary-600: #159370;
+  --color-primary-500: #11a77d;
+  --color-primary-400: #42bf99;
+  --color-primary-300: #76d6b7;
+  --color-primary-200: #cdf3e2;
+  --color-primary-100: #e7f7ef;
+
+  --color-neutral-900: #202923;
+  --color-neutral-800: #344139;
+  --color-neutral-700: #4c5d53;
+  --color-neutral-600: #63756a;
+  --color-neutral-500: #82948a;
+  --color-neutral-400: #a9b8ae;
+  --color-neutral-300: #d4ded7;
+  --color-neutral-200: #e8ede9;
+  --color-neutral-100: #f4f6f3;
+
+  --color-surface-canvas: #fbfaf6;
+
+  --color-success: #217a4b;
+  --color-warning: #8a570f;
+  --color-error: #b33b35;
+  --color-info: #2563a6;
+  --color-success-bg: #eaf6ee;
+  --color-warning-bg: #fff3d6;
+  --color-error-bg: #fdedea;
+  --color-info-bg: #eaf2fc;
+
+  --radius-input: 14px;
+  --radius-control: 16px;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+}
+
 :root {
   font-family:
-    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1f2933;
-  background: #f8faf9;
+    "Pretendard Variable", Pretendard, Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #202923;
+  background: #fbfaf6;
 }
 
 * {
@@ -19,4 +62,87 @@ body {
 
 a {
   color: inherit;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.typography-heading-1 {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 38px;
+  letter-spacing: 0;
+}
+
+.typography-heading-2 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: 0;
+}
+
+.typography-heading-3 {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: 0;
+}
+
+.typography-title-1 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: 0;
+}
+
+.typography-title-2 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: 0;
+}
+
+.typography-title-3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0;
+}
+
+.typography-body-1 {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0;
+}
+
+.typography-body-2 {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0;
+}
+
+.typography-label-1 {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+}
+
+.typography-label-2 {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0;
+}
+
+.typography-caption {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0;
 }
