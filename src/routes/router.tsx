@@ -21,10 +21,10 @@ import { RecommendationPage as OrganizationRecommendationPage } from '@/pages/or
 import { ChatListPage } from '@/pages/shared/ChatListPage'
 import { ChatRoomPage } from '@/pages/shared/ChatRoomPage'
 import { HomePage } from '@/pages/shared/HomePage'
-import { LoginPage } from '@/pages/shared/LoginPage'
+import { LoginPage } from '@/pages/login/LoginPage'
 import { NotFoundPage } from '@/pages/shared/NotFoundPage'
 import { NotificationPage } from '@/pages/shared/NotificationPage'
-import { SignupPage } from '@/pages/shared/SignupPage'
+import { SignupPage } from '@/pages/onboarding/SignupPage'
 import { TradeDetailPage } from '@/pages/shared/TradeDetailPage'
 
 export const router = createBrowserRouter([
