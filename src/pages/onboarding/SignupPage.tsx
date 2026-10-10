@@ -2,6 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { ArrowLeft, CircleCheck, Eye, EyeOff } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import mascot from '@/assets/images/mascot/mascot.svg'
+import { AddressSearchField } from '@/components/common/AddressSearchField/AddressSearchField'
+import { DateField } from '@/components/common/DateField/DateField'
+import { RegionSelect } from '@/components/common/RegionSelect/RegionSelect'
 import { ROUTES, routePath } from '@/routes/paths'
 
 type SignupRole = 'donor' | 'organization'
@@ -25,6 +28,7 @@ const donorFields: Field[] = [
 const organizationFields: Field[] = [
   { name: 'organizationName', label: '기관명', placeholder: '기관명을 입력해 주세요', required: true },
   { name: 'address', label: '기관 주소', placeholder: '상세주소', required: true },
+  { name: 'addressDetail', label: '기관 상세주소', placeholder: '상세주소', required: true },
   { name: 'representative', label: '대표자 이름', placeholder: '대표자 이름을 입력해 주세요', required: true },
   { name: 'phone', label: '기관 전화번호', placeholder: '지역번호 포함 전화번호', type: 'tel', required: true },
 ]
@@ -50,6 +54,14 @@ const agreementItems = [
   { name: 'terms', label: '서비스 이용약관' },
   { name: 'privacy', label: '개인정보 수집·이용' },
 ] as const
+
+function getToday() {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 export function SignupPage() {
   const { role: roleParam } = useParams()
@@ -85,7 +97,8 @@ export function SignupPage() {
     Boolean(values.passwordConfirm) &&
     values.password === values.passwordConfirm
   const businessFieldsComplete =
-    Boolean((values.businessAddress ?? values.address)?.trim()) &&
+    Boolean(values.businessAddress?.trim()) &&
+    Boolean(values.businessAddressDetail?.trim()) &&
     values.businessNumber?.replace(/\D/g, '').length === 10 &&
     Boolean(values.openingDate?.trim())
   const agreementsComplete = agreementItems
@@ -100,7 +113,7 @@ export function SignupPage() {
 
   const updateValue = (name: string, value: string) => {
     setValues((current) => ({ ...current, [name]: value }))
-    if (['businessAddress', 'businessNumber', 'openingDate'].includes(name)) {
+    if (['businessAddress', 'businessAddressDetail', 'businessNumber', 'openingDate'].includes(name)) {
       setBusinessVerified(false)
     }
   }
@@ -297,6 +310,8 @@ type SignupProfileStepProps = {
 }
 
 function SignupProfileStep({ role, fields, values, onChange }: SignupProfileStepProps) {
+  const today = getToday()
+
   return (
     <>
       <h2>{role === 'donor' ? '기부자 정보를 알려 주세요' : '기관 정보를 알려 주세요'}</h2>
@@ -304,21 +319,64 @@ function SignupProfileStep({ role, fields, values, onChange }: SignupProfileStep
         {role === 'donor' ? '이름·생년월일·전화번호는 필수예요.' : '아래 정보는 모두 필수예요.'}
       </p>
       <div className="signup-field-list">
-        {fields.map((field) => (
-          <div key={field.name}>
-            <label htmlFor={`signup-${field.name}`} className="auth-field-label">{field.label}</label>
-            <input
-              id={`signup-${field.name}`}
-              type={field.type ?? 'text'}
-              className="auth-input"
-              placeholder={field.placeholder}
-              value={values[field.name] ?? ''}
-              onChange={(event) => onChange(field.name, event.target.value)}
+        {role === 'donor' ? (
+          <>
+            <TextField field={fields[0]} values={values} onChange={onChange} />
+            <DateField
+              id="signup-birthDate"
+              label="생년월일"
+              value={values.birthDate ?? ''}
+              max={today}
+              onChange={(value) => onChange('birthDate', value)}
             />
-          </div>
-        ))}
+            <TextField field={fields[2]} values={values} onChange={onChange} />
+            <RegionSelect
+              id="signup-region"
+              label="활동 지역"
+              value={values.region ?? ''}
+              optional
+              onChange={(value) => onChange('region', value)}
+            />
+          </>
+        ) : (
+          <>
+            <TextField field={fields[0]} values={values} onChange={onChange} />
+            <AddressSearchField
+              id="signup-address"
+              label="기관 주소"
+              address={values.address ?? ''}
+              detailAddress={values.addressDetail ?? ''}
+              onAddressChange={(value) => onChange('address', value)}
+              onDetailAddressChange={(value) => onChange('addressDetail', value)}
+            />
+            <TextField field={fields[3]} values={values} onChange={onChange} />
+            <TextField field={fields[4]} values={values} onChange={onChange} />
+          </>
+        )}
       </div>
     </>
+  )
+}
+
+type TextFieldProps = {
+  field: Field
+  values: Record<string, string>
+  onChange: (name: string, value: string) => void
+}
+
+function TextField({ field, values, onChange }: TextFieldProps) {
+  return (
+    <div>
+      <label htmlFor={`signup-${field.name}`} className="auth-field-label">{field.label}</label>
+      <input
+        id={`signup-${field.name}`}
+        type={field.type ?? 'text'}
+        className="auth-input"
+        placeholder={field.placeholder}
+        value={values[field.name] ?? ''}
+        onChange={(event) => onChange(field.name, event.target.value)}
+      />
+    </div>
   )
 }
 
@@ -393,21 +451,21 @@ function BusinessVerificationStep({
   onChange,
   onVerify,
 }: BusinessVerificationStepProps) {
+  const today = getToday()
+
   return (
     <>
       <h2>사업자 정보를 확인해요</h2>
       <p className="signup-step-description">기관 심사에 필요한 사업자 정보를 입력해 주세요.</p>
       <div className="signup-field-list">
-        <div>
-          <label htmlFor="signup-business-address" className="auth-field-label">기관 상세주소</label>
-          <input
-            id="signup-business-address"
-            className="auth-input"
-            placeholder="서울 구로구 ○○로 12"
-            value={values.businessAddress ?? values.address ?? ''}
-            onChange={(event) => onChange('businessAddress', event.target.value)}
-          />
-        </div>
+        <AddressSearchField
+          id="signup-business-address"
+          label="기관 상세주소"
+          address={values.businessAddress ?? ''}
+          detailAddress={values.businessAddressDetail ?? ''}
+          onAddressChange={(value) => onChange('businessAddress', value)}
+          onDetailAddressChange={(value) => onChange('businessAddressDetail', value)}
+        />
         <div>
           <label htmlFor="signup-business-number" className="auth-field-label">사업자번호 10자리</label>
           <input
@@ -419,18 +477,13 @@ function BusinessVerificationStep({
             onChange={(event) => onChange('businessNumber', event.target.value)}
           />
         </div>
-        <div>
-          <label htmlFor="signup-opening-date" className="auth-field-label">개업일자</label>
-          <input
-            id="signup-opening-date"
-            type="text"
-            inputMode="numeric"
-            className="auth-input"
-            placeholder="2015-03-02"
-            value={values.openingDate ?? ''}
-            onChange={(event) => onChange('openingDate', event.target.value)}
-          />
-        </div>
+        <DateField
+          id="signup-opening-date"
+          label="개업일자"
+          value={values.openingDate ?? ''}
+          max={today}
+          onChange={(value) => onChange('openingDate', value)}
+        />
         <button
           type="button"
           className="auth-button auth-button--secondary w-full"
