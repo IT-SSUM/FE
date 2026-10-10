@@ -160,18 +160,18 @@ export function SignupPage() {
   }
 
   return (
-    <main className="auth-page">
-      <section className="signup-page-shell">
-        <header className="signup-topbar">
-          <button type="button" onClick={handleBack} className="back-button" aria-label="이전 단계로 돌아가기">
+    <main className="min-h-dvh bg-[#eaf2ed]">
+      <section className="mx-auto flex min-h-dvh w-full max-w-[393px] flex-col bg-surface-canvas min-[394px]:shadow-[0_0_0_1px_rgb(31_122_96/6%),0_18px_48px_rgb(18_61_49/10%)]">
+        <header className="flex min-h-[72px] items-center px-5 [&_h1]:ml-2 [&_h1]:text-base [&_h1]:font-semibold [&_h1]:leading-6">
+          <button type="button" onClick={handleBack} className="inline-flex size-10 items-center justify-center rounded-full border-0 bg-transparent text-primary-700 hover:bg-primary-100" aria-label="이전 단계로 돌아가기">
             <ArrowLeft aria-hidden size={21} strokeWidth={1.8} />
           </button>
           <h1>{step === 'profile' ? `${roleLabel} 회원가입` : '회원가입'}</h1>
         </header>
 
-        <form className="signup-form" onSubmit={handleSubmit}>
-          <div className="signup-form-content">
-            <p className="signup-progress">
+        <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
+          <div className="px-5 pb-7 pt-3 [&_h2]:mt-2 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-8 [&_h2]:tracking-[-0.02em]">
+            <p className="m-0 text-sm font-bold leading-5 text-primary-600">
               {stepIndex + 1} / {steps.length} · {stepLabels[step]}
             </p>
 
@@ -218,8 +218,8 @@ export function SignupPage() {
             ) : null}
           </div>
 
-          <div className="signup-submit-bar">
-            <button type="submit" className="auth-button auth-button--primary w-full" disabled={!canContinue}>
+          <div className="sticky bottom-0 z-2 mt-auto border-t border-neutral-200 bg-surface-canvas px-5 py-4">
+            <button type="submit" className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-primary-700 bg-primary-700 px-5 text-sm font-bold text-white transition-colors hover:border-primary-800 hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-500" disabled={!canContinue}>
               {step === 'agreements' ? '가입하기' : '다음'}
             </button>
           </div>
@@ -239,17 +239,17 @@ function SignupComplete({ role, onBack, onStart }: SignupCompleteProps) {
   const isDonor = role === 'donor'
 
   return (
-    <main className="auth-page">
-      <section className="signup-complete-shell">
-        <header className="signup-topbar">
-          <button type="button" onClick={onBack} className="back-button" aria-label="약관 동의로 돌아가기">
+    <main className="min-h-dvh bg-[#eaf2ed]">
+      <section className="mx-auto flex min-h-dvh w-full max-w-[393px] flex-col bg-surface-canvas min-[394px]:shadow-[0_0_0_1px_rgb(31_122_96/6%),0_18px_48px_rgb(18_61_49/10%)]">
+        <header className="flex min-h-[72px] items-center px-5 [&_h1]:ml-2 [&_h1]:text-base [&_h1]:font-semibold [&_h1]:leading-6">
+          <button type="button" onClick={onBack} className="inline-flex size-10 items-center justify-center rounded-full border-0 bg-transparent text-primary-700 hover:bg-primary-100" aria-label="약관 동의로 돌아가기">
             <ArrowLeft aria-hidden size={21} strokeWidth={1.8} />
           </button>
           <h1>가입 완료</h1>
         </header>
 
-        <div className="signup-complete-content">
-          <div className="signup-complete-mascot">
+        <div className="px-5 pb-8 pt-[104px] text-center [&_h2]:mt-6 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-8 [&_h2]:tracking-[-0.02em] [&_p]:mt-5 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-neutral-600">
+          <div className="flex h-[170px] w-full items-center justify-center rounded-[18px] bg-primary-100 [&_img]:w-28">
             <img src={mascot} alt="IT:SSUM 상자 마스코트" />
           </div>
           <h2>{isDonor ? '나눔을 시작할 준비가 됐어요' : '함께하게 되어 반가워요'}</h2>
@@ -262,8 +262,8 @@ function SignupComplete({ role, onBack, onStart }: SignupCompleteProps) {
           </p>
         </div>
 
-        <div className="signup-submit-bar">
-          <button type="button" onClick={onStart} className="auth-button auth-button--primary w-full">
+        <div className="sticky bottom-0 z-2 mt-auto border-t border-neutral-200 bg-surface-canvas px-5 py-4">
+          <button type="button" onClick={onStart} className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-primary-700 bg-primary-700 px-5 text-sm font-bold text-white transition-colors hover:border-primary-800 hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-500">
             시작하기
           </button>
         </div>
@@ -274,29 +274,29 @@ function SignupComplete({ role, onBack, onStart }: SignupCompleteProps) {
 
 function SignupRoleSelection() {
   return (
-    <main className="auth-page">
-      <section className="signup-role-shell">
-        <div className="signup-role-heading">
+    <main className="min-h-dvh bg-[#eaf2ed]">
+      <section className="mx-auto min-h-dvh w-full max-w-[393px] bg-surface-canvas px-5 pb-10 pt-[68px] min-[394px]:shadow-[0_0_0_1px_rgb(31_122_96/6%),0_18px_48px_rgb(18_61_49/10%)]">
+        <div className="[&_h1]:m-0 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:leading-[34px] [&_h1]:tracking-[-0.02em] [&_p]:mt-5 [&_p]:text-sm [&_p]:leading-5 [&_p]:text-neutral-600">
           <h1>작은 나눔이<br />큰 연결이 되는 곳</h1>
           <p>쓸 수 있는 물품을, 가까운 복지기관과 나눠요.</p>
         </div>
 
-        <div className="signup-role-mascot">
+        <div className="mt-6 flex h-[150px] w-full items-center justify-center rounded-[18px] bg-error-bg [&_img]:w-[126px]">
           <img src={mascot} alt="IT:SSUM 상자 마스코트" />
         </div>
 
-        <div className="signup-role-options">
-          <Link to={routePath.signup('donor')} className="signup-role-card signup-role-card--donor">
+        <div className="mt-5 grid gap-4">
+          <Link to={routePath.signup('donor')} className="flex min-h-[84px] flex-col justify-center rounded-[18px] border border-primary-200 bg-primary-100 p-4 [&_strong]:text-base [&_strong]:leading-6 [&_span]:mt-1.5 [&_span]:text-[13px] [&_span]:leading-5 [&_span]:text-neutral-600">
             <strong>물품을 기부하고 싶어요</strong>
             <span>개인 · 학교 · 기업 · 단체</span>
           </Link>
-          <Link to={routePath.signup('organization')} className="signup-role-card">
+          <Link to={routePath.signup('organization')} className="flex min-h-[84px] flex-col justify-center rounded-[18px] border border-neutral-300 bg-white p-4 [&_strong]:text-base [&_strong]:leading-6 [&_span]:mt-1.5 [&_span]:text-[13px] [&_span]:leading-5 [&_span]:text-neutral-600">
             <strong>물품이 필요한 기관이에요</strong>
             <span>사업자 확인과 필수 동의 후 필요 물품을 등록해요.</span>
           </Link>
         </div>
 
-        <p className="signup-login-link">이미 계정이 있나요? <Link to={ROUTES.login}>로그인</Link></p>
+        <p className="mt-5 text-[13px] leading-5 text-primary-700 [&_a]:font-semibold [&_a]:underline [&_a]:underline-offset-3">이미 계정이 있나요? <Link to={ROUTES.login}>로그인</Link></p>
       </section>
     </main>
   )
@@ -315,10 +315,10 @@ function SignupProfileStep({ role, fields, values, onChange }: SignupProfileStep
   return (
     <>
       <h2>{role === 'donor' ? '기부자 정보를 알려 주세요' : '기관 정보를 알려 주세요'}</h2>
-      <p className="signup-step-description">
+      <p className="mb-5 mt-1 text-[11px] leading-4 text-neutral-600">
         {role === 'donor' ? '이름·생년월일·전화번호는 필수예요.' : '아래 정보는 모두 필수예요.'}
       </p>
-      <div className="signup-field-list">
+      <div className="grid gap-3.5">
         {role === 'donor' ? (
           <>
             <TextField field={fields[0]} values={values} onChange={onChange} />
@@ -367,11 +367,11 @@ type TextFieldProps = {
 function TextField({ field, values, onChange }: TextFieldProps) {
   return (
     <div>
-      <label htmlFor={`signup-${field.name}`} className="auth-field-label">{field.label}</label>
+      <label htmlFor={`signup-${field.name}`} className="mb-2 block text-sm font-medium leading-5 text-neutral-900">{field.label}</label>
       <input
         id={`signup-${field.name}`}
         type={field.type ?? 'text'}
-        className="auth-input"
+        className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
         placeholder={field.placeholder}
         value={values[field.name] ?? ''}
         onChange={(event) => onChange(field.name, event.target.value)}
@@ -396,16 +396,16 @@ function SignupAccountStep({ role, values, showPassword, showPasswordConfirm, on
   return (
     <>
       <h2>나눔을 시작해 볼까요?</h2>
-      <p className="signup-step-description">사용할 계정 정보를 입력해 주세요.</p>
-      <div className="signup-field-list">
+      <p className="mb-5 mt-1 text-[11px] leading-4 text-neutral-600">사용할 계정 정보를 입력해 주세요.</p>
+      <div className="grid gap-3.5">
         <div>
-          <label htmlFor="signup-email" className="auth-field-label">
+          <label htmlFor="signup-email" className="mb-2 block text-sm font-medium leading-5 text-neutral-900">
             {role === 'organization' ? '기관 이메일' : '이메일'}
           </label>
           <input
             id="signup-email"
             type="email"
-            className="auth-input"
+            className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
             placeholder={role === 'organization' ? 'example@organization.com' : 'example@email.com'}
             value={values.email ?? ''}
             onChange={(event) => onChange('email', event.target.value)}
@@ -430,8 +430,8 @@ function SignupAccountStep({ role, values, showPassword, showPasswordConfirm, on
           onToggle={onTogglePasswordConfirm}
         />
       </div>
-      {passwordsDiffer ? <p className="signup-error">비밀번호가 일치하지 않아요.</p> : null}
-      <p className="signup-login-link">이미 계정이 있나요? <Link to={ROUTES.login}>로그인</Link></p>
+      {passwordsDiffer ? <p className="mt-2 text-xs leading-[18px] text-error">비밀번호가 일치하지 않아요.</p> : null}
+      <p className="mt-5 text-[13px] leading-5 text-primary-700 [&_a]:font-semibold [&_a]:underline [&_a]:underline-offset-3">이미 계정이 있나요? <Link to={ROUTES.login}>로그인</Link></p>
     </>
   )
 }
@@ -456,8 +456,8 @@ function BusinessVerificationStep({
   return (
     <>
       <h2>사업자 정보를 확인해요</h2>
-      <p className="signup-step-description">기관 심사에 필요한 사업자 정보를 입력해 주세요.</p>
-      <div className="signup-field-list">
+      <p className="mb-5 mt-1 text-[11px] leading-4 text-neutral-600">기관 심사에 필요한 사업자 정보를 입력해 주세요.</p>
+      <div className="grid gap-3.5">
         <AddressSearchField
           id="signup-business-address"
           label="기관 상세주소"
@@ -467,11 +467,11 @@ function BusinessVerificationStep({
           onDetailAddressChange={(value) => onChange('businessAddressDetail', value)}
         />
         <div>
-          <label htmlFor="signup-business-number" className="auth-field-label">사업자번호 10자리</label>
+          <label htmlFor="signup-business-number" className="mb-2 block text-sm font-medium leading-5 text-neutral-900">사업자번호 10자리</label>
           <input
             id="signup-business-number"
             inputMode="numeric"
-            className="auth-input"
+            className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
             placeholder="123-45-67890"
             value={values.businessNumber ?? ''}
             onChange={(event) => onChange('businessNumber', event.target.value)}
@@ -486,7 +486,7 @@ function BusinessVerificationStep({
         />
         <button
           type="button"
-          className="auth-button auth-button--secondary w-full"
+          className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-neutral-300 bg-white px-5 text-sm font-bold text-primary-700 transition-colors hover:bg-primary-100 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-500"
           disabled={!canVerify || verified}
           onClick={onVerify}
         >
@@ -494,7 +494,7 @@ function BusinessVerificationStep({
         </button>
       </div>
       {verified ? (
-        <div className="verification-success" role="status">
+        <div className="mt-4 flex gap-2.5 rounded-control bg-primary-100 p-4 text-primary-700 [&>svg]:mt-0.5 [&>svg]:shrink-0 [&_strong]:block [&_strong]:text-sm [&_strong]:leading-5 [&_span]:mt-1.5 [&_span]:block [&_span]:text-xs [&_span]:leading-[18px] [&_span]:text-neutral-700" role="status">
           <CircleCheck aria-hidden size={18} />
           <div>
             <strong>사업자 확인 완료</strong>
@@ -515,24 +515,24 @@ function OrganizationEligibilityStep({ confirmed, onChange }: OrganizationEligib
   return (
     <>
       <h2>가입 대상 기관인지 확인해요</h2>
-      <p className="signup-step-description">사업자 확인과 별도 기준이에요.</p>
-      <div className="eligibility-list">
-        <div className="eligibility-card">
-          <div className="eligibility-card-title">
+      <p className="mb-5 mt-1 text-[11px] leading-4 text-neutral-600">사업자 확인과 별도 기준이에요.</p>
+      <div className="mt-5 grid gap-3.5">
+        <div className="rounded-control bg-primary-100 p-4 [&>p]:mt-2 [&>p]:text-xs [&>p]:leading-[18px] [&>p]:text-neutral-700">
+          <div className="flex items-center gap-2 text-sm leading-5 text-primary-700">
             <CircleCheck aria-hidden size={18} />
             <strong>가입 대상</strong>
           </div>
           <p>복지·비영리 활동에 기부 물품을 사용하는 기관</p>
         </div>
-        <div className="eligibility-card">
-          <div className="eligibility-card-title">
+        <div className="rounded-control bg-primary-100 p-4 [&>p]:mt-2 [&>p]:text-xs [&>p]:leading-[18px] [&>p]:text-neutral-700">
+          <div className="flex items-center gap-2 text-sm leading-5 text-primary-700">
             <CircleCheck aria-hidden size={18} />
             <strong>제외 대상</strong>
           </div>
           <p>일반 영리 사업자는 가입 대상이 아니에요.</p>
         </div>
       </div>
-      <label className="eligibility-confirm">
+      <label className="mt-4 flex min-h-[58px] items-center gap-3 rounded-[14px] border border-neutral-300 bg-white px-4 text-[13px] leading-5 [&_input]:size-5 [&_input]:accent-primary-700">
         <input
           type="checkbox"
           checked={confirmed}
@@ -557,17 +557,17 @@ type PasswordFieldProps = {
 function PasswordField({ id, label, placeholder, value, visible, onChange, onToggle }: PasswordFieldProps) {
   return (
     <div>
-      <label htmlFor={id} className="auth-field-label">{label}</label>
+      <label htmlFor={id} className="mb-2 block text-sm font-medium leading-5 text-neutral-900">{label}</label>
       <div className="relative">
         <input
           id={id}
           type={visible ? 'text' : 'password'}
-          className="auth-input pr-12"
+          className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 pr-12 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10 [&::-ms-clear]:hidden [&::-ms-reveal]:hidden"
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
         />
-        <button type="button" className="password-toggle" onClick={onToggle} aria-label={visible ? '비밀번호 숨기기' : '비밀번호 보기'}>
+        <button type="button" className="absolute right-[5px] top-1/2 inline-flex size-[42px] -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent text-primary-700" onClick={onToggle} aria-label={visible ? '비밀번호 숨기기' : '비밀번호 보기'}>
           {visible ? <EyeOff aria-hidden size={18} /> : <Eye aria-hidden size={18} />}
         </button>
       </div>
@@ -586,8 +586,8 @@ function SignupAgreementStep({ agreements, onChange }: SignupAgreementStepProps)
   return (
     <>
       <h2>안심하고 나눔을 시작해요</h2>
-      <p className="signup-step-description">가입에 필요한 약관을 확인해 주세요.</p>
-      <label className="agreement-all">
+      <p className="mb-5 mt-1 text-[11px] leading-4 text-neutral-600">가입에 필요한 약관을 확인해 주세요.</p>
+      <label className="flex min-h-16 items-center gap-3 rounded-control border border-primary-200 bg-linear-to-br from-primary-100 to-[#eef9f3] px-4 shadow-[0_4px_14px_rgb(31_122_96/6%)] [&_input]:size-5 [&_input]:accent-primary-700">
         <input
           type="checkbox"
           checked={allChecked}
@@ -598,10 +598,10 @@ function SignupAgreementStep({ agreements, onChange }: SignupAgreementStepProps)
         />
         <strong>필수 약관 전체 동의</strong>
       </label>
-      <div className="agreement-list">
+      <div className="mt-4 grid overflow-hidden rounded-control border border-[#e1ebe5] bg-[#f4f8f5] px-4 [&_input]:size-5 [&_input]:accent-primary-700">
         {agreementItems.map((item) => (
-          <div key={item.name} className="agreement-item">
-            <label className="agreement-item-label">
+          <div key={item.name} className="flex min-h-[58px] items-center justify-between border-b border-[#e1ebe5] last:border-b-0">
+            <label className="flex items-center gap-3 text-[13px] leading-5 text-neutral-800">
               <input
                 type="checkbox"
                 checked={Boolean(agreements[item.name])}
@@ -609,11 +609,11 @@ function SignupAgreementStep({ agreements, onChange }: SignupAgreementStepProps)
               />
               <span>[필수] {item.label}</span>
             </label>
-            <button type="button" className="agreement-view-button">보기</button>
+            <button type="button" className="rounded-full border-0 bg-primary-100 px-[11px] py-[7px] text-xs font-semibold text-primary-700 transition-colors hover:bg-primary-200">보기</button>
           </div>
         ))}
       </div>
-      <p className="agreement-help">필수 동의를 마쳐야 가입할 수 있어요.</p>
+      <p className="mt-4 rounded-xl bg-[#f0f5f1] px-3 py-2.5 text-xs leading-[18px] text-neutral-700">필수 동의를 마쳐야 가입할 수 있어요.</p>
     </>
   )
 }

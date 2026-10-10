@@ -125,12 +125,12 @@ export function AddressSearchField({
   }
 
   return (
-    <div className="address-field">
-      <label htmlFor={`${id}-base`} className="auth-field-label">{label}</label>
-      <div className="address-search-row">
+    <div>
+      <label htmlFor={`${id}-base`} className="mb-2 block text-sm font-medium leading-5 text-neutral-900">{label}</label>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
         <input
           id={`${id}-base`}
-          className="auth-input"
+          className="h-[52px] w-full cursor-pointer rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
           value={address}
           placeholder="주소 검색을 눌러 주세요"
           readOnly
@@ -138,7 +138,7 @@ export function AddressSearchField({
         />
         <button
           type="button"
-          className="address-search-button"
+          className="inline-flex h-[52px] min-w-24 items-center justify-center gap-1.5 whitespace-nowrap rounded-input border border-neutral-500 bg-white px-3 text-[13px] font-semibold text-primary-700 hover:border-primary-700 hover:bg-primary-100 disabled:cursor-wait disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-500"
           onClick={openAddressSearch}
           disabled={!ready}
         >
@@ -149,36 +149,36 @@ export function AddressSearchField({
       <input
         ref={detailInputRef}
         id={`${id}-detail`}
-        className="auth-input mt-2"
+        className="mt-2 h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
         value={detailAddress}
         placeholder="상세주소를 입력해 주세요"
         onChange={(event) => onDetailAddressChange(event.target.value)}
       />
-      {error ? <p className="signup-error">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs leading-[18px] text-error">{error}</p> : null}
       {open ? createPortal(
         <div
-          className="address-modal-backdrop"
+          className="fixed inset-0 z-200 flex items-center justify-center bg-primary-900/35 p-4 backdrop-blur-[3px]"
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setOpen(false)
           }}
         >
           <section
-            className="address-modal"
+            className="flex h-[min(620px,calc(100dvh-32px))] min-h-[420px] w-full max-w-[393px] flex-col overflow-hidden rounded-card border border-neutral-300 bg-white shadow-[0_24px_64px_rgb(18_61_49/24%)] [@media(max-height:480px)]:min-h-0"
             role="dialog"
             aria-modal="true"
             aria-labelledby={`${id}-address-modal-title`}
           >
-            <header className="address-modal-header">
+            <header className="flex shrink-0 items-start justify-between gap-4 border-b border-neutral-200 px-[18px] py-4">
               <div>
-                <h2 id={`${id}-address-modal-title`}>주소 찾기</h2>
-                <p>도로명, 건물명 또는 지번을 검색해 주세요.</p>
+                <h2 className="m-0 text-lg font-bold leading-[26px] text-neutral-900" id={`${id}-address-modal-title`}>주소 찾기</h2>
+                <p className="mt-[3px] text-xs leading-[18px] text-neutral-600">도로명, 건물명 또는 지번을 검색해 주세요.</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="주소 검색 닫기">
+              <button className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border-0 bg-neutral-100 text-neutral-800 hover:bg-primary-100 hover:text-primary-700" type="button" onClick={() => setOpen(false)} aria-label="주소 검색 닫기">
                 <X aria-hidden size={20} />
               </button>
             </header>
-            <div ref={postcodeContainerRef} className="postcode-container" />
+            <div ref={postcodeContainerRef} className="min-h-0 w-full flex-1 bg-white [&>div]:!h-full [&>div]:!w-full [&_iframe]:!h-full [&_iframe]:!w-full" />
           </section>
         </div>,
         document.body,

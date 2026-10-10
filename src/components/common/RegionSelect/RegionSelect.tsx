@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react'
 import { useViewportPopover } from '@/hooks/useViewportPopover'
+import { cn } from '@/utils/cn'
 
 type RegionSelectProps = {
   id: string
@@ -81,58 +82,59 @@ export function RegionSelect({ id, label, value, onChange, optional = false }: R
   }
 
   return (
-    <fieldset ref={containerRef} className="region-field">
-      <legend className="auth-field-label">
+    <fieldset ref={containerRef} className="relative m-0 min-w-0 border-0 p-0">
+      <legend className="mb-2 block text-sm font-medium leading-5 text-neutral-900">
         {label}{optional ? ' (선택)' : ''}
       </legend>
-      <div className="region-select-grid">
+      <div className="grid grid-cols-2 gap-2">
         <button
           id={`${id}-province`}
           type="button"
-          className="region-trigger"
+          className="flex h-[52px] min-w-0 items-center gap-[7px] rounded-input border border-neutral-500 bg-white px-3 text-left text-[13px] text-neutral-900 transition-shadow hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-700/10 [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate [&>svg]:shrink-0 [&>svg]:text-primary-700"
           aria-haspopup="listbox"
           aria-expanded={openPanel === 'province'}
           onClick={() => togglePanel('province')}
         >
           <MapPin aria-hidden size={17} />
-          <span className={province ? '' : 'region-placeholder'}>{province || '시·도'}</span>
+          <span className={province ? '' : 'text-neutral-600'}>{province || '시·도'}</span>
           <ChevronDown aria-hidden size={17} />
         </button>
         <button
           id={`${id}-district`}
           type="button"
           aria-label="시·군·구"
-          className="region-trigger"
+          className="flex h-[52px] min-w-0 items-center gap-[7px] rounded-input border border-neutral-500 bg-white px-3 text-left text-[13px] text-neutral-900 transition-shadow hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-700/10 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-500 [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate [&>svg]:shrink-0 [&>svg]:text-primary-700 disabled:[&>svg]:text-neutral-400"
           aria-haspopup="listbox"
           aria-expanded={openPanel === 'district'}
           disabled={!province}
           onClick={() => togglePanel('district')}
         >
-          <span className={district ? '' : 'region-placeholder'}>{district || '시·군·구'}</span>
+          <span className={district ? '' : 'text-neutral-600'}>{district || '시·군·구'}</span>
           <ChevronDown aria-hidden size={17} />
         </button>
       </div>
 
       {openPanel ? (
         <section
-          className="region-popover"
+          className="z-100 flex flex-col overflow-hidden rounded-[18px] border border-neutral-300 bg-white shadow-[0_18px_42px_rgb(18_61_49/16%)]"
           style={popoverStyle}
           aria-label={`${openPanel === 'province' ? '시·도' : '시·군·구'} 선택`}
         >
-          <div className="region-popover-header">
-            <strong>{openPanel === 'province' ? '시·도를 선택해 주세요' : `${province} 지역 선택`}</strong>
-            <label className="region-search">
+          <div className="shrink-0 px-4 pb-3 pt-4">
+            <strong className="block text-sm leading-5 text-neutral-900">{openPanel === 'province' ? '시·도를 선택해 주세요' : `${province} 지역 선택`}</strong>
+            <label className="mt-2.5 flex h-10 items-center gap-2 rounded-xl bg-neutral-100 px-3 text-neutral-600">
               <Search aria-hidden size={16} />
               <input
                 autoFocus
                 value={query}
                 placeholder="지역 검색"
                 aria-label="지역 검색"
+                className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-neutral-900 outline-none"
                 onChange={(event) => setQuery(event.target.value)}
               />
             </label>
           </div>
-          <div className="region-option-list" role="listbox">
+          <div className="grid min-h-0 max-h-[230px] flex-1 grid-cols-2 gap-1.5 overflow-y-auto border-t border-neutral-200 p-3" role="listbox">
             {filteredOptions.map((option) => {
               const selected = openPanel === 'province' ? option === province : option === district
               return (
@@ -141,7 +143,10 @@ export function RegionSelect({ id, label, value, onChange, optional = false }: R
                   type="button"
                   role="option"
                   aria-selected={selected}
-                  className={selected ? 'region-option region-option--selected' : 'region-option'}
+                  className={cn(
+                    'flex min-h-[42px] min-w-0 items-center justify-between gap-1.5 rounded-xl border border-transparent bg-transparent px-2.5 py-2 text-left text-xs text-neutral-800 hover:bg-[#f4f8f5] [&>svg]:shrink-0',
+                    selected && 'border-primary-300 bg-primary-100 font-bold text-primary-700',
+                  )}
                   onClick={() => selectOption(option)}
                 >
                   <span>{option}</span>
@@ -149,7 +154,7 @@ export function RegionSelect({ id, label, value, onChange, optional = false }: R
                 </button>
               )
             })}
-            {filteredOptions.length === 0 ? <p className="region-empty">검색 결과가 없어요.</p> : null}
+            {filteredOptions.length === 0 ? <p className="col-span-2 m-0 py-6 text-center text-[13px] text-neutral-600">검색 결과가 없어요.</p> : null}
           </div>
         </section>
       ) : null}
