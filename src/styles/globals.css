@@ -877,17 +877,20 @@ textarea {
 }
 
 .agreement-all,
-.agreement-list label {
+.agreement-item,
+.agreement-item-label {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
 .agreement-all {
-  min-height: 58px;
-  border-radius: 14px;
-  background: #e7f7ef;
+  min-height: 64px;
+  gap: 12px;
+  border: 1px solid #cdf3e2;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #e7f7ef 0%, #eef9f3 100%);
   padding: 0 16px;
+  box-shadow: 0 4px 14px rgb(31 122 96 / 6%);
 }
 
 .agreement-all input,
@@ -899,15 +902,54 @@ textarea {
 
 .agreement-list {
   display: grid;
-  gap: 18px;
-  margin-top: 22px;
-  padding: 0 4px;
+  gap: 0;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid #e1ebe5;
+  border-radius: 16px;
+  background: #f4f8f5;
+  padding: 0 16px;
 }
 
-.agreement-list label {
+.agreement-item {
+  min-height: 58px;
+  justify-content: space-between;
+}
+
+.agreement-item + .agreement-item {
+  border-top: 1px solid #e1ebe5;
+}
+
+.agreement-item-label {
+  gap: 12px;
   color: #344139;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
+}
+
+.agreement-view-button {
+  border: 0;
+  border-radius: 999px;
+  background: #e7f7ef;
+  padding: 7px 11px;
+  color: #1f7a60;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 160ms ease;
+}
+
+.agreement-view-button:hover {
+  background: #cdf3e2;
+}
+
+.agreement-help {
+  margin: 16px 0 0;
+  border-radius: 12px;
+  background: #f0f5f1;
+  padding: 10px 12px;
+  color: #4c5d53;
+  font-size: 12px;
+  line-height: 18px;
 }
 
 @media (max-width: 390px) {

@@ -33,9 +33,8 @@ const organizationFields: Field[] = [
 ]
 
 const agreementItems = [
-  { name: 'terms', label: '서비스 이용약관 동의', required: true },
-  { name: 'privacy', label: '개인정보 수집 및 이용 동의', required: true },
-  { name: 'marketing', label: '나눔 소식 및 혜택 수신 동의', required: false },
+  { name: 'terms', label: '서비스 이용약관' },
+  { name: 'privacy', label: '개인정보 수집·이용' },
 ] as const
 
 export function SignupPage() {
@@ -70,7 +69,6 @@ export function SignupPage() {
     Boolean(values.passwordConfirm) &&
     values.password === values.passwordConfirm
   const agreementsComplete = agreementItems
-    .filter((item) => item.required)
     .every((item) => agreements[item.name])
   const canContinue =
     step === 1
@@ -147,7 +145,7 @@ export function SignupPage() {
 
           <div className="signup-submit-bar">
             <button type="submit" className="auth-button auth-button--primary w-full" disabled={!canContinue}>
-              {step === 3 ? '가입 완료' : '다음'}
+              {step === 3 ? '가입' : '다음'}
             </button>
           </div>
         </form>
@@ -302,8 +300,8 @@ function SignupAgreementStep({ agreements, onChange }: SignupAgreementStepProps)
 
   return (
     <>
-      <h2>약관을 확인해 주세요</h2>
-      <p className="signup-step-description">안전한 나눔을 위해 필요한 동의예요.</p>
+      <h2>안심하고 나눔을 시작해요</h2>
+      <p className="signup-step-description">가입에 필요한 약관을 확인해 주세요.</p>
       <label className="agreement-all">
         <input
           type="checkbox"
@@ -313,20 +311,24 @@ function SignupAgreementStep({ agreements, onChange }: SignupAgreementStepProps)
             onChange(Object.fromEntries(agreementItems.map((item) => [item.name, checked])))
           }}
         />
-        <strong>전체 동의</strong>
+        <strong>필수 약관 전체 동의</strong>
       </label>
       <div className="agreement-list">
         {agreementItems.map((item) => (
-          <label key={item.name}>
-            <input
-              type="checkbox"
-              checked={Boolean(agreements[item.name])}
-              onChange={(event) => onChange({ ...agreements, [item.name]: event.target.checked })}
-            />
-            <span>{item.required ? '[필수]' : '[선택]'} {item.label}</span>
-          </label>
+          <div key={item.name} className="agreement-item">
+            <label className="agreement-item-label">
+              <input
+                type="checkbox"
+                checked={Boolean(agreements[item.name])}
+                onChange={(event) => onChange({ ...agreements, [item.name]: event.target.checked })}
+              />
+              <span>[필수] {item.label}</span>
+            </label>
+            <button type="button" className="agreement-view-button">보기</button>
+          </div>
         ))}
       </div>
+      <p className="agreement-help">필수 동의를 마쳐야 가입할 수 있어요.</p>
     </>
   )
 }
