@@ -958,3 +958,62 @@ textarea {
     width: 100%;
   }
 }
+
+.signup-complete-shell {
+  display: flex;
+  width: min(100%, 390px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  flex-direction: column;
+  background: #fbfaf6;
+}
+
+.signup-complete-content {
+  padding: 104px 20px 32px;
+  text-align: center;
+}
+
+.signup-complete-mascot {
+  display: flex;
+  width: 350px;
+  height: 170px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: #e7f7ef;
+}
+
+.signup-complete-mascot img {
+  width: 112px;
+  height: auto;
+}
+
+.signup-complete-content h2 {
+  margin: 24px 0 0;
+  color: #202923;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.02em;
+}
+
+.signup-complete-content p {
+  margin: 20px 0 0;
+  color: #63756a;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.signup-complete-shell > .signup-submit-bar {
+  margin-top: auto;
+}
+
+@media (max-width: 390px) {
+  .signup-complete-shell {
+    width: 100%;
+  }
+
+  .signup-complete-mascot {
+    width: 100%;
+  }
+}

@@ -46,6 +46,7 @@ export function SignupPage() {
   const [agreements, setAgreements] = useState<Record<string, boolean>>({})
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
+  const [isComplete, setIsComplete] = useState(false)
 
   const fields = useMemo(
     () => (role === 'organization' ? organizationFields : donorFields),
@@ -82,6 +83,11 @@ export function SignupPage() {
   }
 
   const handleBack = () => {
+    if (isComplete) {
+      setIsComplete(false)
+      return
+    }
+
     if (step === 1) {
       navigate(ROUTES.signup)
       return
@@ -99,7 +105,22 @@ export function SignupPage() {
       return
     }
 
+    setIsComplete(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleStart = () => {
     navigate(role === 'donor' ? ROUTES.donor.home : ROUTES.organization.home)
+  }
+
+  if (isComplete) {
+    return (
+      <SignupComplete
+        role={role}
+        onBack={handleBack}
+        onStart={handleStart}
+      />
+    )
   }
 
   return (
@@ -149,6 +170,49 @@ export function SignupPage() {
             </button>
           </div>
         </form>
+      </section>
+    </main>
+  )
+}
+
+type SignupCompleteProps = {
+  role: SignupRole
+  onBack: () => void
+  onStart: () => void
+}
+
+function SignupComplete({ role, onBack, onStart }: SignupCompleteProps) {
+  const isDonor = role === 'donor'
+
+  return (
+    <main className="auth-page">
+      <section className="signup-complete-shell">
+        <header className="signup-topbar">
+          <button type="button" onClick={onBack} className="back-button" aria-label="약관 동의로 돌아가기">
+            <ArrowLeft aria-hidden size={21} strokeWidth={1.8} />
+          </button>
+          <h1>가입 완료</h1>
+        </header>
+
+        <div className="signup-complete-content">
+          <div className="signup-complete-mascot">
+            <img src={mascot} alt="IT:SSUM 상자 마스코트" />
+          </div>
+          <h2>{isDonor ? '나눔을 시작할 준비가 됐어요' : '함께하게 되어 반가워요'}</h2>
+          <p>
+            {isDonor ? (
+              <>쓸 수 있는 물품을<br />필요한 곳에 이어 주세요.</>
+            ) : (
+              '사업자 확인과 필수 동의가 완료됐어요.'
+            )}
+          </p>
+        </div>
+
+        <div className="signup-submit-bar">
+          <button type="button" onClick={onStart} className="auth-button auth-button--primary w-full">
+            시작하기
+          </button>
+        </div>
       </section>
     </main>
   )
