@@ -16,7 +16,10 @@ export function HomePage() {
     <main className="auth-page">
       {showSplash ? (
         <section className="splash-screen" aria-label="시작 화면">
-          <img src={mascot} alt="" className="splash-mascot" />
+          <div className="splash-mascot-stage" aria-hidden>
+            <img src={mascot} alt="" className="splash-mascot" />
+            <span className="splash-mascot-shadow" />
+          </div>
           <img src={logo} alt="IT:SSUM" className="splash-logo" />
         </section>
       ) : (

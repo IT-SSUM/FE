@@ -189,11 +189,101 @@ textarea {
 .splash-mascot {
   width: clamp(132px, 14vw, 190px);
   height: auto;
+  transform-origin: center bottom;
+  animation: splash-boing 920ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.splash-mascot-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.splash-mascot-shadow {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 76px;
+  height: 12px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgb(18 61 49 / 12%);
+  filter: blur(1px);
+  animation: splash-shadow-boing 920ms ease-out both;
 }
 
 .splash-logo {
   width: clamp(174px, 19vw, 233px);
   height: auto;
+  animation: splash-logo-in 460ms ease-out 520ms both;
+}
+
+@keyframes splash-boing {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scaleX(1.08) scaleY(0.84);
+  }
+  34% {
+    opacity: 1;
+    transform: translateY(-18px) scaleX(0.94) scaleY(1.08) rotate(-2deg);
+  }
+  52% {
+    transform: translateY(2px) scaleX(1.06) scaleY(0.94) rotate(1deg);
+  }
+  68% {
+    transform: translateY(-8px) scaleX(0.98) scaleY(1.03) rotate(-0.5deg);
+  }
+  82% {
+    transform: translateY(1px) scaleX(1.02) scaleY(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes splash-shadow-boing {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scaleX(1.15);
+  }
+  34% {
+    opacity: 0.35;
+    transform: translateX(-50%) scaleX(0.6);
+  }
+  52% {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1.08);
+  }
+  68% {
+    opacity: 0.55;
+    transform: translateX(-50%) scaleX(0.76);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+@keyframes splash-logo-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-mascot,
+  .splash-mascot-shadow,
+  .splash-logo {
+    animation: none;
+  }
 }
 
 .site-header {
