@@ -58,15 +58,30 @@ export function BottomNavigation({
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center justify-center gap-1 typography-caption transition-colors',
+                'group flex flex-col items-center justify-center gap-1 typography-label-2 transition-colors',
                 isActive || activeItem === item.key
                   ? 'text-primary-700'
-                  : 'text-neutral-500',
+                  : 'text-neutral-700',
               )
             }
           >
-            <Icon aria-hidden size={24} strokeWidth={2} />
-            <span>{item.label}</span>
+            {({ isActive }) => {
+              const active = isActive || activeItem === item.key
+
+              return (
+                <>
+                  <span
+                    className={cn(
+                      'flex h-6 w-10 items-center justify-center rounded-control text-primary-700 transition-colors',
+                      active ? 'bg-primary-100' : 'bg-transparent',
+                    )}
+                  >
+                    <Icon aria-hidden size={24} strokeWidth={2} />
+                  </span>
+                  <span>{item.label}</span>
+                </>
+              )
+            }}
           </NavLink>
         )
       })}
