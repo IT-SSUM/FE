@@ -1,5 +1,5 @@
 import { Link, Outlet } from 'react-router-dom'
-import { ROUTES } from '@/constants/routes'
+import { ROUTES } from '@/routes/paths'
 
 export function SharedLayout() {
   return (

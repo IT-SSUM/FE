@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { setAuthSession } from '@/routes/authSession'
+import { ROUTES } from '@/routes/paths'
 import mascot from '@/assets/images/mascot/mascot.svg'
-import { ROUTES } from '@/constants/routes'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -14,6 +15,7 @@ export function LoginPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!isFormComplete) return
+    setAuthSession('prototype-session', 'DONOR')
     navigate(ROUTES.donor.home)
   }
 
@@ -21,7 +23,12 @@ export function LoginPage() {
     <main className="auth-page">
       <section className="login-page-shell">
         <header className="login-topbar">
-          <button type="button" onClick={() => navigate(-1)} className="back-button" aria-label="뒤로 가기">
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.start)}
+            className="back-button"
+            aria-label="시작 화면으로 돌아가기"
+          >
             <ArrowLeft aria-hidden size={21} strokeWidth={1.8} />
           </button>
           <h1>로그인</h1>

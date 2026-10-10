@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ROUTES } from '@/routes/paths'
 import mascot from '@/assets/images/mascot/mascot.svg'
 import logo from '@/assets/logo/logo.svg'
-import { ROUTES } from '@/constants/routes'
 
 export function HomePage() {
   const [showSplash, setShowSplash] = useState(true)

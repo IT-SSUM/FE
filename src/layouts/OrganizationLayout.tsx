@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { ROUTES } from '@/constants/routes'
+import { ROUTES } from '@/routes/paths'
 
 const organizationNavItems = [
   { to: ROUTES.organization.home, label: '기관 홈' },
