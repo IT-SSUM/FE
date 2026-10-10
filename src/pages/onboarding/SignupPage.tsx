@@ -2,7 +2,6 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import mascot from '@/assets/images/mascot/mascot.svg'
-import { setAuthSession } from '@/routes/authSession'
 import { ROUTES, routePath } from '@/routes/paths'
 
 type SignupRole = 'donor' | 'organization'
@@ -102,8 +101,6 @@ export function SignupPage() {
       return
     }
 
-    const userRole = role === 'donor' ? 'DONOR' : 'ORGANIZATION'
-    setAuthSession('prototype-session', userRole)
     navigate(role === 'donor' ? ROUTES.donor.home : ROUTES.organization.home)
   }
 

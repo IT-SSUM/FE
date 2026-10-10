@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { setAuthSession } from '@/routes/authSession'
 import { ROUTES } from '@/routes/paths'
 import mascot from '@/assets/images/mascot/mascot.svg'
 
@@ -15,7 +14,6 @@ export function LoginPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!isFormComplete) return
-    setAuthSession('prototype-session', 'DONOR')
     navigate(ROUTES.donor.home)
   }
 

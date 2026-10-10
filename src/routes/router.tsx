@@ -38,7 +38,7 @@ export const router = createBrowserRouter([
   { path: ROUTES.signup, element: <SignupPage /> },
   { path: ROUTES.signupRole, element: <SignupPage /> },
   {
-    element: <ProtectedRoute allowedRoles={['DONOR']} />,
+    element: <ProtectedRoute />,
     children: [
       {
         element: <DonorLayout />,
@@ -55,7 +55,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <ProtectedRoute allowedRoles={['ORGANIZATION']} />,
+    element: <ProtectedRoute />,
     children: [
       {
         element: <OrganizationLayout />,
