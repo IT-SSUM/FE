@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
 import { ItemRow } from '@/components/item/ItemRow/ItemRow'
-import { ROUTES, routePath } from '@/constants/routes'
+import { ROUTES, routePath } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 import wordmarkLogo from '@/assets/logo/itssum-wordmark.svg'
 

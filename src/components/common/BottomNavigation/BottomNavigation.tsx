@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import { ROUTES } from '@/constants/routes'
+import { ROUTES } from '@/routes/paths'
 import { cn } from '@/utils/cn'
 
 export type BottomNavigationActiveItem =

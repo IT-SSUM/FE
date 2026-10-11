@@ -6,7 +6,7 @@ import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { Input } from '@/components/common/Input/Input'
 import { Textarea } from '@/components/common/Textarea/Textarea'
-import { ROUTES, routePath } from '@/constants/routes'
+import { ROUTES, routePath } from '@/routes/paths'
 import { cn } from '@/utils/cn'
 
 type RegisterStep = 'details' | 'condition' | 'complete'

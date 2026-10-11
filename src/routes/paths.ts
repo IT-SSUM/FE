@@ -1,7 +1,9 @@
 export const ROUTES = {
   root: '/',
+  start: '/start',
   login: '/login',
   signup: '/signup',
+  signupRole: '/signup/:role',
   donor: {
     home: '/donor/home',
     donationNew: '/donor/donations/new',
@@ -27,6 +29,7 @@ export const ROUTES = {
 } as const
 
 export const routePath = {
+  signup: (role: 'donor' | 'organization') => `/signup/${role}`,
   donorDonationDetail: (donationId: string) =>
     `/donor/donations/${donationId}`,
   donorNeedDetail: (needId: string) => `/donor/needs/${needId}`,
