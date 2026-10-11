@@ -2,7 +2,7 @@ import { ChevronLeft, Package, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { ItemRow } from '@/components/item/ItemRow/ItemRow'
-import { routePath } from '@/constants/routes'
+import { routePath } from '@/routes/paths'
 
 const needItems = [
   {

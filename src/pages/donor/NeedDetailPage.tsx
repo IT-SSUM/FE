@@ -1,7 +1,7 @@
 import { BookOpen, ChevronLeft } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
-import { routePath } from '@/constants/routes'
+import { routePath } from '@/routes/paths'
 
 const needDetailMap = {
   'water-20': {

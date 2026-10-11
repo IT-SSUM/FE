@@ -1,7 +1,7 @@
 import { BookOpen, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ChatBubble } from '@/components/common/ChatBubble/ChatBubble'
-import { routePath } from '@/constants/routes'
+import { routePath } from '@/routes/paths'
 
 const chatMessages = [
   {
