@@ -5,7 +5,13 @@ import { DonorLayout } from '@/layouts/DonorLayout'
 import { OrganizationLayout } from '@/layouts/OrganizationLayout'
 import { SharedLayout } from '@/layouts/SharedLayout'
 import { DonorHomePage } from '@/pages/donor/DonorHomePage'
+import { DonorDonationEditPage } from '@/pages/donor/DonorDonationEditPage'
+import { DonorDonationHistoryPage } from '@/pages/donor/DonorDonationHistoryPage'
+import { DonorDonationManagePage } from '@/pages/donor/DonorDonationManagePage'
 import { DonorMyPage } from '@/pages/donor/DonorMyPage'
+import { DonorProfileEditPage } from '@/pages/donor/DonorProfileEditPage'
+import { DonorRequestDetailPage } from '@/pages/donor/DonorRequestDetailPage'
+import { DonorRequestListPage } from '@/pages/donor/DonorRequestListPage'
 import { DonationDetailPage as DonorDonationDetailPage } from '@/pages/donor/DonationDetailPage'
 import { DonationRegisterPage } from '@/pages/donor/DonationRegisterPage'
 import { NeedDetailPage as DonorNeedDetailPage } from '@/pages/donor/NeedDetailPage'
@@ -46,10 +52,16 @@ export const router = createBrowserRouter([
           { path: ROUTES.donor.home, element: <DonorHomePage /> },
           { path: ROUTES.donor.donationNew, element: <DonationRegisterPage /> },
           { path: ROUTES.donor.donationDetail, element: <DonorDonationDetailPage /> },
+          { path: ROUTES.donor.donationEdit, element: <DonorDonationEditPage /> },
           { path: ROUTES.donor.needList, element: <NeedListPage /> },
           { path: ROUTES.donor.needDetail, element: <DonorNeedDetailPage /> },
           { path: ROUTES.donor.recommendation, element: <DonorRecommendationPage /> },
           { path: ROUTES.donor.myPage, element: <DonorMyPage /> },
+          { path: ROUTES.donor.myItems, element: <DonorDonationManagePage /> },
+          { path: ROUTES.donor.myRequests, element: <DonorRequestListPage /> },
+          { path: ROUTES.donor.myHistory, element: <DonorDonationHistoryPage /> },
+          { path: ROUTES.donor.myProfile, element: <DonorProfileEditPage /> },
+          { path: ROUTES.donor.requestDetail, element: <DonorRequestDetailPage /> },
         ],
       },
     ],

@@ -11,19 +11,23 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
+import { ROUTES } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 
 const donationMenus = [
   {
     title: '등록한 물품 관리',
+    to: ROUTES.donor.myItems,
     icon: <Package aria-hidden size={22} strokeWidth={2} />,
   },
   {
     title: '보낸 제안 / 받은 요청',
+    to: ROUTES.donor.myRequests,
     icon: <ClipboardList aria-hidden size={22} strokeWidth={2} />,
   },
   {
     title: '기부 내역',
+    to: ROUTES.donor.myHistory,
     icon: <CalendarDays aria-hidden size={22} strokeWidth={2} />,
   },
 ]
@@ -31,6 +35,7 @@ const donationMenus = [
 const accountMenus = [
   {
     title: '회원정보 수정',
+    to: ROUTES.donor.myProfile,
     icon: <UserRound aria-hidden size={22} strokeWidth={2} />,
   },
   {
@@ -93,6 +98,7 @@ export function DonorMyPage() {
 
 type MenuItem = {
   title: string
+  to?: string
   icon: ReactNode
 }
 
@@ -102,6 +108,8 @@ type MenuSectionProps = {
 }
 
 function MenuSection({ title, items }: MenuSectionProps) {
+  const navigate = useNavigate()
+
   return (
     <section className="mt-5">
       <h2 className="typography-label-2 text-neutral-700">{title}</h2>
@@ -110,6 +118,7 @@ function MenuSection({ title, items }: MenuSectionProps) {
           <button
             key={item.title}
             type="button"
+            onClick={() => item.to && navigate(item.to)}
             className="flex h-[60px] w-full items-center gap-3 bg-white p-4 text-left transition-colors hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-primary-700"
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-input bg-primary-100 text-primary-700">
