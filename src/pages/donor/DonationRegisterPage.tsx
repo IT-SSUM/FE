@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, ChevronLeft } from 'lucide-react'
+import { Check, ChevronLeft, ImagePlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
@@ -22,6 +22,7 @@ export function DonationRegisterPage() {
   const [step, setStep] = useState<RegisterStep>('details')
   const [condition, setCondition] =
     useState<(typeof conditionOptions)[number]>('중 · 사용감 적음')
+  const [photoSelected, setPhotoSelected] = useState(false)
 
   const isComplete = step === 'complete'
 
@@ -58,6 +59,8 @@ export function DonationRegisterPage() {
           <ConditionStep
             condition={condition}
             onConditionChange={setCondition}
+            photoSelected={photoSelected}
+            onPhotoToggle={() => setPhotoSelected((selected) => !selected)}
           />
         ) : null}
         {isComplete ? <CompleteStep /> : null}
@@ -66,6 +69,7 @@ export function DonationRegisterPage() {
       <footer className="border border-neutral-200 bg-surface-canvas px-5 py-5">
         <Button
           className="w-full"
+          disabled={step === 'condition' && !photoSelected}
           onClick={() => {
             if (step === 'details') {
               setStep('condition')
@@ -134,11 +138,15 @@ function DetailsStep({ onNext }: DetailsStepProps) {
 type ConditionStepProps = {
   condition: (typeof conditionOptions)[number]
   onConditionChange: (condition: (typeof conditionOptions)[number]) => void
+  photoSelected: boolean
+  onPhotoToggle: () => void
 }
 
 function ConditionStep({
   condition,
   onConditionChange,
+  photoSelected,
+  onPhotoToggle,
 }: ConditionStepProps) {
   return (
     <section className="flex flex-col gap-4">
@@ -182,9 +190,30 @@ function ConditionStep({
 
       <div className="flex flex-col gap-2">
         <p className="typography-label-1 text-neutral-900">사진 (최소 1장)</p>
-        <div className="flex size-[120px] items-center justify-center rounded-input bg-error-bg text-primary-700">
-          <BookOpen aria-hidden size={40} strokeWidth={2} />
-        </div>
+        <button
+          type="button"
+          onClick={onPhotoToggle}
+          className={cn(
+            'flex h-[120px] w-full flex-col items-center justify-center gap-2 rounded-card border border-dashed bg-white text-primary-700 transition-colors',
+            photoSelected
+              ? 'border-primary-700 bg-primary-100'
+              : 'border-neutral-500 hover:border-primary-700',
+          )}
+        >
+          {photoSelected ? (
+            <Check aria-hidden size={32} strokeWidth={2.5} />
+          ) : (
+            <ImagePlus aria-hidden size={32} strokeWidth={2} />
+          )}
+          <span className="typography-label-1">
+            {photoSelected ? '사진 1장 등록 완료' : '사진 1장 추가하기'}
+          </span>
+        </button>
+        {!photoSelected ? (
+          <p className="typography-label-2 text-error">
+            등록하려면 물품 사진을 1장 이상 추가해 주세요.
+          </p>
+        ) : null}
       </div>
     </section>
   )
