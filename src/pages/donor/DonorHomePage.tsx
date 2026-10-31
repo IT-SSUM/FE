@@ -6,7 +6,7 @@ import { ItemRow } from '@/components/item/ItemRow/ItemRow'
 import { ROUTES, routePath } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 import { useDonorStore } from '@/features/donor/store'
-import { statsOf, availableQuantity, titleOf } from '@/features/donor/model'
+import { unitOf, statsOf, availableQuantity, titleOf } from '@/features/donor/model'
 import { needItems } from './needSearch'
 import wordmarkLogo from '@/assets/logo/itssum-wordmark.svg'
 
@@ -18,7 +18,7 @@ export function DonorHomePage() {
   const donorHomeMock = {
     userName: profile.name,
     stats: [{ label: '등록 물품', value: stats.total }, { label: '진행 중', value: stats.active }, { label: '기부 완료', value: stats.complete }],
-    activeDonation: { title: active ? titleOf(active) : '진행 중인 나눔이 없어요', description: active ? `예약 ${active.reserved}개 · 남은 ${availableQuantity(active)}개` : '물품을 등록해 나눔을 시작해 보세요.', status: active?.reserved ? 'reserved' as const : 'trading' as const },
+    activeDonation: { title: active ? titleOf(active) : '진행 중인 나눔이 없어요', description: active ? `예약 ${active.reserved}${unitOf(active.name)} · 남은 ${availableQuantity(active)}${unitOf(active.name)}` : '물품을 등록해 나눔을 시작해 보세요.', status: active?.reserved ? 'reserved' as const : 'trading' as const },
     neededItems: needItems.slice(0, 2).map((item) => ({ ...item, distance: item.location, dueText: `희망 상태 ${item.condition}` })),
   }
 

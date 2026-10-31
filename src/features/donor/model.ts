@@ -14,7 +14,8 @@ export type Donation = DonationInput & {
 export type Profile = { name: string; birthDate: string; email: string; phone: string; address: string }
 export type Selection = { donationId: string; organizationId: string; needId: string; quantity: number }
 export type DonorData = { donations: Donation[]; profile: Profile; selections: Record<string, Selection> }
-export const titleOf = (item: Donation) => `${item.name} ${item.quantity}개`
+export const unitOf = (name: string) => ({ 수건: '장', 의류: '벌', '아동 도서': '권', 학용품: '세트' }[name] ?? '개')
+export const titleOf = (item: Donation) => `${item.name} ${item.quantity}${unitOf(item.name)}`
 export const availableQuantity = (item: Donation) => item.status === 'complete' ? 0 : item.quantity - item.reserved
 export const canEdit = (item: Donation) => item.status !== 'complete' && item.reserved === 0
 export function today() {

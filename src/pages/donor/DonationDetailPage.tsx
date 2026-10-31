@@ -4,7 +4,7 @@ import { Badge } from '@/components/common/Badge/Badge'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES, routePath } from '@/routes/paths'
-import { availableQuantity, canEdit, titleOf } from '@/features/donor/model'
+import { unitOf, availableQuantity, canEdit, titleOf } from '@/features/donor/model'
 import { useDonorStore } from '@/features/donor/store'
 import { DonorPage, EmptyState } from '@/features/donor/DonorPage'
 
@@ -28,7 +28,7 @@ export function DonationDetailPage() {
     <p className="typography-body-2 text-neutral-700">{item.category} · {item.location}</p>
     <div className="flex gap-2 overflow-x-auto">{item.photos.map((photo, index) => <img key={index} src={photo} alt={`물품 사진 ${index + 1}`} className="h-52 w-full shrink-0 rounded-card object-contain bg-white" />)}</div>
     <dl className="space-y-2 rounded-card border border-neutral-200 bg-white p-4">
-      {[['전체 수량', `${item.quantity}개`], ['예약 수량', `${item.reserved}개`], ['남은 수량', `${availableQuantity(item)}개`], ['상태', item.condition], ['수령 기간', `${item.startDate} ~ ${item.endDate}`], ...(item.status === 'complete' ? [['수령 기관', item.recipient ?? '정보 없음'], ['완료일', item.completedAt ?? '정보 없음']] : [])].map(([label, value]) => <div key={label} className="grid grid-cols-[88px_1fr] gap-2"><dt className="text-neutral-700">{label}</dt><dd>{value}</dd></div>)}
+      {[['전체 수량', `${item.quantity}${unitOf(item.name)}`], ['예약 수량', `${item.reserved}${unitOf(item.name)}`], ['남은 수량', `${availableQuantity(item)}${unitOf(item.name)}`], ['상태', item.condition], ['수령 기간', `${item.startDate} ~ ${item.endDate}`], ...(item.status === 'complete' ? [['수령 기관', item.recipient ?? '정보 없음'], ['완료일', item.completedAt ?? '정보 없음']] : [])].map(([label, value]) => <div key={label} className="grid grid-cols-[88px_1fr] gap-2"><dt className="text-neutral-700">{label}</dt><dd>{value}</dd></div>)}
     </dl>
     {item.description ? <section><h3 className="typography-title-3">상세 설명</h3><p className="mt-2 whitespace-pre-wrap break-words">{item.description}</p></section> : null}
     {!editable ? <p className="typography-label-2 text-neutral-700">예약 중이거나 완료된 물품은 수정·삭제할 수 없어요.</p> : null}

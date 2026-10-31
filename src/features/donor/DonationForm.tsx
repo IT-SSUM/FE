@@ -5,7 +5,7 @@ import { Input } from '@/components/common/Input/Input'
 import { Textarea } from '@/components/common/Textarea/Textarea'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES, routePath } from '@/routes/paths'
-import { canEdit, catalog, today, validateDonation, type Donation, type DonationInput } from './model'
+import { unitOf, canEdit, catalog, today, validateDonation, type Donation, type DonationInput } from './model'
 import { useDonorStore } from './store'
 import { DonorPage, EmptyState } from './DonorPage'
 import { PhotoInput } from './PhotoInput'
@@ -59,7 +59,7 @@ export function DonationForm({ item, editing = false, preset }: { item?: Donatio
       {step === 1 ? <>
         <label className="block space-y-2"><span>카테고리 *</span><select aria-label="카테고리" value={draft.category} className={selectClass} onChange={(event) => { change('category', event.target.value); change('name', '') }}><option value="">선택해 주세요</option>{Object.keys(catalog).map((value) => <option key={value}>{value}</option>)}</select></label>
         <label className="block space-y-2"><span>품목 *</span><select aria-label="품목" aria-invalid={Boolean(errors.name)} value={draft.name} className={selectClass} onChange={(event) => change('name', event.target.value)}><option value="">선택해 주세요</option>{(catalog[draft.category] ?? []).map((value) => <option key={value}>{value}</option>)}</select>{errors.name ? <span className="text-error">{errors.name}</span> : null}</label>
-        <Input label="수량 (개)" type="number" min={1} max={9999} step={1} required value={Number.isNaN(draft.quantity) ? '' : draft.quantity} error={errors.quantity} onChange={(event) => change('quantity', event.target.value === '' ? NaN : Number(event.target.value))} />
+        <Input label={`수량 (${unitOf(draft.name)})`} type="number" min={1} max={9999} step={1} required value={Number.isNaN(draft.quantity) ? '' : draft.quantity} error={errors.quantity} onChange={(event) => change('quantity', event.target.value === '' ? NaN : Number(event.target.value))} />
         <Input label="수령 지역 (시·구 단위)" required maxLength={100} value={draft.location} error={errors.location} onChange={(event) => change('location', event.target.value)} placeholder="서울 구로구" />
         <Input label="수령 시작일" type="date" required value={draft.startDate} error={errors.startDate} onChange={(event) => change('startDate', event.target.value)} />
         <Input label="수령 종료일" type="date" required min={draft.startDate > today() ? draft.startDate : today()} value={draft.endDate} error={errors.endDate} onChange={(event) => change('endDate', event.target.value)} />

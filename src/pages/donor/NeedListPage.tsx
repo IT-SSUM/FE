@@ -76,6 +76,7 @@ export function NeedListPage() {
             <label key={filter.key} className="min-w-0 max-w-full">
               <span className="sr-only">{filter.label}</span>
               <select
+                aria-label={filter.label}
                 value={selected[filter.key]}
                 onChange={(event) => updateFilter(filter.key, event.target.value)}
                 className="max-w-full rounded-pill border border-neutral-200 bg-white px-3 py-2 typography-label-1 text-primary-700 focus-visible:outline-primary-700"

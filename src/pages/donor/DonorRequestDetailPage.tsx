@@ -5,7 +5,7 @@ import { TransactionStatus } from '@/components/common/TransactionStatus/Transac
 import { ROUTES, routePath } from '@/routes/paths'
 
 import { useDonorStore } from '@/features/donor/store'
-import { availableQuantity, titleOf } from '@/features/donor/model'
+import { unitOf, availableQuantity, titleOf } from '@/features/donor/model'
 import { DonorPage, EmptyState } from '@/features/donor/DonorPage'
 
 const requestDetailMap = {
@@ -81,7 +81,7 @@ export function DonorRequestDetailPage() {
           <dl className="space-y-2 typography-body-2">
             <InfoRow label="연결 물품" value={titleOf(item)} />
             <InfoRow label="신청 수량" value={request.requestQuantity} />
-            <InfoRow label="남은 수량" value={`${availableQuantity(item)}개`} />
+            <InfoRow label="남은 수량" value={`${availableQuantity(item)}${unitOf(item.name)}`} />
           </dl>
         </section>
 

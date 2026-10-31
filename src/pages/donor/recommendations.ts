@@ -1,4 +1,4 @@
-import { availableQuantity, today, type Donation } from '../../features/donor/model.ts'
+import { unitOf, availableQuantity, today, type Donation } from '../../features/donor/model.ts'
 
 export const organizations = [
   { id: 'org-1', rank: 1, name: '구로지역아동센터', address: '서울 구로구 가마산로 12', introduction: '아이들의 방과 후 돌봄과 학습을 지원하는 기관입니다.', reason: '필요한 품목과 상태가 맞고 가까워요.' },
@@ -10,7 +10,7 @@ export const organizations = [
 // 실제 AI 대신 로컬 시연용 후보를 제공합니다.
 export function getRecommendation(item: Donation | undefined) {
   if (!item || availableQuantity(item) <= 0 || item.endDate < today()) return undefined
-  return { title: item.name, quantity: availableQuantity(item), unit: '개', condition: item.condition }
+  return { title: item.name, quantity: availableQuantity(item), unit: unitOf(item.name), condition: item.condition }
 }
 export function recommendationCandidates(item: Donation | undefined) {
   return getRecommendation(item) && item?.condition !== '하' ? organizations : []

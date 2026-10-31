@@ -10,8 +10,8 @@ export function initialData(): DonorData {
   const donations: Donation[] = [
     { ...base, id: 'towels-30', name: '수건', category: '생활용품', quantity: 30, reserved: 10, status: 'progress' },
     { ...base, id: 'books-12', name: '아동 도서', category: '도서·문구', quantity: 12 },
-    { ...base, id: 'water-24', name: '생수', category: '미사용 소모품', quantity: 24, condition: '상', status: 'complete', completedAt: '2026-10-08', recipient: '구로푸드뱅크' },
-    { ...base, id: 'stationery-30', name: '학용품', category: '도서·문구', quantity: 30, condition: '상', status: 'complete', completedAt: '2026-09-28', recipient: 'A지역아동센터' },
+    { ...base, id: 'water-24', name: '생수', category: '미사용 소모품', quantity: 24, condition: '상', status: 'complete', startDate: '2026-10-01', endDate: '2026-10-08', completedAt: '2026-10-08', recipient: '구로푸드뱅크' },
+    { ...base, id: 'stationery-30', name: '학용품', category: '도서·문구', quantity: 30, condition: '상', status: 'complete', startDate: '2026-09-20', endDate: '2026-09-28', completedAt: '2026-09-28', recipient: 'A지역아동센터' },
   ]
   return { donations, selections: {}, profile: { name: '최윤서', birthDate: '2002-04-12', email: 'yoonseo@example.com', phone: '010-1234-5678', address: '서울 구로구' } }
 }
