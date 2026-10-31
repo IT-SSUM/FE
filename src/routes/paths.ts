@@ -12,6 +12,7 @@ export const ROUTES = {
     needList: '/donor/needs',
     needDetail: '/donor/needs/:needId',
     recommendation: '/donor/recommendations/:donationId',
+    recommendedOrganization: '/donor/recommendations/:donationId/organizations/:organizationId',
     myPage: '/donor/mypage',
     myItems: '/donor/mypage/items',
     myRequests: '/donor/mypage/requests',
@@ -44,6 +45,8 @@ export const routePath = {
   donorRecommendation: (donationId: string) =>
     `/donor/recommendations/${donationId}`,
   donorRequestDetail: (requestId: string) => `/donor/requests/${requestId}`,
+  donorRecommendedOrganization: (donationId: string, organizationId: string) =>
+    `/donor/recommendations/${encodeURIComponent(donationId)}/organizations/${encodeURIComponent(organizationId)}`,
   organizationNeedDetail: (needId: string) => `/organization/needs/${needId}`,
   organizationDonationDetail: (donationId: string) =>
     `/organization/donations/${donationId}`,

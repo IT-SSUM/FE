@@ -5,6 +5,7 @@ import { Badge } from '@/components/common/Badge/Badge'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { routePath } from '@/routes/paths'
+import { getRecommendation } from './recommendations'
 
 const donationDetailMap = {
   'towels-30': {
@@ -112,6 +113,11 @@ export function DonationDetailPage() {
       </main>
 
       <footer className="grid shrink-0 grid-cols-2 gap-2 border-t border-neutral-200 bg-surface-canvas px-5 py-4">
+        {donationId && getRecommendation(donationId) ? (
+          <Button className="col-span-2" onClick={() => navigate(routePath.donorRecommendation(donationId))}>
+            추천 기관 보기
+          </Button>
+        ) : null}
         <Button
           variant="secondary"
           disabled={!isEditable}

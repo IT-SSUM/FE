@@ -56,6 +56,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.donor.needList, element: <NeedListPage /> },
           { path: ROUTES.donor.needDetail, element: <DonorNeedDetailPage /> },
           { path: ROUTES.donor.recommendation, element: <DonorRecommendationPage /> },
+          { path: ROUTES.donor.recommendedOrganization, element: <DonorRecommendationPage /> },
           { path: ROUTES.donor.myPage, element: <DonorMyPage /> },
           { path: ROUTES.donor.myItems, element: <DonorDonationManagePage /> },
           { path: ROUTES.donor.myRequests, element: <DonorRequestListPage /> },
