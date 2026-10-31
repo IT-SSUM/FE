@@ -2,10 +2,14 @@ import { ChevronLeft, MessageCircle } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { TransactionStatus } from '@/components/common/TransactionStatus/TransactionStatus'
-import { routePath } from '@/routes/paths'
+import { ROUTES, routePath } from '@/routes/paths'
+
+import { useDonorStore } from '@/features/donor/store'
+import { availableQuantity, titleOf } from '@/features/donor/model'
+import { DonorPage, EmptyState } from '@/features/donor/DonorPage'
 
 const requestDetailMap = {
-  'req-towels-a': {
+  'req-towels-a': { donationId: 'towels-30',
     title: '구로희망복지관 요청',
     status: 'request' as const,
     itemName: '수건 30장',
@@ -16,7 +20,7 @@ const requestDetailMap = {
     reason:
       '생활 지원 물품으로 수건이 부족해 신청했어요. 상태가 좋은 물품이라면 바로 전달받아 사용할 수 있어요.',
   },
-  'offer-books-b': {
+  'offer-books-b': { donationId: 'books-12',
     title: 'A지역아동센터 제안',
     status: 'trading' as const,
     itemName: '아동 도서 12권',
@@ -27,7 +31,7 @@ const requestDetailMap = {
     reason:
       '아이들의 독서 활동에 적합한 기관으로 판단되어 기부 제안을 보냈어요.',
   },
-  'req-water-c': {
+  'req-water-c': { donationId: 'water-24',
     title: '구로푸드뱅크 요청',
     status: 'complete' as const,
     itemName: '미개봉 생수 24개',
@@ -42,9 +46,9 @@ const requestDetailMap = {
 export function DonorRequestDetailPage() {
   const navigate = useNavigate()
   const { requestId } = useParams()
-  const request =
-    requestDetailMap[requestId as keyof typeof requestDetailMap] ??
-    requestDetailMap['req-towels-a']
+  const request = requestId && Object.hasOwn(requestDetailMap, requestId) ? requestDetailMap[requestId as keyof typeof requestDetailMap] : undefined
+  const item = useDonorStore((state) => state.data.donations.find((row) => row.id === request?.donationId))
+  if (!request || !item) return <DonorPage title="요청 상세" back={ROUTES.donor.myRequests}><EmptyState title="요청 정보를 찾을 수 없어요" to={ROUTES.donor.myRequests} label="요청 목록 보기" /></DonorPage>
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -75,9 +79,9 @@ export function DonorRequestDetailPage() {
 
         <section className="mt-5 rounded-card border border-neutral-200 bg-white p-4">
           <dl className="space-y-2 typography-body-2">
-            <InfoRow label="연결 물품" value={request.itemName} />
+            <InfoRow label="연결 물품" value={titleOf(item)} />
             <InfoRow label="신청 수량" value={request.requestQuantity} />
-            <InfoRow label="남은 수량" value={request.remainQuantity} />
+            <InfoRow label="남은 수량" value={`${availableQuantity(item)}개`} />
           </dl>
         </section>
 
@@ -98,7 +102,7 @@ export function DonorRequestDetailPage() {
           onClick={() => navigate(routePath.chatRoom('mock-need-chat'))}
         >
           <MessageCircle aria-hidden size={18} strokeWidth={2} />
-          채팅
+          채팅 미리보기
         </Button>
       </footer>
     </div>

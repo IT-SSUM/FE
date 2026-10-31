@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useBlocker, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Input } from '@/components/common/Input/Input'
 import { Textarea } from '@/components/common/Textarea/Textarea'
@@ -10,16 +10,17 @@ import { useDonorStore } from './store'
 import { DonorPage, EmptyState } from './DonorPage'
 import { PhotoInput } from './PhotoInput'
 
-export function DonationForm({ item, editing = false }: { item?: Donation; editing?: boolean }) {
+export function DonationForm({ item, editing = false, preset }: { item?: Donation; editing?: boolean; preset?: { name: string; category: string } }) {
   const navigate = useNavigate()
   const save = useDonorStore((state) => state.save)
-  const [draft, setDraft] = useState<DonationInput>(() => item ?? { name: '', category: '', quantity: 1, condition: '중', location: '', startDate: today(), endDate: today(), description: '', photos: [] })
+  const [draft, setDraft] = useState<DonationInput>(() => item ?? { name: preset?.name ?? '', category: preset?.category ?? '', quantity: 1, condition: '중', location: '', startDate: today(), endDate: today(), description: '', photos: [] })
   const [step, setStep] = useState(1)
   const [errors, setErrors] = useState<Partial<Record<keyof DonationInput, string>>>({})
   const [failure, setFailure] = useState('')
   const [busy, setBusy] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [savedId, setSavedId] = useState('')
+  const blocker = useBlocker(dirty && !savedId)
   const submitted = useRef(false)
   const form = useRef<HTMLFormElement>(null)
   useEffect(() => {
@@ -70,5 +71,6 @@ export function DonationForm({ item, editing = false }: { item?: Donation; editi
       {failure ? <p role="alert" className="text-error">{failure}</p> : null}
     </form>
     <Dialog open={Boolean(savedId)} title={editing ? '물품을 수정했어요' : '물품을 등록했어요'} description="현재 브라우저에 저장했어요. 실제 기관에는 공개되지 않습니다." confirmText="내 물품 보기" cancelText="추천 기관 보기" onConfirm={() => navigate(routePath.donorDonationDetail(savedId), { replace: true })} onCancel={() => navigate(routePath.donorRecommendation(savedId), { replace: true })} />
+    <Dialog open={blocker.state === 'blocked'} title="작성 중인 내용을 버릴까요?" description="저장하지 않은 입력 내용은 사라집니다." confirmText="나가기" cancelText="계속 작성하기" onConfirm={() => blocker.state === 'blocked' && blocker.proceed()} onCancel={() => blocker.state === 'blocked' && blocker.reset()} />
   </DonorPage>
 }

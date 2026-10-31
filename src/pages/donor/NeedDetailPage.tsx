@@ -1,7 +1,9 @@
 import { BookOpen, ChevronLeft } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
-import { routePath } from '@/routes/paths'
+import { ROUTES } from '@/routes/paths'
+
+import { DonorPage, EmptyState } from '@/features/donor/DonorPage'
 
 const needDetailMap = {
   'water-20': {
@@ -13,7 +15,7 @@ const needDetailMap = {
     condition: '상',
     location: '서울 구로구 ○○로 12',
     description:
-      '초등학생 아이들이 함께 읽을 책이 필요해요. 깨끗한 동화책과 학습 도서를 기다리고 있어요. 초등학생 아이들이 함께 읽을 책이 필요해요. 깨끗한 동화책과 학습 도서를 기다리고 있어요.',
+      '지역 아동의 야외 활동과 돌봄 프로그램에 사용할 미개봉 생수가 필요해요.',
     organizationIntro:
       '아이들의 일상과 성장을 함께하는 지역 돌봄 기관이에요. 아이들의 일상과 성장을 함께하는 지역 돌봄 기관이에요.',
   },
@@ -48,9 +50,8 @@ const needDetailMap = {
 export function NeedDetailPage() {
   const navigate = useNavigate()
   const { needId } = useParams()
-  const need =
-    needDetailMap[needId as keyof typeof needDetailMap] ??
-    needDetailMap['water-20']
+  const need = needId && Object.hasOwn(needDetailMap, needId) ? needDetailMap[needId as keyof typeof needDetailMap] : undefined
+  if (!need) return <DonorPage title="필요 물품 상세" back={ROUTES.donor.needList}><EmptyState title="요청한 물품을 찾을 수 없어요" to={ROUTES.donor.needList} label="목록으로 돌아가기" /></DonorPage>
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -102,9 +103,9 @@ export function NeedDetailPage() {
       <footer className="shrink-0 border border-neutral-200 bg-surface-canvas px-5 py-4">
         <Button
           className="w-full"
-          onClick={() => navigate(routePath.chatRoom('mock-need-chat'))}
+          onClick={() => navigate(`${ROUTES.donor.donationNew}?needId=${needId}`)}
         >
-          기부 제안 · 채팅 시작
+          이 품목 기부하기
         </Button>
       </footer>
     </div>
