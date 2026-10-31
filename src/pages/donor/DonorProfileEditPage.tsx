@@ -1,43 +1,29 @@
-import { ChevronLeft } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/common/Button/Button'
 import { Input } from '@/components/common/Input/Input'
-
+import { Button } from '@/components/common/Button/Button'
+import { ROUTES } from '@/routes/paths'
+import { useDonorStore } from '@/features/donor/store'
+import { today, validateProfile, type Profile } from '@/features/donor/model'
+import { DonorPage } from '@/features/donor/DonorPage'
 export function DonorProfileEditPage() {
+  const profile = useDonorStore((state) => state.data.profile)
+  const save = useDonorStore((state) => state.saveProfile)
+  const [draft, setDraft] = useState(profile)
+  const [errors, setErrors] = useState<Partial<Record<keyof Profile, string>>>({})
+  const [failure, setFailure] = useState('')
   const navigate = useNavigate()
-
-  return (
-    <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
-        <button
-          type="button"
-          aria-label="뒤로가기"
-          onClick={() => navigate(-1)}
-          className="flex size-6 shrink-0 items-center justify-center text-primary-700"
-        >
-          <ChevronLeft aria-hidden size={24} strokeWidth={2} />
-        </button>
-        <h1 className="typography-title-3 text-neutral-900">회원정보 수정</h1>
-      </header>
-
-      <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
-        <section className="rounded-card border border-neutral-200 bg-white p-4">
-          <h2 className="typography-title-2 text-neutral-900">기본 정보</h2>
-          <div className="mt-4 space-y-4">
-            <Input label="이름" defaultValue="최윤서" />
-            <Input label="생년월일" defaultValue="2002.04.12" />
-            <Input label="이메일" defaultValue="yoonseo@example.com" />
-            <Input label="전화번호" defaultValue="010-1234-5678" />
-            <Input label="주소" defaultValue="서울 구로구" />
-          </div>
-        </section>
-      </main>
-
-      <footer className="shrink-0 border-t border-neutral-200 bg-surface-canvas px-5 py-4">
-        <Button className="w-full" onClick={() => navigate(-1)}>
-          저장하기
-        </Button>
-      </footer>
-    </div>
-  )
+  return <DonorPage title="회원정보 수정" back={ROUTES.donor.myPage}>
+    <form noValidate className="space-y-4" onSubmit={(event) => {
+      event.preventDefault()
+      const checked = validateProfile(draft); setErrors(checked)
+      if (Object.keys(checked).length) return
+      try { save(draft); navigate(ROUTES.donor.myPage, { replace: true }) }
+      catch (cause) { setFailure(cause instanceof Error ? cause.message : '저장하지 못했어요.') }
+    }}>
+      {([['name', '이름', 'text'], ['birthDate', '생년월일', 'date'], ['email', '이메일', 'email'], ['phone', '전화번호', 'tel'], ['address', '주소 (시·구 단위)', 'text']] as const).map(([key, label, type]) => <Input key={key} required label={label} type={type} max={key === 'birthDate' ? today() : undefined} maxLength={100} value={draft[key]} error={errors[key]} onChange={(event) => { setDraft({ ...draft, [key]: event.target.value }); setFailure('') }} />)}
+      {failure ? <p role="alert" className="text-error">{failure}</p> : null}
+      <Button type="submit" className="w-full">저장하기</Button>
+    </form>
+  </DonorPage>
 }

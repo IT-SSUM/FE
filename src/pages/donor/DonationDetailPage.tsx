@@ -1,166 +1,41 @@
 import { useState } from 'react'
-import { ChevronLeft, Package } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Badge } from '@/components/common/Badge/Badge'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
-import { routePath } from '@/routes/paths'
-import { getRecommendation } from './recommendations'
-
-const donationDetailMap = {
-  'towels-30': {
-    title: '수건 30장',
-    status: 'progress' as const,
-    category: '생활용품',
-    quantity: '30장',
-    remainQuantity: '20장',
-    condition: '중',
-    location: '서울 구로구',
-    period: '2026.10.12 - 2026.10.18',
-    description:
-      '세탁 완료한 수건 30장입니다. 기관 A와 10장 예약되어 있고 남은 20장은 추가 매칭이 가능해요.',
-  },
-  'books-12': {
-    title: '아동 도서 12권',
-    status: 'waiting' as const,
-    category: '도서·문구',
-    quantity: '12권',
-    remainQuantity: '12권',
-    condition: '중',
-    location: '서울 구로구',
-    period: '2026.10.14 - 2026.10.21',
-    description: '초등학생이 읽기 좋은 동화책과 학습 도서입니다.',
-  },
-  'water-24': {
-    title: '미개봉 생수 24개',
-    status: 'complete' as const,
-    category: '미사용 소모품',
-    quantity: '24개',
-    remainQuantity: '0개',
-    condition: '상',
-    location: '서울 구로구',
-    period: '2026.10.01 - 2026.10.08',
-    description: '미개봉 생수 24개를 구로푸드뱅크에 전달 완료했어요.',
-  },
-  'stationery-30': {
-    title: '학용품 30세트',
-    status: 'complete' as const,
-    category: '도서·문구',
-    quantity: '30세트',
-    remainQuantity: '0세트',
-    condition: '상',
-    location: '서울 구로구',
-    period: '2026.09.20 - 2026.09.28',
-    description: '새 학용품 세트를 A지역아동센터에 전달 완료했어요.',
-  },
-} as const
+import { ROUTES, routePath } from '@/routes/paths'
+import { availableQuantity, canEdit, titleOf } from '@/features/donor/model'
+import { useDonorStore } from '@/features/donor/store'
+import { DonorPage, EmptyState } from '@/features/donor/DonorPage'
 
 export function DonationDetailPage() {
-  const navigate = useNavigate()
   const { donationId } = useParams()
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const donation =
-    donationDetailMap[donationId as keyof typeof donationDetailMap] ??
-    donationDetailMap['towels-30']
-  const isEditable = donation.status !== 'complete'
-
-  return (
-    <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
-        <button
-          type="button"
-          aria-label="뒤로가기"
-          onClick={() => navigate(-1)}
-          className="flex size-6 shrink-0 items-center justify-center text-primary-700"
-        >
-          <ChevronLeft aria-hidden size={24} strokeWidth={2} />
-        </button>
-        <h1 className="typography-title-3 text-neutral-900">기부 물품 상세</h1>
-      </header>
-
-      <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="typography-heading-2 text-neutral-900">
-              {donation.title}
-            </h2>
-            <p className="mt-2 typography-body-2 text-neutral-700">
-              {donation.category} · {donation.location}
-            </p>
-          </div>
-          <Badge variant={donation.status} className="shrink-0" />
-        </div>
-
-        <div className="mt-4 flex h-[216px] items-center justify-center rounded-card bg-primary-100 text-primary-700">
-          <Package aria-hidden size={88} strokeWidth={2} />
-        </div>
-
-        <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
-          <dl className="space-y-2 typography-body-2">
-            <InfoRow label="전체 수량" value={donation.quantity} />
-            <InfoRow label="남은 수량" value={donation.remainQuantity} />
-            <InfoRow label="물품 상태" value={donation.condition} />
-            <InfoRow label="수령 기간" value={donation.period} />
-          </dl>
-        </section>
-
-        <section className="mt-5">
-          <h3 className="typography-title-2 text-neutral-900">상세 설명</h3>
-          <p className="mt-3 typography-body-1 text-neutral-900">
-            {donation.description}
-          </p>
-        </section>
-      </main>
-
-      <footer className="grid shrink-0 grid-cols-2 gap-2 border-t border-neutral-200 bg-surface-canvas px-5 py-4">
-        {donationId && getRecommendation(donationId) ? (
-          <Button className="col-span-2" onClick={() => navigate(routePath.donorRecommendation(donationId))}>
-            추천 기관 보기
-          </Button>
-        ) : null}
-        <Button
-          variant="secondary"
-          disabled={!isEditable}
-          onClick={() => setDeleteOpen(true)}
-        >
-          삭제
-        </Button>
-        <Button
-          disabled={!isEditable}
-          onClick={() =>
-            navigate(routePath.donorDonationEdit(donationId ?? 'towels-30'))
-          }
-        >
-          수정
-        </Button>
-      </footer>
-
-      <Dialog
-        open={deleteOpen}
-        title="물품을 삭제할까요?"
-        description="삭제한 물품은 목록에서 사라지고 다시 추천 대상에 포함되지 않아요."
-        confirmText="삭제하기"
-        cancelText="취소"
-        onConfirm={() => {
-          setDeleteOpen(false)
-          navigate(-1)
-        }}
-        onCancel={() => setDeleteOpen(false)}
-      />
-    </div>
-  )
-}
-
-type InfoRowProps = {
-  label: string
-  value: string
-}
-
-function InfoRow({ label, value }: InfoRowProps) {
-  return (
-    <div className="grid grid-cols-[88px_1fr] gap-2">
-      <dt className="text-neutral-700">{label}</dt>
-      <dd className="text-neutral-900">{value}</dd>
-    </div>
-  )
+  const navigate = useNavigate()
+  const item = useDonorStore((state) => state.data.donations.find((row) => row.id === donationId))
+  const remove = useDonorStore((state) => state.remove)
+  const [open, setOpen] = useState(false)
+  const [error, setError] = useState('')
+  if (!item) return <DonorPage title="기부 물품 상세" back={ROUTES.donor.myItems}><EmptyState title="삭제되었거나 존재하지 않는 물품이에요" to={ROUTES.donor.myItems} label="내 물품 보기" /></DonorPage>
+  const editable = canEdit(item)
+  return <DonorPage title="기부 물품 상세" back={ROUTES.donor.myItems} footer={
+    <footer className="grid grid-cols-2 gap-2 border-t border-neutral-200 px-5 py-4">
+      {availableQuantity(item) > 0 ? <Button className="col-span-2" onClick={() => navigate(routePath.donorRecommendation(item.id))}>추천 기관 보기</Button> : null}
+      <Button variant="secondary" disabled={!editable} onClick={() => setOpen(true)}>삭제</Button>
+      <Button disabled={!editable} onClick={() => navigate(routePath.donorDonationEdit(item.id))}>수정</Button>
+    </footer>
+  }>
+    <div className="flex items-start justify-between gap-2"><h2 className="typography-heading-2">{titleOf(item)}</h2><Badge variant={item.status} /></div>
+    <p className="typography-body-2 text-neutral-700">{item.category} · {item.location}</p>
+    <div className="flex gap-2 overflow-x-auto">{item.photos.map((photo, index) => <img key={index} src={photo} alt={`물품 사진 ${index + 1}`} className="h-52 w-full shrink-0 rounded-card object-contain bg-white" />)}</div>
+    <dl className="space-y-2 rounded-card border border-neutral-200 bg-white p-4">
+      {[['전체 수량', `${item.quantity}개`], ['예약 수량', `${item.reserved}개`], ['남은 수량', `${availableQuantity(item)}개`], ['상태', item.condition], ['수령 기간', `${item.startDate} ~ ${item.endDate}`], ...(item.status === 'complete' ? [['수령 기관', item.recipient ?? '정보 없음'], ['완료일', item.completedAt ?? '정보 없음']] : [])].map(([label, value]) => <div key={label} className="grid grid-cols-[88px_1fr] gap-2"><dt className="text-neutral-700">{label}</dt><dd>{value}</dd></div>)}
+    </dl>
+    {item.description ? <section><h3 className="typography-title-3">상세 설명</h3><p className="mt-2 whitespace-pre-wrap break-words">{item.description}</p></section> : null}
+    {!editable ? <p className="typography-label-2 text-neutral-700">예약 중이거나 완료된 물품은 수정·삭제할 수 없어요.</p> : null}
+    {error ? <p role="alert" className="text-error">{error}</p> : null}
+    <Dialog open={open} title="물품을 삭제할까요?" description="삭제한 물품과 해당 물품의 기관 선택 내역은 복구할 수 없어요." confirmText="삭제하기" onCancel={() => setOpen(false)} onConfirm={() => {
+      try { remove(item.id); navigate(ROUTES.donor.myItems, { replace: true }) }
+      catch (cause) { setError(cause instanceof Error ? cause.message : '삭제하지 못했어요.'); setOpen(false) }
+    }} />
+  </DonorPage>
 }
