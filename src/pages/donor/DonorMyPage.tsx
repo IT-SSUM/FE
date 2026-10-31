@@ -4,7 +4,6 @@ import {
   ChevronRight,
   ClipboardList,
   Package,
-  ShieldCheck,
   UserRound,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -12,6 +11,8 @@ import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
 import { ROUTES } from '@/routes/paths'
+import { useDonorStore } from '@/features/donor/store'
+import { statsOf } from '@/features/donor/model'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 
 const donationMenus = [
@@ -38,14 +39,13 @@ const accountMenus = [
     to: ROUTES.donor.myProfile,
     icon: <UserRound aria-hidden size={22} strokeWidth={2} />,
   },
-  {
-    title: '회원 탈퇴',
-    icon: <ShieldCheck aria-hidden size={22} strokeWidth={2} />,
-  },
+
 ]
 
 export function DonorMyPage() {
   const navigate = useNavigate()
+  const { profile, donations } = useDonorStore((state) => state.data)
+  const stats = statsOf(donations)
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -65,10 +65,10 @@ export function DonorMyPage() {
         <section className="flex h-24 items-center gap-3 rounded-card bg-primary-100 px-4 py-3">
           <div className="min-w-0 flex-1">
             <h2 className="truncate whitespace-nowrap typography-title-2 text-neutral-900">
-              최윤서님 · 서울 구로구
+              {profile.name}님 · {profile.address}
             </h2>
             <p className="mt-2 typography-label-2 text-neutral-700">
-              기부자 · 등록 4 · 진행 4 · 완료 5
+              기부자 · 등록 {stats.total} · 진행 {stats.active} · 완료 {stats.complete}
             </p>
           </div>
           <img
@@ -85,10 +85,12 @@ export function DonorMyPage() {
       <div className="shrink-0 px-5 pb-9 pt-2">
         <Button
           variant="secondary"
+          disabled
           className="w-full border-neutral-400 text-neutral-700 hover:bg-neutral-100"
         >
-          로그아웃
+          로그아웃 (인증 연동 예정)
         </Button>
+        <p className="mt-2 typography-label-2 text-neutral-700">현재 데모에서는 로그인·로그아웃 및 회원 탈퇴를 지원하지 않습니다.</p>
       </div>
 
       <BottomNavigation activeItem="my" className="sticky bottom-0 shrink-0" />

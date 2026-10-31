@@ -1,9 +1,12 @@
 import { create } from 'zustand'
 import samplePhoto from '@/assets/images/mascot/box-happy.png'
-import { deleteDonation, saveDonation, today, validateProfile, type Donation, type DonationInput, type DonorData, type Profile } from './model'
+import { deleteDonation, isDonorData, saveDonation, today, validateProfile, type Donation, type DonationInput, type DonorData, type Profile } from './model'
 
 export function initialData(): DonorData {
-  const base = { condition: '중', location: '서울 구로구', startDate: today(), endDate: '2099-12-31', description: '시연용 샘플 물품입니다.', photos: [samplePhoto], reserved: 0, status: 'waiting' as const }
+  const end = new Date(`${today()}T12:00:00`)
+  end.setDate(end.getDate() + 14)
+  const endDate = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
+  const base = { condition: '중', location: '서울 구로구', startDate: today(), endDate, description: '시연용 샘플 물품입니다.', photos: [samplePhoto], reserved: 0, status: 'waiting' as const }
   const donations: Donation[] = [
     { ...base, id: 'towels-30', name: '수건', category: '생활용품', quantity: 30, reserved: 10, status: 'progress' },
     { ...base, id: 'books-12', name: '아동 도서', category: '도서·문구', quantity: 12 },
@@ -17,8 +20,8 @@ function load(): { data: DonorData; storageWarning: string } {
   try {
     const raw = sessionStorage.getItem(key)
     if (!raw) return { data: initialData(), storageWarning: '' }
-    const parsed = JSON.parse(raw) as DonorData
-    if (!Array.isArray(parsed.donations) || !parsed.profile || !parsed.selections || parsed.donations.some((item) => typeof item.id !== 'string' || !Array.isArray(item.photos) || typeof item.quantity !== 'number')) throw new Error()
+    const parsed: unknown = JSON.parse(raw)
+    if (!isDonorData(parsed)) throw new Error()
     return { data: parsed, storageWarning: '' }
   } catch {
     return { data: initialData(), storageWarning: '저장된 데모 정보를 읽지 못해 샘플로 시작했습니다.' }

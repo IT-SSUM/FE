@@ -5,40 +5,22 @@ import { Button } from '@/components/common/Button/Button'
 import { ItemRow } from '@/components/item/ItemRow/ItemRow'
 import { ROUTES, routePath } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
+import { useDonorStore } from '@/features/donor/store'
+import { statsOf, availableQuantity, titleOf } from '@/features/donor/model'
+import { needItems } from './needSearch'
 import wordmarkLogo from '@/assets/logo/itssum-wordmark.svg'
-
-const donorHomeMock = {
-  userName: '최윤서',
-  stats: [
-    { label: '등록 물품', value: 4 },
-    { label: '진행 중', value: 4 },
-    { label: '기부 완료', value: 5 },
-  ],
-  activeDonation: {
-    title: '수건 30장',
-    description: '기관 A와 10장 예약중 · 20장 가능',
-    status: 'reserved' as const,
-  },
-  neededItems: [
-    {
-      id: '1',
-      title: '학용품 30세트',
-      organization: 'A지역아동센터',
-      distance: '2.1km',
-      dueText: '이번 주까지 필요',
-    },
-    {
-      id: '2',
-      title: '학용품 30세트',
-      organization: 'A지역아동센터',
-      distance: '2.1km',
-      dueText: '이번 주까지 필요',
-    },
-  ],
-}
 
 export function DonorHomePage() {
   const navigate = useNavigate()
+  const { donations, profile } = useDonorStore((state) => state.data)
+  const stats = statsOf(donations)
+  const active = donations.find((item) => item.status !== 'complete')
+  const donorHomeMock = {
+    userName: profile.name,
+    stats: [{ label: '등록 물품', value: stats.total }, { label: '진행 중', value: stats.active }, { label: '기부 완료', value: stats.complete }],
+    activeDonation: { title: active ? titleOf(active) : '진행 중인 나눔이 없어요', description: active ? `예약 ${active.reserved}개 · 남은 ${availableQuantity(active)}개` : '물품을 등록해 나눔을 시작해 보세요.', status: active?.reserved ? 'reserved' as const : 'trading' as const },
+    neededItems: needItems.slice(0, 2).map((item) => ({ ...item, distance: item.location, dueText: `희망 상태 ${item.condition}` })),
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -58,6 +40,7 @@ export function DonorHomePage() {
       </header>
 
       <main className="flex-1 px-5 pb-8 pt-2">
+        <p className="mb-3 typography-label-2 text-neutral-700">데모 모드 · 현재 브라우저에만 저장됩니다.</p>
         <section aria-labelledby="donor-home-greeting">
           <h1
             id="donor-home-greeting"
@@ -104,7 +87,7 @@ export function DonorHomePage() {
               등록한 물품 · 남은 수량
             </h2>
             <Link
-              to={routePath.tradeDetail('mock-trade-1')}
+              to={ROUTES.donor.myItems}
               className="shrink-0 typography-label-2 text-primary-700"
             >
               진행 중 나눔 보기
@@ -136,7 +119,7 @@ export function DonorHomePage() {
               진행 중 나눔
             </h2>
             <Link
-              to={routePath.tradeDetail('mock-trade-1')}
+              to={ROUTES.donor.myItems}
               className="typography-label-2 text-primary-700"
             >
               더보기
@@ -146,14 +129,14 @@ export function DonorHomePage() {
           <ItemRow
             title={donorHomeMock.activeDonation.title}
             description={donorHomeMock.activeDonation.description}
-            status={donorHomeMock.activeDonation.status}
+            status={active ? donorHomeMock.activeDonation.status : undefined}
             statusPlacement="bottom"
             icon={<Package aria-hidden size={32} strokeWidth={2} />}
             thumbnailClassName="h-[82px] w-[72px] rounded-input !bg-error-bg"
             className="mt-3 h-[126px] gap-4 p-4 shadow-none"
             titleClassName="typography-title-2"
             descriptionClassName="typography-label-2"
-            onClick={() => navigate(routePath.tradeDetail('mock-trade-1'))}
+            onClick={() => navigate(active ? routePath.donorDonationDetail(active.id) : ROUTES.donor.donationNew)}
           />
         </section>
 

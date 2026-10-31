@@ -49,6 +49,16 @@ export function statsOf(donations: Donation[]) {
   return { total: donations.length, active: donations.filter((item) => item.status !== 'complete').length, complete: donations.filter((item) => item.status === 'complete').length }
 }
 
+export function isDonorData(value: unknown): value is DonorData {
+  if (!value || typeof value !== 'object') return false
+  const data = value as DonorData
+  if (!data.profile || !['name', 'birthDate', 'email', 'phone', 'address'].every((key) => typeof data.profile[key as keyof Profile] === 'string')) return false
+  if (!Array.isArray(data.donations) || !data.selections || typeof data.selections !== 'object' || Array.isArray(data.selections)) return false
+  if (new Set(data.donations.map((item) => item?.id)).size !== data.donations.length) return false
+  if (!data.donations.every((item) => item && typeof item.id === 'string' && ['name', 'category', 'condition', 'location', 'startDate', 'endDate', 'description'].every((key) => typeof item[key as keyof Donation] === 'string') && Number.isInteger(item.quantity) && item.quantity > 0 && Number.isInteger(item.reserved) && item.reserved >= 0 && item.reserved <= item.quantity && ['waiting', 'progress', 'complete'].includes(item.status) && Array.isArray(item.photos) && item.photos.every((photo) => typeof photo === 'string' && /^(data:image\/(png|jpeg|webp);base64,|\/)/.test(photo)))) return false
+  return Object.entries(data.selections).every(([id, selection]) => selection && selection.donationId === id && typeof selection.organizationId === 'string' && typeof selection.needId === 'string' && Number.isInteger(selection.quantity) && selection.quantity > 0 && data.donations.some((item) => item.id === id && availableQuantity(item) >= selection.quantity))
+}
+
 export function saveDonation(data: DonorData, input: DonationInput, id: string, editing: boolean): DonorData {
   if (Object.keys(validateDonation(input)).length) throw new Error('입력 내용을 확인해 주세요.')
   const previous = data.donations.find((item) => item.id === id)
