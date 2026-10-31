@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { saveDonation, deleteDonation, validateDonation, validateProfile, statsOf, today } from '../src/features/donor/model.ts'
+import { saveDonation, deleteDonation, validateDonation, validateProfile, isDonorData, statsOf, today } from '../src/features/donor/model.ts'
 const input = { name: '수건', category: '생활용품', quantity: 2, condition: '중', location: '서울 구로구', startDate: today(), endDate: '2099-12-31', description: '', photos: ['/sample.png'] }
 const empty = () => ({ donations: [], selections: {}, profile: { name: '테스트', birthDate: '2000-01-01', email: 'test@example.com', phone: '010-1234-5678', address: '서울 구로구' } })
 test('등록·수정·삭제는 원본을 변경하지 않고 목록과 통계를 반영한다', () => {
@@ -38,4 +38,11 @@ test('회원정보의 필수값·이메일·전화·생년월일 검증', () => 
   assert.deepEqual(validateProfile(empty().profile), {})
   const errors = validateProfile({ name: ' ', birthDate: '2099-01-01', email: 'wrong', phone: 'hello', address: '' })
   assert.equal(Object.keys(errors).length, 5)
+})
+test('복원 데이터의 손상과 잘못된 연결을 감지한다', () => {
+  const data = saveDonation(empty(), input, 'new', false)
+  assert.equal(isDonorData(data), true)
+  for (const invalid of [null, {}, { ...data, profile: {} }, { ...data, donations: [null] }, { ...data, donations: [data.donations[0], data.donations[0]] }, { ...data, selections: { ghost: { donationId: 'ghost', organizationId: 'org-1', needId: 'need-1', quantity: 1 } } }]) {
+    assert.equal(isDonorData(invalid), false)
+  }
 })
