@@ -7,10 +7,11 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
+import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 
@@ -35,16 +36,20 @@ const organizationMenus = [
 const accountMenus = [
   {
     title: '기관 정보 수정',
+    to: ROUTES.organization.myProfile,
     icon: <UserRound aria-hidden size={20} strokeWidth={2} />,
   },
   {
     title: '회원 탈퇴',
+    action: 'withdraw' as const,
     icon: <ShieldCheck aria-hidden size={20} strokeWidth={2} />,
   },
 ]
 
 export function OrganizationMyPage() {
   const navigate = useNavigate()
+  const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [logoutOpen, setLogoutOpen] = useState(false)
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -64,7 +69,7 @@ export function OrganizationMyPage() {
         <section className="flex h-24 items-center gap-3 rounded-card bg-primary-100 px-4 py-3">
           <div className="min-w-0 flex-1">
             <h2 className="truncate whitespace-nowrap typography-title-1 text-neutral-900">
-              기관 A · 서울 구로구
+              기관 A · 경기도 부천시
             </h2>
             <p className="mt-2 typography-label-2 text-neutral-700">
               기관 · 등록 4 · 진행 3 · 수령 7
@@ -78,7 +83,13 @@ export function OrganizationMyPage() {
         </section>
 
         <MenuSection title="우리 기관의 물품 지원" items={organizationMenus} />
-        <MenuSection title="계정 관리" items={accountMenus} />
+        <MenuSection
+          title="계정 관리"
+          items={accountMenus}
+          onAction={(action) => {
+            if (action === 'withdraw') setWithdrawOpen(true)
+          }}
+        />
       </main>
 
       <div className="shrink-0 px-5 pb-7 pt-2">
@@ -86,7 +97,7 @@ export function OrganizationMyPage() {
           variant="secondary"
           className="w-full border-neutral-400 text-neutral-700 hover:bg-neutral-100"
           style={{ height: 46 }}
-          onClick={() => navigate(ROUTES.start)}
+          onClick={() => setLogoutOpen(true)}
         >
           로그아웃
         </Button>
@@ -97,6 +108,28 @@ export function OrganizationMyPage() {
         activeItem="my"
         className="sticky bottom-0 shrink-0"
       />
+
+      <Dialog
+        open={withdrawOpen}
+        title="회원 탈퇴를 진행할까요?"
+        description="다음에 다시 만나요."
+        confirmText="탈퇴하기"
+        cancelText="취소"
+        confirmVariant="danger"
+        className="text-center"
+        onConfirm={() => navigate(ROUTES.start)}
+        onCancel={() => setWithdrawOpen(false)}
+      />
+      <Dialog
+        open={logoutOpen}
+        title="로그아웃할까요?"
+        description="다음에 이용할 때 다시 로그인해 주세요."
+        confirmText="로그아웃"
+        cancelText="취소"
+        className="text-center"
+        onConfirm={() => navigate(ROUTES.start)}
+        onCancel={() => setLogoutOpen(false)}
+      />
     </div>
   )
 }
@@ -104,15 +137,17 @@ export function OrganizationMyPage() {
 type MenuItem = {
   title: string
   to?: string
+  action?: 'withdraw'
   icon: ReactNode
 }
 
 type MenuSectionProps = {
   title: string
   items: MenuItem[]
+  onAction?: (action: 'withdraw') => void
 }
 
-function MenuSection({ title, items }: MenuSectionProps) {
+function MenuSection({ title, items, onAction }: MenuSectionProps) {
   const navigate = useNavigate()
 
   return (
@@ -123,7 +158,10 @@ function MenuSection({ title, items }: MenuSectionProps) {
           <button
             key={item.title}
             type="button"
-            onClick={() => item.to && navigate(item.to)}
+            onClick={() => {
+              if (item.to) navigate(item.to)
+              else if (item.action) onAction?.(item.action)
+            }}
             className="flex h-[60px] w-full items-center gap-3 bg-white px-4 text-left transition-colors hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-primary-700"
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-input bg-primary-100 text-primary-700">

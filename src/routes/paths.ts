@@ -32,6 +32,7 @@ export const ROUTES = {
     donationRequestComplete: '/organization/donations/:donationId/request/complete',
     recommendation: '/organization/recommendations/:needId',
     myPage: '/organization/mypage',
+    myProfile: '/organization/mypage/profile',
     offerList: '/organization/mypage/offers',
     offerDetail: '/organization/offers/:offerId',
     tradeStatus: '/organization/mypage/trades',

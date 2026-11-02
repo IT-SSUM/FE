@@ -55,7 +55,7 @@ const organizationChatRooms = [
   },
   {
     id: 'donor-choi-kkokko',
-    organization: '최꼬꼬',
+    organization: '홍길동',
     lastMessage: '나눔 받고 싶습니다!',
     time: '오후 1:42',
   },

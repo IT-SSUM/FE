@@ -85,7 +85,7 @@ export function ChatRoomPage() {
     ? chatRoomId === 'donor-choi-hyobi'
       ? '최효비'
       : chatRoomId === 'donor-choi-kkokko'
-        ? '최꼬꼬'
+        ? '홍길동'
         : '최윤서'
     : '구로지역아동센터'
 
@@ -176,8 +176,8 @@ export function ChatRoomPage() {
           <section className="mt-4 rounded-card bg-primary-100 p-3 text-center">
             <h2 className="text-sm font-semibold leading-5 text-primary-700">
               {isOrganization
-                ? '물품 지원이 연결됐어요 '
-                : '나눔이 연결됐어요 '}
+                ? '물품 지원이 연결됐어요'
+                : '나눔이 연결됐어요'}
             </h2>
             <p className="mt-1 text-xs font-normal leading-[18px] text-neutral-700">
               채팅은 양측 누구나 시작할 수 있어요.

@@ -25,6 +25,7 @@ import { NeedManagePage } from '@/pages/organization/NeedManagePage'
 import { NeedRegisterPage } from '@/pages/organization/NeedRegisterPage'
 import { OrganizationHomePage } from '@/pages/organization/OrganizationHomePage'
 import { OrganizationMyPage } from '@/pages/organization/OrganizationMyPage'
+import { OrganizationProfileEditPage } from '@/pages/organization/OrganizationProfileEditPage'
 import { OfferDetailPage } from '@/pages/organization/OfferDetailPage'
 import { OfferListPage } from '@/pages/organization/OfferListPage'
 import { OrganizationTradeStatusPage } from '@/pages/organization/OrganizationTradeStatusPage'
@@ -94,6 +95,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.organization.donationRequestComplete, element: <DonationRequestCompletePage /> },
           { path: ROUTES.organization.recommendation, element: <OrganizationRecommendationPage /> },
           { path: ROUTES.organization.myPage, element: <OrganizationMyPage /> },
+          { path: ROUTES.organization.myProfile, element: <OrganizationProfileEditPage /> },
           { path: ROUTES.organization.offerList, element: <OfferListPage /> },
           { path: ROUTES.organization.offerDetail, element: <OfferDetailPage /> },
           { path: ROUTES.organization.tradeStatus, element: <OrganizationTradeStatusPage /> },
