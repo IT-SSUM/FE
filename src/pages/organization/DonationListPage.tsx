@@ -1,44 +1,101 @@
 import { ChevronLeft, Package, Search } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
+import { FilterSelect } from '@/components/common/FilterSelect/FilterSelect'
 import { ItemRow } from '@/components/item/ItemRow/ItemRow'
 import { routePath } from '@/routes/paths'
 
 const donationItems = [
   {
-    id: 'towels-30',
-    title: '수건 30장',
-    donor: '최윤서',
-    location: '서울 구로구',
-    category: '생활용품',
-    condition: '상태 중',
+    id: 'water-20',
+    title: '생수 20개',
+    donor: '기부자 A',
+    location: '경기도 부천시',
+    category: '식품',
+    condition: '미사용',
+    availableQuantity: '20개',
   },
   {
-    id: 'books-12',
-    title: '아동 도서 12권',
-    donor: '김나눔',
-    location: '서울 관악구',
-    category: '도서·문구',
+    id: 'books-10',
+    title: '도서 10권',
+    donor: '기부자 B',
+    location: '경기도 부천시',
+    category: '도서',
     condition: '상태 중',
+    availableQuantity: '10권',
   },
   {
-    id: 'water-24',
-    title: '미개봉 생수 24개',
-    donor: '박기부',
-    location: '서울 영등포구',
-    category: '미사용 소모품',
-    condition: '상태 상',
+    id: 'clothes-5',
+    title: '의류 5벌',
+    donor: '기부자 C',
+    location: '경기도 부천시',
+    category: '의류',
+    condition: '상태 하',
+    availableQuantity: '5벌',
   },
 ]
 
-const filters = ['카테고리', '지역', '물품 상태']
+const filters = [
+  {
+    key: 'category',
+    label: '카테고리',
+    options: ['식품', '도서', '의류'],
+  },
+  {
+    key: 'location',
+    label: '지역',
+    options: ['경기도 부천시'],
+  },
+  {
+    key: 'condition',
+    label: '물품 상태',
+    options: ['미사용', '상태 중', '상태 하'],
+  },
+] as const
 
 export function DonationListPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const query = searchParams.get('q') ?? ''
+  const selected = {
+    category: searchParams.get('category') ?? '',
+    location: searchParams.get('location') ?? '',
+    condition: searchParams.get('condition') ?? '',
+  }
+  const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR')
+  const filteredItems = donationItems.filter((item) => {
+    const matchesQuery =
+      !normalizedQuery ||
+      [item.title, item.donor].some((value) =>
+        value.toLocaleLowerCase('ko-KR').includes(normalizedQuery),
+      )
+
+    return (
+      matchesQuery &&
+      (!selected.category || item.category === selected.category) &&
+      (!selected.location || item.location === selected.location) &&
+      (!selected.condition || item.condition === selected.condition)
+    )
+  })
+
+  const updateFilter = (key: string, value: string) => {
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
+        if (value) next.set(key, value)
+        else next.delete(key)
+        return next
+      },
+      { replace: true },
+    )
+  }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
+    <div
+      data-filter-boundary
+      className="flex min-h-dvh flex-col bg-surface-canvas"
+    >
+      <header className="flex h-14 shrink-0 items-center gap-2 px-5">
         <button
           type="button"
           aria-label="뒤로가기"
@@ -58,25 +115,38 @@ export function DonationListPage() {
           <input
             id="donation-search"
             type="search"
-            placeholder="품목 또는 기부자명 검색"
+            aria-label="물품 또는 기부자명 검색"
+            value={query}
+            onChange={(event) => updateFilter('q', event.target.value)}
+            placeholder="물품 또는 기부자명 검색"
             className="h-[54px] w-full rounded-input border border-neutral-500 bg-white px-12 typography-body-1 text-neutral-900 outline-none placeholder:text-neutral-600 focus:border-primary-700"
           />
         </label>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto">
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5">
           {filters.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              className="shrink-0 rounded-pill border border-neutral-200 bg-white px-3 py-1 typography-label-1 text-neutral-700"
-            >
-              {filter}
-            </button>
+            <FilterSelect
+              key={filter.key}
+              label={filter.label}
+              value={selected[filter.key]}
+              options={filter.options}
+              onChange={(value) => updateFilter(filter.key, value)}
+            />
           ))}
         </div>
 
-        <section className="mt-4 space-y-4" aria-label="기부 물품 목록">
-          {donationItems.map((item) => (
+        <section className="mt-3 space-y-3" aria-label="기부 물품 목록">
+          {filteredItems.length === 0 ? (
+            <div className="rounded-card border border-neutral-200 bg-white px-4 py-10 text-center">
+              <p className="typography-title-3 text-neutral-900">
+                조건에 맞는 물품이 없어요
+              </p>
+              <p className="mt-2 typography-body-2 text-neutral-700">
+                검색어 또는 필터를 변경해 주세요.
+              </p>
+            </div>
+          ) : null}
+          {filteredItems.map((item) => (
             <ItemRow
               key={item.id}
               title={item.title}
@@ -86,13 +156,13 @@ export function DonationListPage() {
                     {item.donor} · {item.location}
                   </p>
                   <p>
-                    {item.category} · {item.condition}
+                    {item.condition} · 신청 가능 수량 {item.availableQuantity}
                   </p>
                 </>
               }
               icon={<Package aria-hidden size={28} strokeWidth={2} />}
-              thumbnailClassName="h-[68px] w-16 rounded-input !bg-primary-100"
-              className="gap-3 p-4 shadow-none"
+              thumbnailClassName="h-[58px] w-14 rounded-input !bg-error-bg"
+              className="h-[89px] gap-3 p-3.5 shadow-none"
               titleClassName="typography-title-3"
               descriptionClassName="typography-label-2 line-clamp-none"
               onClick={() => navigate(routePath.organizationDonationDetail(item.id))}
