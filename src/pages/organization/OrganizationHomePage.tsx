@@ -46,7 +46,7 @@ export function OrganizationHomePage() {
         <section aria-labelledby="organization-home-title">
           <h1
             id="organization-home-title"
-            className="text-[22px] font-bold leading-[30px] text-neutral-900"
+            className="text-xl font-bold leading-7 text-neutral-900"
           >
             우리 기관의 물품 지원 현황
           </h1>
