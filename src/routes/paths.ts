@@ -34,6 +34,8 @@ export const ROUTES = {
     myPage: '/organization/mypage',
     offerList: '/organization/mypage/offers',
     offerDetail: '/organization/offers/:offerId',
+    tradeStatus: '/organization/mypage/trades',
+    individualTradeStatus: '/organization/mypage/trades/:needId',
   },
   tradeDetail: '/trades/:tradeId',
   chatList: '/chats',
@@ -65,6 +67,8 @@ export const routePath = {
     `/organization/recommendations/${needId}`,
   organizationOfferDetail: (offerId: string) =>
     `/organization/offers/${offerId}`,
+  organizationIndividualTradeStatus: (needId: string) =>
+    `/organization/mypage/trades/${needId}`,
   tradeDetail: (tradeId: string) => `/trades/${tradeId}`,
   chatRoom: (chatRoomId: string) => `/chats/${chatRoomId}`,
 } as const

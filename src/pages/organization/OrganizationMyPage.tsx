@@ -27,7 +27,7 @@ const organizationMenus = [
   },
   {
     title: '거래 현황',
-    to: `${ROUTES.chatList}?audience=organization`,
+    to: ROUTES.organization.tradeStatus,
     icon: <CalendarDays aria-hidden size={20} strokeWidth={2} />,
   },
 ]
