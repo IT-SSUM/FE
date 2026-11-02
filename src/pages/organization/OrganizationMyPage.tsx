@@ -17,7 +17,7 @@ import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 const organizationMenus = [
   {
     title: '필요 물품 관리',
-    to: ROUTES.organization.needDetail.replace(':needId', 'stationery-30'),
+    to: ROUTES.organization.needManage,
     icon: <Package aria-hidden size={20} strokeWidth={2} />,
   },
   {

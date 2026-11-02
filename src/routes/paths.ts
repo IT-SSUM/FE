@@ -22,6 +22,7 @@ export const ROUTES = {
   },
   organization: {
     home: '/organization/home',
+    needManage: '/organization/mypage/needs',
     needNew: '/organization/needs/new',
     needDetail: '/organization/needs/:needId',
     donationList: '/organization/donations',
