@@ -3,7 +3,7 @@ import { BookOpen, ChevronLeft, Package } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
-import { ROUTES } from '@/routes/paths'
+import { ROUTES, routePath } from '@/routes/paths'
 import { cn } from '@/utils/cn'
 import {
   additionalQuantity,
@@ -36,6 +36,7 @@ export function NeedDetailPage() {
     organizationNeeds.find((item) => item.id === needId) ?? organizationNeeds[0]
   const [status, setStatus] = useState(need.status)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [closeOpen, setCloseOpen] = useState(false)
   const statusStyle = statusConfig[status]
   const Icon = need.category === '도서' ? BookOpen : Package
 
@@ -92,17 +93,16 @@ export function NeedDetailPage() {
         </section>
 
         <div className="mt-2 flex gap-2">
-          <ManageAction label="수정" onClick={() => navigate(ROUTES.organization.needNew)} />
-          <ManageAction label="삭제" danger onClick={() => setDeleteOpen(true)} />
           <ManageAction
-            label={status === 'complete' ? '모집 재개' : '모집 종료'}
-            onClick={() =>
-              setStatus((current) =>
-                current === 'complete' ? 'recruiting' : 'complete',
-              )
-            }
+            label="수정"
+            onClick={() => navigate(routePath.organizationNeedEdit(need.id))}
           />
+          <ManageAction label="삭제" danger onClick={() => setDeleteOpen(true)} />
+          {status !== 'complete' ? (
+            <ManageAction label="모집 종료" onClick={() => setCloseOpen(true)} />
+          ) : null}
         </div>
+
       </main>
 
       <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
@@ -122,8 +122,24 @@ export function NeedDetailPage() {
         description="삭제한 물품은 다시 확인할 수 없어요."
         confirmText="삭제하기"
         cancelText="취소"
+        confirmVariant="danger"
         onConfirm={() => navigate(ROUTES.organization.needManage)}
         onCancel={() => setDeleteOpen(false)}
+      />
+
+      <Dialog
+        open={closeOpen}
+        title="모집을 종료할까요?"
+        description="신규 기부 제안 모집을 종료해요."
+        confirmText="모집 종료"
+        cancelText="계속 모집"
+        confirmVariant="danger"
+        className="text-center"
+        onConfirm={() => {
+          setStatus('complete')
+          setCloseOpen(false)
+        }}
+        onCancel={() => setCloseOpen(false)}
       />
     </div>
   )
@@ -150,13 +166,20 @@ type ManageActionProps = {
 }
 
 function ManageAction({ label, onClick, danger = false }: ManageActionProps) {
+  const isCloseAction = label === '모집 종료'
+
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        'h-8 rounded-pill border border-neutral-200 bg-white px-4 text-xs font-medium',
-        danger ? 'text-error' : 'text-primary-700',
+        'h-9 rounded-pill border text-xs font-bold leading-[18px] transition-colors',
+        isCloseAction ? 'w-[112px]' : 'w-16',
+        isCloseAction
+          ? 'border-primary-700 bg-primary-700 text-white hover:bg-primary-800'
+          : danger
+            ? 'border-error/40 bg-white text-error hover:border-error'
+            : 'border-primary-300 bg-white text-primary-700 hover:border-primary-700',
       )}
     >
       {label}

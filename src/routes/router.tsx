@@ -20,6 +20,7 @@ import { RecommendationPage as DonorRecommendationPage } from '@/pages/donor/Rec
 import { DonationDetailPage as OrganizationDonationDetailPage } from '@/pages/organization/DonationDetailPage'
 import { DonationListPage } from '@/pages/organization/DonationListPage'
 import { NeedDetailPage as OrganizationNeedDetailPage } from '@/pages/organization/NeedDetailPage'
+import { NeedEditPage } from '@/pages/organization/NeedEditPage'
 import { NeedManagePage } from '@/pages/organization/NeedManagePage'
 import { NeedRegisterPage } from '@/pages/organization/NeedRegisterPage'
 import { OrganizationHomePage } from '@/pages/organization/OrganizationHomePage'
@@ -78,6 +79,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.organization.home, element: <OrganizationHomePage /> },
           { path: ROUTES.organization.needManage, element: <NeedManagePage /> },
           { path: ROUTES.organization.needNew, element: <NeedRegisterPage /> },
+          { path: ROUTES.organization.needEdit, element: <NeedEditPage /> },
           { path: ROUTES.organization.needDetail, element: <OrganizationNeedDetailPage /> },
           { path: ROUTES.organization.donationList, element: <DonationListPage /> },
           { path: ROUTES.organization.donationDetail, element: <OrganizationDonationDetailPage /> },
