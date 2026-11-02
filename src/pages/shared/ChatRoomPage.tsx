@@ -46,14 +46,14 @@ const donorMessages: ChatMessage[] = [
   {
     id: 'peer-1',
     side: 'peer',
-    message: '안녕하세요! 도서 기부 정말 감사합니다.',
+    message: '안녕하세요! 도서 기부 정말 감사합니다',
     time: '오후 1:40',
   },
   {
     id: 'self-1',
     side: 'self',
-    message: '금요일 오후 2시에 직접 전달해도 괜찮을까요?',
-    time: '오후 1:41',
+    message: '안녕하세요. 금요일 오후 2시에 직접 전달해도 괜찮을까요?',
+    time: '읽음 · 오후 1:41',
   },
   {
     id: 'peer-2',
@@ -175,7 +175,9 @@ export function ChatRoomPage() {
         {!appointment ? (
           <section className="mt-4 rounded-card bg-primary-100 p-3 text-center">
             <h2 className="text-sm font-semibold leading-5 text-primary-700">
-              물품 지원이 연결됐어요 🌱
+              {isOrganization
+                ? '물품 지원이 연결됐어요 '
+                : '나눔이 연결됐어요 '}
             </h2>
             <p className="mt-1 text-xs font-normal leading-[18px] text-neutral-700">
               채팅은 양측 누구나 시작할 수 있어요.
