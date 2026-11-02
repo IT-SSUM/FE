@@ -1,40 +1,43 @@
 import { ChevronLeft, Package, Search } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { ItemRow } from '@/components/item/ItemRow/ItemRow'
 import { routePath } from '@/routes/paths'
+import { filterNeeds, needFilterOptions } from './needSearch'
 
-const needItems = [
-  {
-    id: 'water-20',
-    title: '생수 20개',
-    organization: '기관 A',
-    location: '서울 구로구',
-    category: '미사용 소모품',
-    condition: '희망 상태 상',
-  },
-  {
-    id: 'clothes-10',
-    title: '의류 10벌',
-    organization: '기관 B',
-    location: '서울 관악구',
-    category: '등록 10월 6일',
-    condition: '희망 상태 중 이상',
-  },
-  {
-    id: 'books-10',
-    title: '도서 10권',
-    organization: '기관 C',
-    location: '서울 영등포구',
-    category: '등록 10월 6일',
-    condition: '희망 상태 중 이상',
-  },
-]
-
-const filters = ['카테고리', '지역', '희망 상태']
+const filters = [
+  { key: 'category', label: '카테고리' },
+  { key: 'location', label: '지역' },
+  { key: 'condition', label: '희망 상태' },
+] as const
 
 export function NeedListPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const query = searchParams.get('q') ?? ''
+  const selected = {
+    category: searchParams.get('category') ?? '',
+    location: searchParams.get('location') ?? '',
+    condition: searchParams.get('condition') ?? '',
+  }
+  const results = filterNeeds({ query, ...selected })
+  const hasFilters = Boolean(query || Object.values(selected).some(Boolean))
+
+  const updateFilter = (key: string, value: string) => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous)
+      if (value) next.set(key, value)
+      else next.delete(key)
+      return next
+    }, { replace: true })
+  }
+  const resetFilters = () => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous)
+      for (const key of ['q', 'category', 'location', 'condition']) next.delete(key)
+      return next
+    }, { replace: true })
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -60,25 +63,53 @@ export function NeedListPage() {
           <input
             id="need-search"
             type="search"
+            aria-label="품목 또는 기관명 검색"
+            value={query}
+            onChange={(event) => updateFilter('q', event.target.value)}
             placeholder="품목 또는 기관명 검색"
             className="h-[54px] w-full rounded-input border border-neutral-500 bg-white px-12 typography-body-1 text-neutral-900 outline-none placeholder:text-neutral-600 focus:border-primary-700"
           />
         </label>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto">
+        <div className="mt-4 flex flex-wrap gap-2">
           {filters.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              className="shrink-0 rounded-pill border border-neutral-200 bg-white px-3 py-1 typography-label-1 text-neutral-700"
-            >
-              {filter}
-            </button>
+            <label key={filter.key} className="min-w-0 max-w-full">
+              <span className="sr-only">{filter.label}</span>
+              <select
+                aria-label={filter.label}
+                value={selected[filter.key]}
+                onChange={(event) => updateFilter(filter.key, event.target.value)}
+                className="max-w-full rounded-pill border border-neutral-200 bg-white px-3 py-2 typography-label-1 text-primary-700 focus-visible:outline-primary-700"
+              >
+                <option value="">{filter.label} 전체</option>
+                {selected[filter.key] && !needFilterOptions[filter.key].some((value) => value === selected[filter.key]) ? (
+                  <option value={selected[filter.key]}>{selected[filter.key]}</option>
+                ) : null}
+                {needFilterOptions[filter.key].map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
           ))}
         </div>
 
+        <div className="mt-4 flex items-center justify-between typography-label-2">
+          <p role="status" className="text-neutral-700">검색 결과 {results.length}개</p>
+          {hasFilters ? (
+            <button type="button" onClick={resetFilters} className="px-2 py-2 text-primary-700">
+              검색·필터 초기화
+            </button>
+          ) : null}
+        </div>
+
         <section className="mt-4 space-y-4" aria-label="필요 물품 목록">
-          {needItems.map((item) => (
+          {results.length === 0 ? (
+            <div className="rounded-card border border-neutral-200 bg-white px-4 py-10 text-center">
+              <p className="typography-title-3 text-neutral-900">조건에 맞는 물품이 없어요</p>
+              <p className="mt-2 typography-body-2 text-neutral-700">검색어를 바꾸거나 필터를 초기화해 주세요.</p>
+            </div>
+          ) : null}
+          {results.map((item) => (
             <ItemRow
               key={item.id}
               title={item.title}
@@ -88,7 +119,7 @@ export function NeedListPage() {
                     {item.organization} · {item.location}
                   </p>
                   <p>
-                    {item.category} · {item.condition}
+                    {item.category} · 희망 상태 {item.condition}
                   </p>
                 </>
               }

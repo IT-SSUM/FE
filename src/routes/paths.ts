@@ -8,10 +8,17 @@ export const ROUTES = {
     home: '/donor/home',
     donationNew: '/donor/donations/new',
     donationDetail: '/donor/donations/:donationId',
+    donationEdit: '/donor/donations/:donationId/edit',
     needList: '/donor/needs',
     needDetail: '/donor/needs/:needId',
     recommendation: '/donor/recommendations/:donationId',
+    recommendedOrganization: '/donor/recommendations/:donationId/organizations/:organizationId',
     myPage: '/donor/mypage',
+    myItems: '/donor/mypage/items',
+    myRequests: '/donor/mypage/requests',
+    myHistory: '/donor/mypage/history',
+    myProfile: '/donor/mypage/profile',
+    requestDetail: '/donor/requests/:requestId',
   },
   organization: {
     home: '/organization/home',
@@ -32,9 +39,14 @@ export const routePath = {
   signup: (role: 'donor' | 'organization') => `/signup/${role}`,
   donorDonationDetail: (donationId: string) =>
     `/donor/donations/${donationId}`,
+  donorDonationEdit: (donationId: string) =>
+    `/donor/donations/${donationId}/edit`,
   donorNeedDetail: (needId: string) => `/donor/needs/${needId}`,
   donorRecommendation: (donationId: string) =>
     `/donor/recommendations/${donationId}`,
+  donorRequestDetail: (requestId: string) => `/donor/requests/${requestId}`,
+  donorRecommendedOrganization: (donationId: string, organizationId: string) =>
+    `/donor/recommendations/${encodeURIComponent(donationId)}/organizations/${encodeURIComponent(organizationId)}`,
   organizationNeedDetail: (needId: string) => `/organization/needs/${needId}`,
   organizationDonationDetail: (donationId: string) =>
     `/organization/donations/${donationId}`,
