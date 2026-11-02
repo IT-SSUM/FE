@@ -39,7 +39,7 @@ export function OrganizationTradeStatusPage() {
               key={trade.id}
               trade={trade}
               onClick={() =>
-                navigate(routePath.organizationIndividualTradeStatus(trade.needId))
+                navigate(routePath.organizationActiveTradeDetail(trade.id))
               }
             />
           ))}

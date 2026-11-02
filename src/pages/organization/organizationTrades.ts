@@ -1,5 +1,11 @@
 export type OrganizationTradeStatus = 'progress' | 'complete' | 'canceled'
 
+export type TradeAppointment = {
+  dateTime: string
+  location: string
+  method: string
+}
+
 export const tradeStatusLabels: Record<OrganizationTradeStatus, string> = {
   progress: '진행 중',
   complete: '전달 완료',

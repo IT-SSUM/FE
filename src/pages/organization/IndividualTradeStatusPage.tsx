@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
+import { routePath } from '@/routes/paths'
 import {
   OrganizationTradeCard,
   TradeStatusTabs,
@@ -34,7 +35,15 @@ export function IndividualTradeStatusPage() {
         <TradeStatusTabs status={status} onChange={setStatus} />
         <section className="mt-4 space-y-3" aria-label="개별 거래 목록">
           {trades.map((trade) => (
-            <OrganizationTradeCard key={trade.id} trade={trade} />
+            <OrganizationTradeCard
+              key={trade.id}
+              trade={trade}
+              onClick={
+                trade.status === 'progress'
+                  ? () => navigate(routePath.organizationActiveTradeDetail(trade.id))
+                  : undefined
+              }
+            />
           ))}
         </section>
       </main>

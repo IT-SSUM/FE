@@ -29,6 +29,9 @@ import { OfferDetailPage } from '@/pages/organization/OfferDetailPage'
 import { OfferListPage } from '@/pages/organization/OfferListPage'
 import { OrganizationTradeStatusPage } from '@/pages/organization/OrganizationTradeStatusPage'
 import { IndividualTradeStatusPage } from '@/pages/organization/IndividualTradeStatusPage'
+import { OrganizationActiveTradeDetailPage } from '@/pages/organization/OrganizationActiveTradeDetailPage'
+import { TradeQuantityEditPage } from '@/pages/organization/TradeQuantityEditPage'
+import { TradeAppointmentPage } from '@/pages/organization/TradeAppointmentPage'
 import { DonationRequestCompletePage, DonationRequestPage } from '@/pages/organization/DonationRequestPage'
 import { RecommendationPage as OrganizationRecommendationPage } from '@/pages/organization/RecommendationPage'
 import { ChatListPage } from '@/pages/shared/ChatListPage'
@@ -95,6 +98,9 @@ export const router = createBrowserRouter([
           { path: ROUTES.organization.offerDetail, element: <OfferDetailPage /> },
           { path: ROUTES.organization.tradeStatus, element: <OrganizationTradeStatusPage /> },
           { path: ROUTES.organization.individualTradeStatus, element: <IndividualTradeStatusPage /> },
+          { path: ROUTES.organization.activeTradeDetail, element: <OrganizationActiveTradeDetailPage /> },
+          { path: ROUTES.organization.tradeQuantityEdit, element: <TradeQuantityEditPage /> },
+          { path: ROUTES.organization.tradeAppointment, element: <TradeAppointmentPage /> },
         ],
       },
     ],
