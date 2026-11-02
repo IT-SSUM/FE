@@ -22,8 +22,9 @@ type ProfileDraft = {
   phone: string
 }
 
-type ProfileErrors =
-  Partial<Record<keyof ProfileDraft, string>>
+type ProfileErrors = Partial<
+  Record<keyof ProfileDraft, string>
+>
 
 function validateProfile(
   profile: ProfileDraft,
@@ -100,11 +101,12 @@ export function DonorProfileEditPage() {
   }, [profile])
 
   const dirty =
-    Boolean(profile && draft) &&
+    profile !== undefined &&
+    draft !== null &&
     (
-      draft?.name !== profile?.name ||
-      draft?.birthDate !== profile?.birthDate ||
-      draft?.phone !== profile?.phone
+      draft.name !== profile.name ||
+      draft.birthDate !== profile.birthDate ||
+      draft.phone !== profile.phone
     )
 
   const blocker = useBlocker(
@@ -136,32 +138,43 @@ export function DonorProfileEditPage() {
     }
   }, [dirty])
 
-  if (isLoading || !draft) {
-    if (isError) {
-      return (
-        <DonorPage
-          title="회원정보 수정"
-          back={ROUTES.donor.myPage}
-        >
-          <section className="rounded-card border border-neutral-200 bg-white p-6 text-center">
-            <p className="typography-title-3">
-              회원정보를 불러오지 못했어요.
-            </p>
+  /*
+   * 중요:
+   * 에러 / 로딩 / 데이터 없음 상태를
+   * 각각 return해서 아래 JSX에서는
+   * profile과 draft가 반드시 존재하도록 만듭니다.
+   */
 
-            <button
-              type="button"
-              className="mt-3 text-primary-700"
-              onClick={() => {
-                void refetch()
-              }}
-            >
-              다시 시도
-            </button>
-          </section>
-        </DonorPage>
-      )
-    }
+  if (isError) {
+    return (
+      <DonorPage
+        title="회원정보 수정"
+        back={ROUTES.donor.myPage}
+      >
+        <section className="rounded-card border border-neutral-200 bg-white p-6 text-center">
+          <p className="typography-title-3">
+            회원정보를 불러오지 못했어요.
+          </p>
 
+          <button
+            type="button"
+            className="mt-3 text-primary-700"
+            onClick={() => {
+              void refetch()
+            }}
+          >
+            다시 시도
+          </button>
+        </section>
+      </DonorPage>
+    )
+  }
+
+  if (
+    isLoading ||
+    !profile ||
+    !draft
+  ) {
     return (
       <DonorPage
         title="회원정보 수정"
@@ -173,6 +186,15 @@ export function DonorProfileEditPage() {
       </DonorPage>
     )
   }
+
+  /*
+   * 여기부터는 TypeScript가
+   *
+   * profile: DonorProfile
+   * draft: ProfileDraft
+   *
+   * 로 확정해서 인식합니다.
+   */
 
   return (
     <DonorPage
@@ -235,6 +257,11 @@ export function DonorProfileEditPage() {
               name: event.target.value,
             })
 
+            setErrors((previous) => ({
+              ...previous,
+              name: undefined,
+            }))
+
             setFailure('')
           }}
         />
@@ -249,8 +276,14 @@ export function DonorProfileEditPage() {
           onChange={(event) => {
             setDraft({
               ...draft,
-              birthDate: event.target.value,
+              birthDate:
+                event.target.value,
             })
+
+            setErrors((previous) => ({
+              ...previous,
+              birthDate: undefined,
+            }))
 
             setFailure('')
           }}
@@ -268,6 +301,11 @@ export function DonorProfileEditPage() {
               ...draft,
               phone: event.target.value,
             })
+
+            setErrors((previous) => ({
+              ...previous,
+              phone: undefined,
+            }))
 
             setFailure('')
           }}
@@ -289,8 +327,8 @@ export function DonorProfileEditPage() {
 
         <p className="typography-label-2 text-neutral-700">
           이메일과 활동 지역은
-          회원정보 수정 화면에서
-          변경할 수 없습니다.
+          회원정보 수정 화면에서 변경할 수
+          없습니다.
         </p>
 
         {failure ? (
@@ -323,14 +361,20 @@ export function DonorProfileEditPage() {
         title="수정 중인 내용을 버릴까요?"
         confirmText="나가기"
         cancelText="계속 수정하기"
-        onConfirm={() =>
-          blocker.state === 'blocked' &&
-          blocker.proceed()
-        }
-        onCancel={() =>
-          blocker.state === 'blocked' &&
-          blocker.reset()
-        }
+        onConfirm={() => {
+          if (
+            blocker.state === 'blocked'
+          ) {
+            blocker.proceed()
+          }
+        }}
+        onCancel={() => {
+          if (
+            blocker.state === 'blocked'
+          ) {
+            blocker.reset()
+          }
+        }}
       />
     </DonorPage>
   )
