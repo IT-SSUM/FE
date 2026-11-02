@@ -23,6 +23,7 @@ import { NeedDetailPage as OrganizationNeedDetailPage } from '@/pages/organizati
 import { NeedRegisterPage } from '@/pages/organization/NeedRegisterPage'
 import { OrganizationHomePage } from '@/pages/organization/OrganizationHomePage'
 import { OrganizationMyPage } from '@/pages/organization/OrganizationMyPage'
+import { DonationRequestCompletePage, DonationRequestPage } from '@/pages/organization/DonationRequestPage'
 import { RecommendationPage as OrganizationRecommendationPage } from '@/pages/organization/RecommendationPage'
 import { ChatListPage } from '@/pages/shared/ChatListPage'
 import { ChatRoomPage } from '@/pages/shared/ChatRoomPage'
@@ -78,6 +79,8 @@ export const router = createBrowserRouter([
           { path: ROUTES.organization.needDetail, element: <OrganizationNeedDetailPage /> },
           { path: ROUTES.organization.donationList, element: <DonationListPage /> },
           { path: ROUTES.organization.donationDetail, element: <OrganizationDonationDetailPage /> },
+          { path: ROUTES.organization.donationRequest, element: <DonationRequestPage /> },
+          { path: ROUTES.organization.donationRequestComplete, element: <DonationRequestCompletePage /> },
           { path: ROUTES.organization.recommendation, element: <OrganizationRecommendationPage /> },
           { path: ROUTES.organization.myPage, element: <OrganizationMyPage /> },
         ],

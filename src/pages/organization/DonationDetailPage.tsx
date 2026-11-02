@@ -98,9 +98,15 @@ export function DonationDetailPage() {
       <footer className="shrink-0 bg-surface-canvas px-5 pb-3 pt-2">
         <Button
           className="h-[46px] w-full"
-          onClick={() => navigate(routePath.chatRoom(`donation-${donationId ?? 'water-20'}`))}
+          onClick={() =>
+            navigate(
+              routePath.organizationDonationRequest(
+                donationId ?? 'water-20',
+              ),
+            )
+          }
         >
-          신청하기
+          요청하기
         </Button>
       </footer>
     </div>

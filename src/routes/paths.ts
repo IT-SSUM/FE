@@ -26,6 +26,8 @@ export const ROUTES = {
     needDetail: '/organization/needs/:needId',
     donationList: '/organization/donations',
     donationDetail: '/organization/donations/:donationId',
+    donationRequest: '/organization/donations/:donationId/request',
+    donationRequestComplete: '/organization/donations/:donationId/request/complete',
     recommendation: '/organization/recommendations/:needId',
     myPage: '/organization/mypage',
   },
@@ -50,6 +52,10 @@ export const routePath = {
   organizationNeedDetail: (needId: string) => `/organization/needs/${needId}`,
   organizationDonationDetail: (donationId: string) =>
     `/organization/donations/${donationId}`,
+  organizationDonationRequest: (donationId: string) =>
+    `/organization/donations/${donationId}/request`,
+  organizationDonationRequestComplete: (donationId: string) =>
+    `/organization/donations/${donationId}/request/complete`,
   organizationRecommendation: (needId: string) =>
     `/organization/recommendations/${needId}`,
   tradeDetail: (tradeId: string) => `/trades/${tradeId}`,
