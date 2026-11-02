@@ -1,39 +1,41 @@
-import { ChevronLeft, MessageCircle, Package } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { routePath } from '@/routes/paths'
 
 const donationDetailMap = {
-  'towels-30': {
-    title: '수건 30장',
-    donor: '최윤서',
-    category: '생활용품',
-    quantity: '30장',
-    condition: '중',
-    location: '서울 구로구',
-    availablePeriod: '2026.10.12 - 2026.10.18',
-    description:
-      '세탁 완료한 수건 30장입니다. 기관 요청 수량에 맞춰 일부 수량 신청이 가능해요.',
-  },
-  'books-12': {
-    title: '아동 도서 12권',
-    donor: '김나눔',
-    category: '도서·문구',
-    quantity: '12권',
-    condition: '중',
-    location: '서울 관악구',
-    availablePeriod: '2026.10.14 - 2026.10.21',
-    description: '초등학생이 읽기 좋은 동화책과 학습 도서입니다.',
-  },
-  'water-24': {
-    title: '미개봉 생수 24개',
-    donor: '박기부',
-    category: '미사용 소모품',
-    quantity: '24개',
+  'water-20': {
+    title: '생수 20개를 받을 수 있어요',
+    donor: '기부자 A',
+    itemName: '생수',
+    quantity: '20개',
     condition: '상',
-    location: '서울 영등포구',
-    availablePeriod: '2026.10.13 - 2026.10.16',
-    description: '미개봉 상태의 생수입니다. 빠른 수령이 가능해요.',
+    location: '경기도 부천시',
+    description:
+      '신청 가능 수량은 20개예요. 수량·일정·전달 방법은 채팅에서 협의해요. 채팅 시작은 예약·기부 확정이 아니에요.',
+    donorIntro: '이웃에게 필요한 물품을 전하고 있어요.',
+  },
+  'books-10': {
+    title: '도서 10권을 받을 수 있어요',
+    donor: '기부자 B',
+    itemName: '도서',
+    quantity: '10권',
+    condition: '중',
+    location: '경기도 부천시',
+    description:
+      '신청 가능 수량은 10권이에요. 수량·일정·전달 방법은 채팅에서 협의해요. 채팅 시작은 예약·기부 확정이 아니에요.',
+    donorIntro: '좋은 책을 이웃과 함께 나누고 있어요.',
+  },
+  'clothes-5': {
+    title: '의류 5벌을 받을 수 있어요',
+    donor: '기부자 C',
+    itemName: '의류',
+    quantity: '5벌',
+    condition: '하',
+    location: '경기도 부천시',
+    description:
+      '신청 가능 수량은 5벌이에요. 수량·일정·전달 방법은 채팅에서 협의해요. 채팅 시작은 예약·기부 확정이 아니에요.',
+    donorIntro: '사용할 수 있는 물품을 필요한 곳에 전하고 있어요.',
   },
 } as const
 
@@ -42,11 +44,11 @@ export function DonationDetailPage() {
   const { donationId } = useParams()
   const donation =
     donationDetailMap[donationId as keyof typeof donationDetailMap] ??
-    donationDetailMap['towels-30']
+    donationDetailMap['water-20']
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
+      <header className="flex h-14 shrink-0 items-center gap-2 px-5">
         <button
           type="button"
           aria-label="뒤로가기"
@@ -59,46 +61,45 @@ export function DonationDetailPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
-        <h2 className="typography-heading-2 text-neutral-900">
+        <h2 className="typography-heading-3 text-neutral-900">
           {donation.title}
         </h2>
-        <p className="mt-2 typography-body-2 text-neutral-700">
+        <p className="mt-2 typography-body-2 font-medium text-neutral-700">
           {donation.donor} · {donation.location}
         </p>
 
-        <div className="mt-4 flex h-[216px] items-center justify-center rounded-card bg-primary-100 text-primary-700">
-          <Package aria-hidden size={88} strokeWidth={2} />
-        </div>
+        <div
+          className="mt-4 h-[188px] rounded-card bg-error-bg"
+          role="img"
+          aria-label={`${donation.itemName} 사진 영역`}
+        />
 
         <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
-          <dl className="space-y-2 typography-body-2">
-            <InfoRow label="카테고리" value={donation.category} />
-            <InfoRow label="기부 수량" value={donation.quantity} />
+          <dl className="space-y-2 typography-label-1">
+            <InfoRow label="물품 품목" value={donation.itemName} />
+            <InfoRow label="신청 가능 수량" value={donation.quantity} />
             <InfoRow label="물품 상태" value={donation.condition} />
-            <InfoRow label="가능 기간" value={donation.availablePeriod} />
+            <InfoRow label="물품 위치" value={donation.location} />
           </dl>
         </section>
 
-        <section className="mt-5">
-          <h3 className="typography-title-2 text-neutral-900">상세 설명</h3>
-          <p className="mt-3 typography-body-1 text-neutral-900">
-            {donation.description}
+        <p className="mt-5 typography-body-1 font-medium text-neutral-900">
+          {donation.description}
+        </p>
+
+        <section className="mt-6">
+          <h3 className="typography-title-2 text-neutral-900">기부자 소개</h3>
+          <p className="mt-5 typography-body-1 font-medium text-neutral-900">
+            {donation.donorIntro}
           </p>
         </section>
       </main>
 
-      <footer className="grid shrink-0 grid-cols-2 gap-2 border-t border-neutral-200 bg-surface-canvas px-5 py-4">
+      <footer className="shrink-0 bg-surface-canvas px-5 pb-3 pt-2">
         <Button
-          variant="secondary"
-          onClick={() => navigate(routePath.organizationRecommendation('stationery-30'))}
+          className="h-[46px] w-full"
+          onClick={() => navigate(routePath.chatRoom(`donation-${donationId ?? 'water-20'}`))}
         >
-          추천 비교
-        </Button>
-        <Button
-          className="gap-2"
-          onClick={() => navigate(routePath.chatRoom('mock-need-chat'))}
-        >
-          <MessageCircle aria-hidden size={18} strokeWidth={2} />
           신청하기
         </Button>
       </footer>
@@ -113,9 +114,9 @@ type InfoRowProps = {
 
 function InfoRow({ label, value }: InfoRowProps) {
   return (
-    <div className="grid grid-cols-[88px_1fr] gap-2">
-      <dt className="text-neutral-700">{label}</dt>
-      <dd className="text-neutral-900">{value}</dd>
+    <div className="grid grid-cols-[100px_1fr] gap-2">
+      <dt className="whitespace-nowrap text-neutral-700">{label}</dt>
+      <dd className="font-medium text-neutral-900">{value}</dd>
     </div>
   )
 }
