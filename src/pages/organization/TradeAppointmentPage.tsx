@@ -4,9 +4,9 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AddressSearchField } from '@/components/common/AddressSearchField/AddressSearchField'
 import { Button } from '@/components/common/Button/Button'
 import { DateField } from '@/components/common/DateField/DateField'
+import { OptionCardGroup } from '@/components/common/OptionCardGroup/OptionCardGroup'
 import { TimeField } from '@/components/common/TimeField/TimeField'
 import { routePath } from '@/routes/paths'
-import { cn } from '@/utils/cn'
 import type { TradeAppointment } from './organizationTrades'
 
 const methodOptions = ['직접 전달', '택배 전달'] as const
@@ -94,29 +94,16 @@ export function TradeAppointmentPage() {
             />
           </div>
 
-          <fieldset className="mt-6">
-            <legend className="text-xs font-bold leading-[18px] text-neutral-900">
-              전달 방법
-            </legend>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {methodOptions.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={method === option}
-                  onClick={() => setMethod(option)}
-                  className={cn(
-                    'h-[52px] rounded-input border text-sm font-medium transition-colors',
-                    method === option
-                      ? 'border-primary-400 bg-primary-100 font-semibold text-primary-700'
-                      : 'border-neutral-300 bg-white text-neutral-700',
-                  )}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <OptionCardGroup
+            label="전달 방법"
+            className="mt-6"
+            columns={2}
+            options={methodOptions}
+            value={method}
+            onChange={(value) =>
+              setMethod(value as (typeof methodOptions)[number])
+            }
+          />
         </div>
         <p className="mt-4 text-xs font-normal leading-5 text-neutral-700">
           세 항목을 모두 입력하면 저장할 수 있어요.

@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { Input } from '@/components/common/Input/Input'
+import { OptionCardGroup } from '@/components/common/OptionCardGroup/OptionCardGroup'
 import { Textarea } from '@/components/common/Textarea/Textarea'
 import { PhotoInput } from '@/features/donor/PhotoInput'
 import { ROUTES, routePath } from '@/routes/paths'
-import { cn } from '@/utils/cn'
 
 const categories = [
   '생활용품',
@@ -77,33 +77,16 @@ export function NeedRegisterPage() {
             정확히 카테고리에서 가장 가까운 항목을 골라주세요.
           </p>
 
-          <fieldset className="mt-4 space-y-3">
-            <legend className="sr-only">카테고리</legend>
-            {categories.map((option) => {
-              const selected = option === draftCategory
-
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => setDraftCategory(option)}
-                  style={{ minHeight: 52 }}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-control border px-4 text-left typography-body-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700',
-                    selected
-                      ? 'border-transparent bg-primary-100 text-primary-700'
-                      : 'border-neutral-200 bg-white text-neutral-900',
-                  )}
-                >
-                  {selected ? (
-                    <CheckCircle2 aria-hidden size={20} strokeWidth={2} />
-                  ) : null}
-                  <span>{option}</span>
-                </button>
-              )
-            })}
-          </fieldset>
+          <OptionCardGroup
+            label="카테고리"
+            hideLabel
+            className="mt-4"
+            options={categories}
+            value={draftCategory}
+            onChange={(value) =>
+              setDraftCategory(value as (typeof categories)[number])
+            }
+          />
         </main>
 
         <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
@@ -262,36 +245,14 @@ export function NeedRegisterPage() {
           </div>
         ) : (
           <div className="mt-5">
-            <fieldset>
-              <legend className="text-xs font-bold leading-[18px] text-neutral-900">
-                희망 상태
-              </legend>
-              <div className="mt-2 space-y-2">
-                {conditionOptions.map((option) => {
-                  const selected = option === condition
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => setCondition(option)}
-                      style={{ minHeight: 52 }}
-                      className={cn(
-                        'flex w-full items-center gap-3 rounded-control border px-4 text-left typography-body-2 transition-colors',
-                        selected
-                          ? 'border-primary-300 bg-primary-100 font-semibold text-primary-700'
-                          : 'border-neutral-200 bg-white text-neutral-900',
-                      )}
-                    >
-                      {selected ? (
-                        <CheckCircle2 aria-hidden size={20} strokeWidth={2} />
-                      ) : null}
-                      {option}
-                    </button>
-                  )
-                })}
-              </div>
-            </fieldset>
+            <OptionCardGroup
+              label="희망 상태"
+              options={conditionOptions}
+              value={condition}
+              onChange={(value) =>
+                setCondition(value as (typeof conditionOptions)[number])
+              }
+            />
 
             <div className="mt-4">
               <Textarea

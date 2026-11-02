@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
+import { SegmentedTabs } from '@/components/common/SegmentedTabs/SegmentedTabs'
 import { routePath } from '@/routes/paths'
 import { cn } from '@/utils/cn'
 import { organizationOffers, type OrganizationOffer } from './organizationOffers'
@@ -40,30 +41,16 @@ export function OfferListPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-3">
-        <div className="flex gap-2" role="tablist" aria-label="제안과 요청 구분">
-          {(['received', 'sent'] as const).map((value) => {
-            const count = organizationOffers.filter(
-              (offer) => offer.direction === value,
-            ).length
-            return (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={tab === value}
-                onClick={() => selectTab(value)}
-                className={cn(
-                  'h-9 min-w-[96px] rounded-pill border px-4 text-xs font-semibold transition-colors',
-                  tab === value
-                    ? 'border-primary-700 bg-primary-700 text-white'
-                    : 'border-neutral-200 bg-white text-neutral-700',
-                )}
-              >
-                {tabLabels[value]} {count}
-              </button>
-            )
-          })}
-        </div>
+        <SegmentedTabs
+          ariaLabel="제안과 요청 구분"
+          value={tab}
+          onChange={(value) => selectTab(value as OfferTab)}
+          itemClassName="min-w-[96px]"
+          items={(['received', 'sent'] as const).map((value) => ({
+            value,
+            label: `${tabLabels[value]} ${organizationOffers.filter((offer) => offer.direction === value).length}`,
+          }))}
+        />
 
         <section className="mt-4 space-y-4" aria-label={tabLabels[tab]}>
           {offers.map((offer) => (

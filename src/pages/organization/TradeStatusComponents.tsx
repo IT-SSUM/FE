@@ -1,6 +1,6 @@
 import { BookOpen, Package } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { cn } from '@/utils/cn'
+import { SegmentedTabs } from '@/components/common/SegmentedTabs/SegmentedTabs'
 import {
   tradeStatusLabels,
   type OrganizationTrade,
@@ -15,27 +15,14 @@ export function TradeStatusTabs({
   onChange: (status: OrganizationTradeStatus) => void
 }) {
   return (
-    <div className="flex gap-2" role="tablist" aria-label="거래 상태">
-      {(Object.keys(tradeStatusLabels) as OrganizationTradeStatus[]).map(
-        (value) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={status === value}
-            onClick={() => onChange(value)}
-            className={cn(
-              'h-9 rounded-pill border px-4 text-xs font-semibold transition-colors',
-              status === value
-                ? 'border-primary-700 bg-primary-700 text-white'
-                : 'border-neutral-200 bg-white text-neutral-700',
-            )}
-          >
-            {tradeStatusLabels[value]}
-          </button>
-        ),
+    <SegmentedTabs
+      ariaLabel="거래 상태"
+      value={status}
+      onChange={(value) => onChange(value as OrganizationTradeStatus)}
+      items={(Object.keys(tradeStatusLabels) as OrganizationTradeStatus[]).map(
+        (value) => ({ value, label: tradeStatusLabels[value] }),
       )}
-    </div>
+    />
   )
 }
 

@@ -3,6 +3,7 @@ import { BookOpen, ChevronLeft, Package } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
+import { SegmentedTabs } from '@/components/common/SegmentedTabs/SegmentedTabs'
 import { ROUTES, routePath } from '@/routes/paths'
 import { cn } from '@/utils/cn'
 import {
@@ -54,24 +55,17 @@ export function NeedManagePage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
-        <div className="flex gap-2">
-          {filters.map((value) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={filter === value}
-              onClick={() => setFilter(value)}
-              className={cn(
-                'h-9 rounded-pill border px-4 text-xs font-medium',
-                filter === value
-                  ? 'border-primary-700 bg-primary-700 text-white'
-                  : 'border-neutral-200 bg-white text-neutral-700',
-              )}
-            >
-              {value === '전체' ? `전체 ${organizationNeeds.length}` : value}
-            </button>
-          ))}
-        </div>
+        <SegmentedTabs
+          ariaLabel="필요 물품 카테고리"
+          value={filter}
+          onChange={(value) =>
+            setFilter(value as (typeof filters)[number])
+          }
+          items={filters.map((value) => ({
+            value,
+            label: value === '전체' ? `전체 ${organizationNeeds.length}` : value,
+          }))}
+        />
 
         <section className="mt-4 space-y-3" aria-label="등록한 필요 물품">
           {filteredNeeds.map((need) => (
