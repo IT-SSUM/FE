@@ -24,6 +24,7 @@ import { NeedEditPage } from '@/pages/organization/NeedEditPage'
 import { NeedManagePage } from '@/pages/organization/NeedManagePage'
 import { NeedRegisterPage } from '@/pages/organization/NeedRegisterPage'
 import { OrganizationHomePage } from '@/pages/organization/OrganizationHomePage'
+import { OrganizationNotificationPage } from '@/pages/organization/OrganizationNotificationPage'
 import { OrganizationMyPage } from '@/pages/organization/OrganizationMyPage'
 import { OrganizationProfileEditPage } from '@/pages/organization/OrganizationProfileEditPage'
 import { OfferDetailPage } from '@/pages/organization/OfferDetailPage'
@@ -85,6 +86,7 @@ export const router = createBrowserRouter([
         element: <OrganizationLayout />,
         children: [
           { path: ROUTES.organization.home, element: <OrganizationHomePage /> },
+          { path: ROUTES.organization.notifications, element: <OrganizationNotificationPage /> },
           { path: ROUTES.organization.needManage, element: <NeedManagePage /> },
           { path: ROUTES.organization.needNew, element: <NeedRegisterPage /> },
           { path: ROUTES.organization.needEdit, element: <NeedEditPage /> },

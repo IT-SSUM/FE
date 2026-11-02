@@ -34,7 +34,7 @@ export function OrganizationHomePage() {
           className="h-[22.72px] w-[119px]"
         />
         <Link
-          to={ROUTES.notifications}
+          to={ROUTES.organization.notifications}
           aria-label="알림"
           className="flex size-10 items-center justify-center rounded-full text-primary-700 transition-colors hover:bg-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
         >
