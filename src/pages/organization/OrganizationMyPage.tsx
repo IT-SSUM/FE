@@ -22,7 +22,7 @@ const organizationMenus = [
   },
   {
     title: '받은 제안 / 보낸 요청',
-    to: `${ROUTES.organization.donationList}?view=requests`,
+    to: ROUTES.organization.offerList,
     icon: <ClipboardList aria-hidden size={20} strokeWidth={2} />,
   },
   {
