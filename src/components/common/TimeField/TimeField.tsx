@@ -19,7 +19,11 @@ const itemHeight = 44
 
 function parseTime(value: string) {
   const [hourValue, minuteValue = '00'] = value.split(':')
-  const hour24 = Number(hourValue) || 14
+  const parsedHour = Number(hourValue)
+  const hour24 =
+    hourValue !== '' && Number.isFinite(parsedHour) && parsedHour >= 0 && parsedHour < 24
+      ? parsedHour
+      : 14
   return {
     meridiem: hour24 < 12 ? '오전' : '오후',
     hour: hour24 % 12 || 12,
@@ -55,20 +59,30 @@ export function TimeField({
 
   useEffect(() => {
     if (!open) return
-    meridiemRef.current?.scrollTo({
-      top: meridiems.indexOf(meridiem) * itemHeight,
-    })
-    hourRef.current?.scrollTo({ top: hours.indexOf(hour) * itemHeight })
-    minuteRef.current?.scrollTo({
-      top: minutes.indexOf(minute) * itemHeight,
+    const next = parseTime(value)
+    const frame = window.requestAnimationFrame(() => {
+      meridiemRef.current?.scrollTo({
+        top: meridiems.indexOf(next.meridiem) * itemHeight,
+      })
+      hourRef.current?.scrollTo({
+        top: hours.indexOf(next.hour) * itemHeight,
+      })
+      minuteRef.current?.scrollTo({
+        top: minutes.indexOf(next.minute) * itemHeight,
+      })
     })
 
+    return () => window.cancelAnimationFrame(frame)
+  }, [open, value])
+
+  useEffect(() => {
+    if (!open) return
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false)
     }
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [open, hour, meridiem, minute])
+  }, [open])
 
   return (
     <div className="relative">
@@ -87,7 +101,17 @@ export function TimeField({
         aria-labelledby={`${id}-label ${id}`}
         aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          if (open) {
+            setOpen(false)
+            return
+          }
+          const next = parseTime(value)
+          setMeridiem(next.meridiem)
+          setHour(next.hour)
+          setMinute(next.minute)
+          setOpen(true)
+        }}
         className="flex h-[52px] w-full items-center gap-3 rounded-input border border-neutral-500 bg-white px-4 text-left text-sm text-neutral-900 hover:border-primary-700"
       >
         <Clock3 aria-hidden size={18} className="text-primary-700" />

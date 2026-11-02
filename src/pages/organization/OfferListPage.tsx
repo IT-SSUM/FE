@@ -23,7 +23,7 @@ export function OfferListPage() {
 
   const selectTab = (nextTab: OfferTab) => {
     setTab(nextTab)
-    setSearchParams(nextTab === 'sent' ? { tab: 'sent' } : {})
+    setSearchParams(nextTab === 'sent' ? { tab: 'sent' } : {}, { replace: true })
   }
 
   return (

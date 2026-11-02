@@ -53,7 +53,7 @@ export function PhotoInput({
       <legend className="text-xs font-bold leading-[18px] text-neutral-900">
         {label}{optional ? ' (선택)' : ' (1~3장)'}
       </legend>
-      <label className="flex min-h-[72px] cursor-pointer items-center gap-3 rounded-input border border-dashed border-neutral-400 bg-white px-4 transition-colors hover:border-primary-700 hover:bg-primary-100">
+      <label className="flex min-h-[72px] cursor-pointer items-center gap-3 rounded-input border border-dashed border-neutral-400 bg-white px-4 transition-colors hover:border-primary-700 hover:bg-primary-100 focus-within:border-primary-700 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-700 has-[:disabled]:cursor-not-allowed has-[:disabled]:hover:border-neutral-400 has-[:disabled]:hover:bg-white">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
           <ImagePlus aria-hidden size={21} strokeWidth={2} />
         </span>

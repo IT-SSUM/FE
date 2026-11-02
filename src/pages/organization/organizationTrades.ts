@@ -1,9 +1,11 @@
 export type OrganizationTradeStatus = 'progress' | 'complete' | 'canceled'
 
 export type TradeAppointment = {
-  dateTime: string
-  location: string
-  method: string
+  date: string
+  time: string
+  address: string
+  detailAddress: string
+  method: '직접 전달' | '택배 전달'
 }
 
 export const tradeStatusLabels: Record<OrganizationTradeStatus, string> = {

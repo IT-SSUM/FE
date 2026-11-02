@@ -15,30 +15,42 @@ export function TradeAppointmentPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { tradeId = 'trade-water-hyobi' } = useParams()
-  const saved = (location.state as { appointment?: TradeAppointment } | null)
-    ?.appointment
-  const [date, setDate] = useState('2026-10-09')
-  const [time, setTime] = useState('14:00')
+  const routeState = location.state as {
+    appointment?: TradeAppointment
+    quantity?: string
+  } | null
+  const saved = routeState?.appointment
+  const [today] = useState(getLocalToday)
+  const [date, setDate] = useState(saved?.date ?? today)
+  const [time, setTime] = useState(saved?.time ?? '14:00')
   const [address, setAddress] = useState(
-    saved?.location.split(',')[0]?.trim() ?? '경기도 부천시 가마안로 12',
+    saved?.address ?? '경기도 부천시 가마안로 12',
   )
   const [detailAddress, setDetailAddress] = useState(
-    saved?.location.split(',').slice(1).join(',').trim() ?? '센터 입구',
+    saved?.detailAddress ?? '센터 입구',
   )
   const [method, setMethod] = useState<(typeof methodOptions)[number]>(
     saved?.method === '택배 전달' ? '택배 전달' : '직접 전달',
   )
+  const [dateError, setDateError] = useState('')
+  const minimumDate = saved?.date && saved.date < today ? saved.date : today
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!date || date < minimumDate) {
+      setDateError('오늘 이후 날짜를 선택해 주세요.')
+      return
+    }
     const appointment: TradeAppointment = {
-      dateTime: `${formatKoreanDate(date)} ${formatKoreanTime(time)}`,
-      location: detailAddress ? `${address}, ${detailAddress}` : address,
+      date,
+      time,
+      address,
+      detailAddress,
       method,
     }
     navigate(routePath.organizationActiveTradeDetail(tradeId), {
       replace: true,
-      state: { appointment },
+      state: { appointment, quantity: routeState?.quantity },
     })
   }
 
@@ -65,12 +77,20 @@ export function TradeAppointmentPage() {
             id="appointment-date"
             label="날짜"
             value={date}
-            min="2026-01-01"
+            min={minimumDate}
             max="2030-12-31"
             yearOrder="ascending"
-            onChange={setDate}
+            onChange={(value) => {
+              setDate(value)
+              setDateError('')
+            }}
             labelClassName="text-xs font-bold leading-[18px]"
           />
+          {dateError ? (
+            <p className="mt-2 typography-label-2 text-error" role="alert">
+              {dateError}
+            </p>
+          ) : null}
 
           <div className="mt-6">
             <TimeField
@@ -121,19 +141,6 @@ export function TradeAppointmentPage() {
   )
 }
 
-function formatKoreanDate(value: string) {
-  const [year, month, day] = value.split('-').map(Number)
-  if (!year || !month || !day) return '날짜 미정'
-  const date = new Date(year, month - 1, day)
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토']
-  return `${year}년 ${month}월 ${day}일 (${weekdays[date.getDay()]})`
-}
-
-function formatKoreanTime(value: string) {
-  const [hourValue, minuteValue = '00'] = value.split(':')
-  const hour24 = Number(hourValue) || 0
-  const meridiem = hour24 < 12 ? '오전' : '오후'
-  const hour = hour24 % 12 || 12
-  const minute = Number(minuteValue)
-  return `${meridiem} ${hour}시${minute ? ` ${minute}분` : ''}`
+function getLocalToday() {
+  return new Date().toLocaleDateString('sv-SE')
 }

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { ChevronLeft } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Input } from '@/components/common/Input/Input'
 import { routePath } from '@/routes/paths'
@@ -8,15 +8,32 @@ import { organizationTrades } from './organizationTrades'
 
 export function TradeQuantityEditPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { tradeId } = useParams()
   const trade =
     organizationTrades.find((item) => item.id === tradeId) ?? organizationTrades[0]
   const [itemName, currentQuantity = '10개'] = splitItem(trade.itemName)
-  const [quantity, setQuantity] = useState(currentQuantity)
+  const routeQuantity = (location.state as { quantity?: string } | null)?.quantity
+  const initialQuantity = routeQuantity ?? currentQuantity
+  const unit = initialQuantity.replace(/\d/g, '') || '개'
+  const [quantity, setQuantity] = useState(initialQuantity.replace(/\D/g, ''))
+  const [quantityError, setQuantityError] = useState('')
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    navigate(routePath.organizationActiveTradeDetail(trade.id), { replace: true })
+    const nextQuantity = Number(quantity)
+    if (!Number.isInteger(nextQuantity) || nextQuantity < 1) {
+      setQuantityError(`1${unit} 이상의 수량을 입력해 주세요.`)
+      return
+    }
+    if (nextQuantity > 999) {
+      setQuantityError('수량은 최대 999까지 입력할 수 있어요.')
+      return
+    }
+    navigate(routePath.organizationActiveTradeDetail(trade.id), {
+      replace: true,
+      state: { quantity: `${nextQuantity}${unit}` },
+    })
   }
 
   return (
@@ -39,7 +56,7 @@ export function TradeQuantityEditPage() {
       <main className="flex-1 overflow-y-auto px-5 pb-6 pt-5">
         <section className="rounded-card border border-neutral-200 bg-white p-4">
           <h2 className="text-base font-semibold leading-6 text-neutral-900">
-            {itemName} · 현재 {currentQuantity}
+            {itemName} · 현재 {initialQuantity}
           </h2>
           <p className="mt-3 text-xs font-normal leading-[18px] text-neutral-700">
             처음 요청한 수량 {currentQuantity}
@@ -48,10 +65,15 @@ export function TradeQuantityEditPage() {
 
         <div className="mt-5">
           <Input
-            label="변경할 수량"
+            label={`변경할 수량 (${unit})`}
             required
             value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
+            inputMode="numeric"
+            error={quantityError}
+            onChange={(event) => {
+              setQuantity(event.target.value.replace(/\D/g, ''))
+              setQuantityError('')
+            }}
             labelClassName="text-xs font-bold leading-[18px]"
             className="typography-body-2"
           />

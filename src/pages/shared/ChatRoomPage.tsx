@@ -4,6 +4,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BottomSheet } from '@/components/common/BottomSheet/BottomSheet'
 import { ChatBubble } from '@/components/common/ChatBubble/ChatBubble'
 import { DateField } from '@/components/common/DateField/DateField'
+import { TimeField } from '@/components/common/TimeField/TimeField'
 import { routePath } from '@/routes/paths'
 import { cn } from '@/utils/cn'
 
@@ -63,61 +64,160 @@ const donorMessages: ChatMessage[] = [
   },
 ]
 
+type ChatConversation = {
+  peerName: string
+  itemTitle: string
+  messages: ChatMessage[]
+}
+
+function createMessages(
+  peerMessage: string,
+  selfMessage: string,
+  peerReply: string,
+): ChatMessage[] {
+  return [
+    { id: 'peer-1', side: 'peer', message: peerMessage, time: '오후 1:40' },
+    { id: 'self-1', side: 'self', message: selfMessage, time: '읽음 · 오후 1:41' },
+    { id: 'peer-2', side: 'peer', message: peerReply, time: '오후 1:42' },
+  ]
+}
+
+const chatConversations: Record<string, ChatConversation> = {
+  'donor-choi-yoonseo': {
+    peerName: '최윤서',
+    itemTitle: '생수 10개',
+    messages: organizationMessages,
+  },
+  'donor-choi-hyobi': {
+    peerName: '최효비',
+    itemTitle: '생수 10개',
+    messages: createMessages(
+      '안녕하세요. 생수 10개를 기부하고 싶어요.',
+      '감사합니다. 토요일 오후 2시에 가능할까요?',
+      '네, 그 시간에 방문할게요.',
+    ),
+  },
+  'donor-choi-kkokko': {
+    peerName: '홍길동',
+    itemTitle: '의류 3벌',
+    messages: createMessages(
+      '아동 의류 3벌을 나누고 싶습니다.',
+      '고맙습니다. 물품 상태를 확인할 수 있을까요?',
+      '네, 사진과 함께 보내드릴게요.',
+    ),
+  },
+  'guro-child-center': {
+    peerName: '구로지역아동센터',
+    itemTitle: '어린이 도서 30권',
+    messages: donorMessages,
+  },
+  'guro-welfare-center': {
+    peerName: '구로희망복지관',
+    itemTitle: '수건 10장',
+    messages: createMessages(
+      '수건 10장을 지원받고 싶어요.',
+      '네, 깨끗하게 포장해서 전달드릴게요.',
+      '감사합니다. 일정은 채팅으로 조율해요.',
+    ),
+  },
+  'guro-dream-center': {
+    peerName: '구로꿈나무센터',
+    itemTitle: '학용품 20세트',
+    messages: createMessages(
+      '아이들이 사용할 학용품이 필요해요.',
+      '학용품 20세트를 기부할 수 있어요.',
+      '감사합니다. 전달 일정을 정해볼까요?',
+    ),
+  },
+  'guro-reserved-center': {
+    peerName: '구로지역아동센터',
+    itemTitle: '생수 12개',
+    messages: createMessages(
+      '예약한 생수 12개 확인했습니다.',
+      '금요일 오후 2시에 직접 전달할게요.',
+      '네, 센터 입구에서 뵙겠습니다.',
+    ),
+  },
+  'seoul-dream-center': {
+    peerName: '서울꿈나무센터',
+    itemTitle: '아동 도서 12권',
+    messages: createMessages(
+      '보내주신 아동 도서를 잘 받았어요.',
+      '아이들에게 도움이 되면 좋겠습니다.',
+      '소중한 나눔 감사합니다.',
+    ),
+  },
+}
+
+function getLocalToday() {
+  return new Date().toLocaleDateString('sv-SE')
+}
+
 export function ChatRoomPage() {
   const navigate = useNavigate()
   const { chatRoomId } = useParams()
   const [searchParams] = useSearchParams()
   const isOrganization = searchParams.get('audience') === 'organization'
-  const [messages, setMessages] = useState<ChatMessage[]>(
-    isOrganization ? organizationMessages : donorMessages,
-  )
+  const fallbackRoomId = isOrganization
+    ? 'donor-choi-yoonseo'
+    : 'guro-child-center'
+  const conversation =
+    chatConversations[chatRoomId ?? ''] ?? chatConversations[fallbackRoomId]
+  const roomId = chatRoomId ?? fallbackRoomId
+  const [messagesByRoom, setMessagesByRoom] = useState<
+    Record<string, ChatMessage[]>
+  >({})
+  const messages = messagesByRoom[roomId] ?? conversation.messages
   const [message, setMessage] = useState('')
   const [appointmentOpen, setAppointmentOpen] = useState(false)
   const [appointment, setAppointment] = useState<DeliveryAppointment | null>(null)
-  const [appointmentDate, setAppointmentDate] = useState('2026-10-09')
+  const [today] = useState(getLocalToday)
+  const [appointmentDate, setAppointmentDate] = useState(today)
   const [appointmentTime, setAppointmentTime] = useState('14:00')
   const [appointmentLocation, setAppointmentLocation] = useState(
     '구로지역아동센터 입구',
   )
   const [appointmentMethod, setAppointmentMethod] =
     useState<DeliveryAppointment['method']>('직접 전달')
-  const peerName = isOrganization
-    ? chatRoomId === 'donor-choi-hyobi'
-      ? '최효비'
-      : chatRoomId === 'donor-choi-kkokko'
-        ? '홍길동'
-        : '최윤서'
-    : '구로지역아동센터'
+  const [appointmentError, setAppointmentError] = useState('')
 
   const sendMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const trimmedMessage = message.trim()
     if (!trimmedMessage) return
 
-    setMessages((current) => [
+    setMessagesByRoom((current) => ({
       ...current,
-      {
-        id: `self-${Date.now()}`,
-        side: 'self',
-        message: trimmedMessage,
-        time: new Intl.DateTimeFormat('ko-KR', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        }).format(new Date()),
-      },
-    ])
+      [roomId]: [
+        ...(current[roomId] ?? conversation.messages),
+        {
+          id: `self-${Date.now()}`,
+          side: 'self',
+          message: trimmedMessage,
+          time: new Intl.DateTimeFormat('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+          }).format(new Date()),
+        },
+      ],
+    }))
     setMessage('')
   }
 
   const saveAppointment = () => {
     if (!appointmentDate || !appointmentTime || !appointmentLocation.trim()) return
+    if (appointmentDate < today) {
+      setAppointmentError('오늘 이후 날짜를 선택해 주세요.')
+      return
+    }
     setAppointment({
       date: appointmentDate,
       time: appointmentTime,
       location: appointmentLocation.trim(),
       method: appointmentMethod,
     })
+    setAppointmentError('')
     setAppointmentOpen(false)
   }
 
@@ -133,7 +233,7 @@ export function ChatRoomPage() {
           <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
         <h1 className="text-base font-bold leading-6 text-neutral-900">
-          {peerName}
+          {conversation.peerName}
         </h1>
       </header>
 
@@ -147,7 +247,7 @@ export function ChatRoomPage() {
         </span>
         <span className="min-w-0 flex-1">
           <strong className="block truncate text-base font-bold leading-6 text-neutral-900">
-            {isOrganization ? '생수 10개' : '어린이 도서 30권'}
+            {conversation.itemTitle}
           </strong>
           <span className="mt-1 flex items-center gap-1 text-xs font-medium leading-[18px] text-primary-700">
             {appointment ? '예약중' : '거래중'} · 거래 상세 보기
@@ -240,20 +340,25 @@ export function ChatRoomPage() {
             id="delivery-appointment-date"
             label="전달 날짜"
             value={appointmentDate}
-            onChange={setAppointmentDate}
+            min={today}
+            yearOrder="ascending"
+            onChange={(value) => {
+              setAppointmentDate(value)
+              setAppointmentError('')
+            }}
           />
+          {appointmentError ? (
+            <p className="typography-label-2 text-error" role="alert">
+              {appointmentError}
+            </p>
+          ) : null}
 
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium leading-5 text-neutral-900">
-              전달 시간
-            </span>
-            <input
-              type="time"
-              value={appointmentTime}
-              onChange={(event) => setAppointmentTime(event.target.value)}
-              className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none focus:border-primary-700"
-            />
-          </label>
+          <TimeField
+            id="delivery-appointment-time"
+            label="전달 시간"
+            value={appointmentTime}
+            onChange={setAppointmentTime}
+          />
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium leading-5 text-neutral-900">

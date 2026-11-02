@@ -48,13 +48,13 @@ export function DonationRequestPage() {
   const { donationId } = useParams()
   const donation = getDonation(donationId)
   const initialQuantity = Math.min(10, donation.availableQuantity)
-  const [quantity, setQuantity] = useState(`${initialQuantity}${donation.unit}`)
+  const [quantity, setQuantity] = useState(String(initialQuantity))
   const [message, setMessage] = useState('금요일 오후에 수령할 수 있어요.')
   const [quantityError, setQuantityError] = useState('')
 
   const handleQuantityChange = (value: string) => {
     const digits = value.replace(/\D/g, '')
-    setQuantity(digits ? `${Number(digits)}${donation.unit}` : '')
+    setQuantity(digits.replace(/^0+(?=\d)/, ''))
     setQuantityError('')
   }
 
@@ -114,15 +114,36 @@ export function DonationRequestPage() {
             labelClassName="text-xs font-bold leading-[18px]"
             className="typography-body-2 text-neutral-700"
           />
-          <Input
-            label="요청 수량"
-            value={quantity}
-            inputMode="numeric"
-            error={quantityError}
-            labelClassName="text-xs font-bold leading-[18px]"
-            className="typography-body-2 text-neutral-700"
-            onChange={(event) => handleQuantityChange(event.target.value)}
-          />
+          <div className="flex w-full flex-col gap-2">
+            <label
+              htmlFor="request-quantity"
+              className="text-xs font-bold leading-[18px] text-neutral-900"
+            >
+              요청 수량
+            </label>
+            <div className="relative">
+              <input
+                id="request-quantity"
+                value={quantity}
+                inputMode="numeric"
+                aria-invalid={Boolean(quantityError)}
+                aria-describedby={quantityError ? 'request-quantity-error' : undefined}
+                onChange={(event) => handleQuantityChange(event.target.value)}
+                className="h-[54px] w-full rounded-input border border-neutral-500 bg-white px-4 pr-12 typography-body-2 text-neutral-700 outline-none transition-colors focus:border-primary-700"
+              />
+              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 typography-body-2 text-neutral-700">
+                {donation.unit}
+              </span>
+            </div>
+            {quantityError ? (
+              <p
+                id="request-quantity-error"
+                className="typography-label-2 text-error"
+              >
+                {quantityError}
+              </p>
+            ) : null}
+          </div>
           <Input
             label="기부자에게 전할 메시지 (선택)"
             value={message}

@@ -83,10 +83,16 @@ export function DateField({
     if (!open) return
 
     const closeOnOutsideClick = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false)
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+        setSelectorOpen(null)
+      }
     }
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') {
+        setOpen(false)
+        setSelectorOpen(null)
+      }
     }
 
     document.addEventListener('pointerdown', closeOnOutsideClick)
@@ -113,6 +119,7 @@ export function DateField({
     onChange(formatDate(date))
     setViewDate(date)
     setOpen(false)
+    setSelectorOpen(null)
   }
 
   const chooseToday = () => {
@@ -138,7 +145,14 @@ export function DateField({
         aria-labelledby={`${id}-label ${id}`}
         aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          if (open) {
+            setOpen(false)
+            setSelectorOpen(null)
+          } else {
+            setOpen(true)
+          }
+        }}
       >
         <CalendarDays aria-hidden size={18} />
         <span className={value ? '' : 'text-neutral-600'}>{formatDisplayDate(value)}</span>
@@ -282,7 +296,7 @@ export function DateField({
           </div>
 
           <div className="mt-2.5 flex items-center justify-between border-t border-neutral-200 pt-2.5 [&_button]:rounded-[10px] [&_button]:border-0 [&_button]:bg-transparent [&_button]:px-2.5 [&_button]:py-[7px] [&_button]:text-xs [&_button]:font-semibold [&_button]:text-primary-700 [&_button]:hover:bg-primary-100 [&_button]:disabled:cursor-not-allowed [&_button]:disabled:text-neutral-400 [&_button]:disabled:hover:bg-transparent">
-            <button type="button" onClick={() => { onChange(''); setOpen(false) }}>초기화</button>
+            <button type="button" onClick={() => { onChange(''); setOpen(false); setSelectorOpen(null) }}>초기화</button>
             <button type="button" onClick={chooseToday} disabled={isDisabled(today)}>오늘</button>
           </div>
         </section>
