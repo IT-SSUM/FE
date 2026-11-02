@@ -1,124 +1,327 @@
-import { useState } from 'react'
-import { BookOpen, ChevronLeft } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { CheckCircle2, ChevronLeft, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
-import { DateField } from '@/components/common/DateField/DateField'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { Input } from '@/components/common/Input/Input'
-import { RegionSelect } from '@/components/common/RegionSelect/RegionSelect'
 import { Textarea } from '@/components/common/Textarea/Textarea'
+import { PhotoInput } from '@/features/donor/PhotoInput'
 import { ROUTES, routePath } from '@/routes/paths'
 import { cn } from '@/utils/cn'
+
+const categories = [
+  '생활용품',
+  '의류 · 잡화',
+  '가구',
+  '주방용품',
+  '도서 · 문구',
+  '유아 · 아동용품',
+  '기타',
+] as const
 
 const conditionOptions = ['상 · 미개봉', '중 · 사용감 적음', '하 · 다회 사용'] as const
 
 export function NeedRegisterPage() {
   const navigate = useNavigate()
+  const [step, setStep] = useState<1 | 2>(1)
+  const [categoryPanelOpen, setCategoryPanelOpen] = useState(false)
+  const [regionPanelOpen, setRegionPanelOpen] = useState(false)
+  const [regionQuery, setRegionQuery] = useState('')
+  const [category, setCategory] = useState<(typeof categories)[number]>('생활용품')
+  const [draftCategory, setDraftCategory] = useState(category)
+  const [itemName, setItemName] = useState('생수')
+  const [quantity, setQuantity] = useState('20개')
+  const [region, setRegion] = useState('경기도 부천시')
   const [condition, setCondition] =
     useState<(typeof conditionOptions)[number]>('중 · 사용감 적음')
-  const [region, setRegion] = useState('서울특별시 구로구')
-  const [deadline, setDeadline] = useState('2026-10-18')
+  const [reason, setReason] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
+  const [photoBusy, setPhotoBusy] = useState(false)
   const [completeOpen, setCompleteOpen] = useState(false)
 
-  return (
-    <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
-        <button
-          type="button"
-          aria-label="뒤로가기"
-          onClick={() => navigate(ROUTES.organization.home)}
-          className="flex size-6 shrink-0 items-center justify-center text-primary-700"
-        >
-          <ChevronLeft aria-hidden size={24} strokeWidth={2} />
-        </button>
-        <h1 className="typography-title-3 text-neutral-900">필요 물품 등록</h1>
-      </header>
+  const openCategoryPanel = () => {
+    setDraftCategory(category)
+    setCategoryPanelOpen(true)
+  }
 
-      <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
-        <section>
-          <p className="typography-label-1 text-primary-700">기관 필요 물품</p>
-          <h2 className="mt-2 typography-heading-2 text-neutral-900">
-            필요한 물품을 알려주세요
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1)
+      return
+    }
+    navigate(ROUTES.organization.home)
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (step === 1) {
+      setStep(2)
+      return
+    }
+    setCompleteOpen(true)
+  }
+
+  if (categoryPanelOpen) {
+    return (
+      <div className="flex min-h-dvh flex-col bg-surface-canvas">
+        <PageHeader
+          title="카테고리 선택"
+          onBack={() => setCategoryPanelOpen(false)}
+        />
+
+        <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
+          <h2 className="typography-heading-3 text-neutral-900">
+            어떤 물품인가요?
           </h2>
-        </section>
+          <p className="mt-2 typography-label-2 text-neutral-600">
+            정확히 카테고리에서 가장 가까운 항목을 골라주세요.
+          </p>
 
-        <div className="mt-5 space-y-4">
-          <Input label="카테고리" required defaultValue="도서·문구" />
-          <Input label="필요 품목" required defaultValue="학용품 30세트" />
-          <Input label="필요 수량" required defaultValue="30" inputMode="numeric" />
-          <RegionSelect
-            id="organization-need-region"
-            label="기관 위치"
-            value={region}
-            onChange={setRegion}
-          />
-          <DateField
-            id="organization-need-deadline"
-            label="희망 수령일"
-            value={deadline}
-            onChange={setDeadline}
-          />
-        </div>
-
-        <fieldset className="mt-5 flex flex-col gap-2">
-          <legend className="typography-label-1 text-neutral-900">
-            희망 상태 <span aria-hidden>*</span>
-          </legend>
-          <div className="flex flex-wrap gap-2">
-            {conditionOptions.map((option) => {
-              const selected = option === condition
+          <fieldset className="mt-4 space-y-3">
+            <legend className="sr-only">카테고리</legend>
+            {categories.map((option) => {
+              const selected = option === draftCategory
 
               return (
                 <button
                   key={option}
                   type="button"
-                  onClick={() => setCondition(option)}
+                  aria-pressed={selected}
+                  onClick={() => setDraftCategory(option)}
+                  style={{ minHeight: 52 }}
                   className={cn(
-                    'shrink-0 rounded-pill px-3 py-2 typography-label-1 transition-colors',
+                    'flex w-full items-center gap-3 rounded-control border px-4 text-left typography-body-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700',
                     selected
-                      ? 'bg-primary-700 text-white'
-                      : 'border border-neutral-200 bg-white text-neutral-700',
+                      ? 'border-transparent bg-primary-100 text-primary-700'
+                      : 'border-neutral-200 bg-white text-neutral-900',
                   )}
                 >
-                  {option}
+                  {selected ? (
+                    <CheckCircle2 aria-hidden size={20} strokeWidth={2} />
+                  ) : null}
+                  <span>{option}</span>
                 </button>
               )
             })}
-          </div>
-        </fieldset>
+          </fieldset>
+        </main>
 
-        <div className="mt-5">
-          <Textarea
-            label="필요 사유"
-            defaultValue="이번 주 아동 학습 활동에 사용할 학용품 세트가 필요해요."
-            className="min-h-[120px] resize-none typography-body-1"
-          />
-        </div>
+        <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
+          <Button
+            className="h-[46px] w-full"
+            onClick={() => {
+              setCategory(draftCategory)
+              setCategoryPanelOpen(false)
+            }}
+          >
+            적용
+          </Button>
+        </footer>
+      </div>
+    )
+  }
 
-        <section className="mt-5 rounded-card bg-primary-100 p-4">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-input bg-white text-primary-700">
-              <BookOpen aria-hidden size={22} strokeWidth={2} />
-            </span>
-            <p className="typography-body-2 text-neutral-700">
-              등록한 필요 물품은 기부자 탐색과 AI 추천 대상에 공개돼요.
-            </p>
+  if (regionPanelOpen) {
+    const showBucheon =
+      !regionQuery.trim() || '경기도 부천시'.includes(regionQuery.trim())
+
+    return (
+      <div className="flex min-h-dvh flex-col bg-surface-canvas">
+        <PageHeader
+          title="지역 선택"
+          onBack={() => setRegionPanelOpen(false)}
+        />
+
+        <main className="flex-1 overflow-y-auto px-5 pb-6 pt-4">
+          <label
+            htmlFor="region-search"
+            className="text-xs font-bold leading-[18px] text-neutral-900"
+          >
+            지역 검색
+          </label>
+          <div className="mt-3 flex gap-2">
+            <input
+              id="region-search"
+              type="search"
+              value={regionQuery}
+              onChange={(event) => setRegionQuery(event.target.value)}
+              placeholder="시·군·구 검색"
+              className="h-[52px] min-w-0 flex-1 rounded-input border border-neutral-500 bg-white px-4 typography-body-2 text-neutral-900 outline-none placeholder:text-neutral-500 focus:border-primary-700"
+            />
+            <button
+              type="button"
+              className="flex h-[52px] shrink-0 items-center gap-2 rounded-control bg-primary-700 px-4 typography-title-3 text-white transition-colors hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
+            >
+              <Search aria-hidden size={18} strokeWidth={2} />
+              검색
+            </button>
           </div>
-        </section>
+
+          <section className="mt-4" aria-label="선택 가능한 지역">
+            {showBucheon ? (
+              <button
+                type="button"
+                aria-pressed="true"
+                onClick={() => setRegion('경기도 부천시')}
+                style={{ minHeight: 52 }}
+                className="flex w-full items-center gap-3 rounded-control border border-primary-300 bg-primary-100 px-4 text-left typography-body-2 text-primary-700"
+              >
+                <CheckCircle2 aria-hidden size={20} strokeWidth={2} />
+                경기도 부천시
+              </button>
+            ) : (
+              <div className="rounded-control border border-neutral-200 bg-white px-4 py-8 text-center typography-body-2 text-neutral-600">
+                선택할 수 있는 지역은 경기도 부천시예요.
+              </div>
+            )}
+          </section>
+
+          <p className="mt-4 typography-label-2 text-neutral-600">
+            시·군·구 단위로 공개돼요. 상세 위치는 채팅에서 협의해요.
+          </p>
+        </main>
+
+        <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
+          <Button
+            className="h-[46px] w-full"
+            onClick={() => {
+              setRegion('경기도 부천시')
+              setRegionPanelOpen(false)
+            }}
+          >
+            적용
+          </Button>
+        </footer>
+      </div>
+    )
+  }
+
+  return (
+    <form
+      className="flex min-h-dvh flex-col bg-surface-canvas"
+      onSubmit={handleSubmit}
+    >
+      <PageHeader title="필요 물품 등록" onBack={handleBack} />
+
+      <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
+        <p className="typography-label-1 text-primary-700">
+          {step} / 2 {step === 1 ? '물품·지역' : '희망상태·참고정보'}
+        </p>
+        <h2 className="mt-3 typography-heading-3 text-neutral-900">
+          {step === 1
+            ? '필요한 물품을 알려주세요'
+            : '희망 상태와 참고 정보를 알려주세요'}
+        </h2>
+
+        {step === 1 ? (
+          <div className="mt-5 space-y-4">
+            <div className="flex w-full flex-col gap-2">
+              <span className="text-xs font-bold leading-[18px] text-neutral-900">
+                카테고리
+              </span>
+              <button
+                type="button"
+                onClick={openCategoryPanel}
+                style={{ height: 54 }}
+                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none"
+              >
+                {category}
+              </button>
+            </div>
+            <Input
+              label="품목"
+              value={itemName}
+              onChange={(event) => setItemName(event.target.value)}
+              labelClassName="text-xs font-bold leading-[18px]"
+              className="typography-body-2"
+            />
+            <Input
+              label="필요 수량"
+              value={quantity}
+              onChange={(event) => setQuantity(event.target.value)}
+              labelClassName="text-xs font-bold leading-[18px]"
+              className="typography-body-2"
+              inputMode="numeric"
+            />
+            <div className="flex w-full flex-col gap-2">
+              <span className="text-xs font-bold leading-[18px] text-neutral-900">
+                수령 지역
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setRegionQuery('')
+                  setRegionPanelOpen(true)
+                }}
+                style={{ height: 54 }}
+                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none"
+              >
+                {region}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5">
+            <fieldset>
+              <legend className="text-xs font-bold leading-[18px] text-neutral-900">
+                희망 상태
+              </legend>
+              <div className="mt-2 space-y-2">
+                {conditionOptions.map((option) => {
+                  const selected = option === condition
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setCondition(option)}
+                      style={{ minHeight: 52 }}
+                      className={cn(
+                        'flex w-full items-center gap-3 rounded-control border px-4 text-left typography-body-2 transition-colors',
+                        selected
+                          ? 'border-primary-300 bg-primary-100 font-semibold text-primary-700'
+                          : 'border-neutral-200 bg-white text-neutral-900',
+                      )}
+                    >
+                      {selected ? (
+                        <CheckCircle2 aria-hidden size={20} strokeWidth={2} />
+                      ) : null}
+                      {option}
+                    </button>
+                  )
+                })}
+              </div>
+            </fieldset>
+
+            <div className="mt-4">
+              <Textarea
+                label="필요한 이유 (선택)"
+                value={reason}
+                placeholder="필요한 이유를 입력해 주세요."
+                labelClassName="text-xs font-bold leading-[18px]"
+                onChange={(event) => setReason(event.target.value)}
+                className="min-h-[112px] resize-none"
+              />
+            </div>
+
+            <div className="mt-4">
+              <PhotoInput
+                label="참고 사진"
+                optional
+                photos={photos}
+                onChange={setPhotos}
+                onBusyChange={setPhotoBusy}
+              />
+            </div>
+          </div>
+        )}
       </main>
 
-      <footer className="shrink-0 border-t border-neutral-200 bg-surface-canvas px-5 py-4">
-        <Button className="w-full" onClick={() => setCompleteOpen(true)}>
-          등록하기
+      <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
+        <Button type="submit" className="h-[46px] w-full" disabled={photoBusy}>
+          {step === 1 ? '다음' : '등록하기'}
         </Button>
       </footer>
-
-      <BottomNavigation
-        audience="organization"
-        activeItem="register"
-        className="shrink-0"
-      />
 
       <Dialog
         open={completeOpen}
@@ -126,9 +329,32 @@ export function NeedRegisterPage() {
         description="가까운 기부자가 확인할 수 있도록 공개됐어요."
         confirmText="추천 기부자 보기"
         cancelText="홈으로 가기"
-        onConfirm={() => navigate(routePath.organizationRecommendation('stationery-30'))}
+        onConfirm={() =>
+          navigate(routePath.organizationRecommendation('stationery-30'))
+        }
         onCancel={() => navigate(ROUTES.organization.home)}
       />
-    </div>
+    </form>
+  )
+}
+
+type PageHeaderProps = {
+  title: string
+  onBack: () => void
+}
+
+function PageHeader({ title, onBack }: PageHeaderProps) {
+  return (
+    <header className="flex h-14 shrink-0 items-center gap-2 px-5">
+      <button
+        type="button"
+        aria-label="뒤로가기"
+        onClick={onBack}
+        className="flex size-6 shrink-0 items-center justify-center text-primary-700"
+      >
+        <ChevronLeft aria-hidden size={24} strokeWidth={2} />
+      </button>
+      <h1 className="typography-title-3 text-neutral-900">{title}</h1>
+    </header>
   )
 }
