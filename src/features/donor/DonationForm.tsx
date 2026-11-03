@@ -18,6 +18,7 @@ import { useDonorStore } from './store'
 import { DonorPage, EmptyState } from './DonorPage'
 import { PhotoInput } from './PhotoInput'
 import { useItemConditionsQuery } from '@/hooks/queries/useItemConditionsQuery'
+import { useItemCategoriesQuery } from '@/hooks/queries/useItemCategoriesQuery'
 import type { ItemConditionCode } from '@/types/item'
 
 const conditionValueByCode: Record<ItemConditionCode, string> = {
@@ -48,6 +49,13 @@ export function DonationForm({
     isError: isConditionsError,
     refetch: refetchConditions,
   } = useItemConditionsQuery()
+
+  const {
+    data: itemCategories = [],
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
+    refetch: refetchCategories,
+  } = useItemCategoriesQuery()
 
   const [draft, setDraft] = useState<DonationInput>(() =>
     item ?? {
@@ -245,24 +253,56 @@ export function DonationForm({
                 aria-label="카테고리"
                 value={draft.category}
                 className={selectClass}
+                disabled={
+                  isCategoriesLoading ||
+                  isCategoriesError
+                }
                 onChange={(event) => {
-                  change('category', event.target.value)
+                  change(
+                    'category',
+                    event.target.value,
+                  )
                   change('name', '')
                 }}
               >
                 <option value="">
-                  선택해 주세요
+                  {isCategoriesLoading
+                    ? '카테고리를 불러오는 중...'
+                    : isCategoriesError
+                      ? '카테고리를 불러오지 못했어요'
+                      : '선택해 주세요'}
                 </option>
 
-                {Object.keys(catalog).map((value) => (
+                {itemCategories.map((category) => (
                   <option
-                    key={value}
-                    value={value}
+                    key={category.categoryId}
+                    value={category.name}
                   >
-                    {value}
+                    {category.name}
                   </option>
                 ))}
               </select>
+
+              {isCategoriesError ? (
+                <div>
+                  <p
+                    role="alert"
+                    className="typography-label-2 text-error"
+                  >
+                    물품 카테고리를 불러오지 못했어요.
+                  </p>
+
+                  <button
+                    type="button"
+                    className="mt-1 typography-label-1 text-primary-700 underline"
+                    onClick={() => {
+                      void refetchCategories()
+                    }}
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              ) : null}
             </label>
 
             <label className="block space-y-2">
@@ -273,12 +313,15 @@ export function DonationForm({
                 aria-invalid={Boolean(errors.name)}
                 value={draft.name}
                 className={selectClass}
+                disabled={!draft.category}
                 onChange={(event) =>
                   change('name', event.target.value)
                 }
               >
                 <option value="">
-                  선택해 주세요
+                  {draft.category
+                    ? '선택해 주세요'
+                    : '카테고리를 먼저 선택해 주세요'}
                 </option>
 
                 {(catalog[draft.category] ?? []).map(
