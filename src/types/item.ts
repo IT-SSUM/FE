@@ -1,6 +1,14 @@
-export type ItemConditionCode = 'HIGH' | 'MID' | 'LOW'
+export type ItemConditionCode =
+  | 'HIGH'
+  | 'MID'
+  | 'LOW'
 
 export type ItemCondition = {
   code: ItemConditionCode
   description: string
+}
+
+export type ItemCategory = {
+  categoryId: number
+  name: string
 }
