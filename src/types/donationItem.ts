@@ -13,6 +13,14 @@ export type CreateDonationItemRequest = {
   regionId: number
 }
 
+// PATCH에서 생략한 필드는 유지됩니다. 품목·수량·단위·상태는 수정할 수 없습니다.
+export type UpdateDonationItemRequest = {
+  description?: string
+  pickupAddress?: string
+  pickupAddressDetail?: string
+  imageKeys?: string[]
+}
+
 export type DonationItemDetail = {
   donationItemId: number
   status: string
@@ -35,7 +43,7 @@ export type DonationItemDetail = {
   regionName: string
 
   imageUrls: string[]
-  imageKeys: string[]
+  imageKeys?: string[] | null
 
   createdAt: string
 
@@ -45,8 +53,8 @@ export type DonationItemDetail = {
   donorName: string
   donorIntroduction: string
 
-  pickupAddress: string
-  pickupAddressDetail: string
+  pickupAddress?: string | null
+  pickupAddressDetail?: string | null
 }
 
 export type DonationItemListItem = {
