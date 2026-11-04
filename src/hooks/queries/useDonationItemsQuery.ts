@@ -5,6 +5,11 @@ import type { DonationItemListParams } from '@/types/donationItem'
 export const donationItemKeys = {
   all: ['donation-items'] as const,
 
+  details: () => [...donationItemKeys.all, 'detail'] as const,
+
+  detail: (donationItemId: number | null) =>
+    [...donationItemKeys.details(), donationItemId] as const,
+
   lists: () =>
     [...donationItemKeys.all, 'list'] as const,
 
