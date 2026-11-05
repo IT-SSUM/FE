@@ -1,0 +1,57 @@
+export type CreateMatchRequest = {
+  donationItemId: number
+  neededItemId: number
+  quantity: number
+  message: string
+}
+export type CreateMatchResponse = CreateMatchRequest & {
+  matchId: number
+  donationItemName: string
+  neededItemName: string
+  donorId: number
+  organizationId: number
+  requestedBy: string
+  status: string
+  createdAt: string
+}
+export type MatchListItem = {
+  matchId: number
+  requestedBy: string
+  status: string
+  donationItemName: string
+  neededItemName: string
+  donorName: string
+  organizationName: string
+  quantity: number
+  unit: string
+  itemCategoryId: number
+  donationItemRegion: string
+  neededItemRegion: string
+  deliveryMethod: string | null
+  scheduledAt: string | null
+  completedAt: string | null
+}
+export type MatchDetail = CreateMatchResponse & {
+  initialQuantity: number
+  deliveryMethod: string | null
+  scheduledAt: string | null
+  deliveryPlace: string | null
+  receiverName: string | null
+  respondedAt: string | null
+  reservedAt: string | null
+  completedAt: string | null
+  canceledAt: string | null
+  cancelReason: string | null
+  itemCategoryId: number
+}
+export type AcceptMatchResponse = CreateMatchResponse & {
+  chatRoomId: number
+  respondedAt: string
+}
+export type MatchStateResponse = {
+  matchId: number
+  status: string
+  canceledAt?: string | null
+  quantity?: number
+  reservedAt?: string | null
+}
