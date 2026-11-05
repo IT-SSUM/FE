@@ -4,7 +4,11 @@ import type { ApiResponse } from '@/types/api'
 import type { CreateMatchRequest, CreateMatchResponse, MatchListItem, MatchDetail, AcceptMatchResponse, MatchStateResponse } from '@/types/match'
 
 export class MatchApiError extends Error {
-  constructor(readonly response: ApiResponse<unknown>) { super(response.message) }
+  readonly response: ApiResponse<unknown>
+  constructor(response: ApiResponse<unknown>) {
+    super(response.message)
+    this.response = response
+  }
 }
 function unwrap<T>(response: ApiResponse<T>): T {
   if (!response.success) throw new MatchApiError(response)
