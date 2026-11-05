@@ -20,9 +20,21 @@ import { RecommendationPage as DonorRecommendationPage } from '@/pages/donor/Rec
 import { DonationDetailPage as OrganizationDonationDetailPage } from '@/pages/organization/DonationDetailPage'
 import { DonationListPage } from '@/pages/organization/DonationListPage'
 import { NeedDetailPage as OrganizationNeedDetailPage } from '@/pages/organization/NeedDetailPage'
+import { NeedEditPage } from '@/pages/organization/NeedEditPage'
+import { NeedManagePage } from '@/pages/organization/NeedManagePage'
 import { NeedRegisterPage } from '@/pages/organization/NeedRegisterPage'
 import { OrganizationHomePage } from '@/pages/organization/OrganizationHomePage'
+import { OrganizationNotificationPage } from '@/pages/organization/OrganizationNotificationPage'
 import { OrganizationMyPage } from '@/pages/organization/OrganizationMyPage'
+import { OrganizationProfileEditPage } from '@/pages/organization/OrganizationProfileEditPage'
+import { OfferDetailPage } from '@/pages/organization/OfferDetailPage'
+import { OfferListPage } from '@/pages/organization/OfferListPage'
+import { OrganizationTradeStatusPage } from '@/pages/organization/OrganizationTradeStatusPage'
+import { IndividualTradeStatusPage } from '@/pages/organization/IndividualTradeStatusPage'
+import { OrganizationActiveTradeDetailPage } from '@/pages/organization/OrganizationActiveTradeDetailPage'
+import { TradeQuantityEditPage } from '@/pages/organization/TradeQuantityEditPage'
+import { TradeAppointmentPage } from '@/pages/organization/TradeAppointmentPage'
+import { DonationRequestCompletePage, DonationRequestPage } from '@/pages/organization/DonationRequestPage'
 import { RecommendationPage as OrganizationRecommendationPage } from '@/pages/organization/RecommendationPage'
 import { ChatListPage } from '@/pages/shared/ChatListPage'
 import { ChatRoomPage } from '@/pages/shared/ChatRoomPage'
@@ -74,12 +86,25 @@ export const router = createBrowserRouter([
         element: <OrganizationLayout />,
         children: [
           { path: ROUTES.organization.home, element: <OrganizationHomePage /> },
+          { path: ROUTES.organization.notifications, element: <OrganizationNotificationPage /> },
+          { path: ROUTES.organization.needManage, element: <NeedManagePage /> },
           { path: ROUTES.organization.needNew, element: <NeedRegisterPage /> },
+          { path: ROUTES.organization.needEdit, element: <NeedEditPage /> },
           { path: ROUTES.organization.needDetail, element: <OrganizationNeedDetailPage /> },
           { path: ROUTES.organization.donationList, element: <DonationListPage /> },
           { path: ROUTES.organization.donationDetail, element: <OrganizationDonationDetailPage /> },
+          { path: ROUTES.organization.donationRequest, element: <DonationRequestPage /> },
+          { path: ROUTES.organization.donationRequestComplete, element: <DonationRequestCompletePage /> },
           { path: ROUTES.organization.recommendation, element: <OrganizationRecommendationPage /> },
           { path: ROUTES.organization.myPage, element: <OrganizationMyPage /> },
+          { path: ROUTES.organization.myProfile, element: <OrganizationProfileEditPage /> },
+          { path: ROUTES.organization.offerList, element: <OfferListPage /> },
+          { path: ROUTES.organization.offerDetail, element: <OfferDetailPage /> },
+          { path: ROUTES.organization.tradeStatus, element: <OrganizationTradeStatusPage /> },
+          { path: ROUTES.organization.individualTradeStatus, element: <IndividualTradeStatusPage /> },
+          { path: ROUTES.organization.activeTradeDetail, element: <OrganizationActiveTradeDetailPage /> },
+          { path: ROUTES.organization.tradeQuantityEdit, element: <TradeQuantityEditPage /> },
+          { path: ROUTES.organization.tradeAppointment, element: <TradeAppointmentPage /> },
         ],
       },
     ],

@@ -5,17 +5,36 @@ type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> & {
   id?: string
   label: string
   error?: string
+  labelClassName?: string
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ id, label, error, required, disabled, className, ...props }, ref) => {
+  (
+    {
+      id,
+      label,
+      error,
+      required,
+      disabled,
+      className,
+      labelClassName,
+      ...props
+    },
+    ref,
+  ) => {
     const generatedId = useId()
     const inputId = id ?? generatedId
     const messageId = error ? `${inputId}-error` : undefined
 
     return (
       <div className="flex w-full flex-col gap-2">
-        <label htmlFor={inputId} className="typography-label-1 text-neutral-900">
+        <label
+          htmlFor={inputId}
+          className={cn(
+            'text-neutral-900',
+            labelClassName ?? 'typography-label-1',
+          )}
+        >
           {label}
           {required ? <span className="text-error"> *</span> : null}
         </label>

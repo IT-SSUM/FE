@@ -52,7 +52,12 @@ const organizationNavigationItems: BottomNavigationItem[] = [
     to: ROUTES.organization.needNew,
     icon: Plus,
   },
-  { key: 'chat', label: '채팅', to: ROUTES.chatList, icon: MessageSquare },
+  {
+    key: 'chat',
+    label: '채팅',
+    to: `${ROUTES.chatList}?audience=organization`,
+    icon: MessageSquare,
+  },
   { key: 'my', label: '마이', to: ROUTES.organization.myPage, icon: UserRound },
 ]
 
