@@ -5,7 +5,11 @@ import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNav
 import { SegmentedTabs } from '@/components/common/SegmentedTabs/SegmentedTabs'
 import { routePath } from '@/routes/paths'
 import { cn } from '@/utils/cn'
-import { organizationOffers, type OrganizationOffer } from './organizationOffers'
+import { useMatchesQuery } from '@/hooks/queries/useMatchesQuery'
+import { matchErrorMessage } from '@/apis/match'
+import { matchDirection, matchStatusLabel } from '@/features/matches/MatchActions'
+import type { MatchListItem } from '@/types/match'
+type ApiOffer = MatchListItem & { direction: 'received' | 'sent' | null }
 
 type OfferTab = 'received' | 'sent'
 
@@ -19,7 +23,9 @@ export function OfferListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') === 'sent' ? 'sent' : 'received'
   const [tab, setTab] = useState<OfferTab>(initialTab)
-  const offers = organizationOffers.filter((offer) => offer.direction === tab)
+  const query = useMatchesQuery()
+  const allOffers: ApiOffer[] = (query.data ?? []).map(item => ({ ...item, direction: matchDirection(item.requestedBy, 'ORGANIZATION') }))
+  const offers = allOffers.filter((offer) => offer.direction === tab || offer.direction === null)
 
   const selectTab = (nextTab: OfferTab) => {
     setTab(nextTab)
@@ -48,16 +54,19 @@ export function OfferListPage() {
           itemClassName="min-w-[96px]"
           items={(['received', 'sent'] as const).map((value) => ({
             value,
-            label: `${tabLabels[value]} ${organizationOffers.filter((offer) => offer.direction === value).length}`,
+            label: `${tabLabels[value]} ${allOffers.filter((offer) => offer.direction === value).length}`,
           }))}
         />
 
         <section className="mt-4 space-y-4" aria-label={tabLabels[tab]}>
+          {query.isPending ? <p role="status">목록을 불러오고 있어요.</p> : null}
+          {query.isError ? <div role="alert">{matchErrorMessage(query.error)} <button type="button" onClick={() => void query.refetch()}>다시 시도</button></div> : null}
+          {!query.isPending && !query.isError && offers.length === 0 ? <p role="status">해당하는 제안·요청이 없어요.</p> : null}
           {offers.map((offer) => (
             <OfferCard
-              key={offer.id}
+              key={offer.matchId}
               offer={offer}
-              onClick={() => navigate(routePath.organizationOfferDetail(offer.id))}
+              onClick={() => navigate(routePath.organizationOfferDetail(String(offer.matchId)))}
             />
           ))}
         </section>
@@ -72,8 +81,8 @@ export function OfferListPage() {
   )
 }
 
-function OfferCard({ offer, onClick }: { offer: OrganizationOffer; onClick: () => void }) {
-  const isProgress = offer.status === 'progress'
+function OfferCard({ offer, onClick }: { offer: ApiOffer; onClick: () => void }) {
+  const isProgress = offer.status === 'TRADING' || offer.status === 'RESERVED'
 
   return (
     <article className="rounded-card border border-neutral-200 bg-white p-4">
@@ -81,7 +90,7 @@ function OfferCard({ offer, onClick }: { offer: OrganizationOffer; onClick: () =
         {offer.donorName} 님
       </h2>
       <p className="mt-2 text-xs font-normal leading-[18px] text-neutral-700">
-        {offer.itemSummary} · {offer.location}
+        {offer.donationItemName} {offer.quantity}{offer.unit} · {offer.donationItemRegion}
       </p>
       <div className="mt-3 flex items-center justify-between gap-3">
         <span
@@ -92,7 +101,7 @@ function OfferCard({ offer, onClick }: { offer: OrganizationOffer; onClick: () =
               : 'bg-warning-bg text-warning',
           )}
         >
-          {isProgress ? '거래중' : '응답 대기'}
+          {matchStatusLabel(offer.status)}
         </span>
         <button
           type="button"
