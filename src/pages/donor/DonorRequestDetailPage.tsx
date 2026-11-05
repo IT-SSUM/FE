@@ -1,54 +1,25 @@
-import { ChevronLeft, MessageCircle } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { TransactionStatus } from '@/components/common/TransactionStatus/TransactionStatus'
 import { ROUTES, routePath } from '@/routes/paths'
 
-import { useDonorStore } from '@/features/donor/store'
-import { unitOf, availableQuantity, titleOf } from '@/features/donor/model'
-import { DonorPage, EmptyState } from '@/features/donor/DonorPage'
-
-const requestDetailMap = {
-  'req-towels-a': { donationId: 'towels-30',
-    title: '구로희망복지관 요청',
-    status: 'request' as const,
-    itemName: '수건 30장',
-    requestQuantity: '10장',
-    remainQuantity: '20장',
-    organization: '구로희망복지관',
-    location: '서울 구로구',
-    reason:
-      '생활 지원 물품으로 수건이 부족해 신청했어요. 상태가 좋은 물품이라면 바로 전달받아 사용할 수 있어요.',
-  },
-  'offer-books-b': { donationId: 'books-12',
-    title: 'A지역아동센터 제안',
-    status: 'trading' as const,
-    itemName: '아동 도서 12권',
-    requestQuantity: '12권',
-    remainQuantity: '추천 대기',
-    organization: 'A지역아동센터',
-    location: '서울 관악구',
-    reason:
-      '아이들의 독서 활동에 적합한 기관으로 판단되어 기부 제안을 보냈어요.',
-  },
-  'req-water-c': { donationId: 'water-24',
-    title: '구로푸드뱅크 요청',
-    status: 'complete' as const,
-    itemName: '미개봉 생수 24개',
-    requestQuantity: '24개',
-    remainQuantity: '0개',
-    organization: '구로푸드뱅크',
-    location: '서울 구로구',
-    reason: '요청 수량 전체가 전달 완료되어 거래 기록으로 보관돼요.',
-  },
-} as const
+import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
+import { matchErrorMessage, parseMatchId } from '@/apis/match'
+import { MatchActions, matchStatusLabel } from '@/features/matches/MatchActions'
 
 export function DonorRequestDetailPage() {
   const navigate = useNavigate()
   const { requestId } = useParams()
-  const request = requestId && Object.hasOwn(requestDetailMap, requestId) ? requestDetailMap[requestId as keyof typeof requestDetailMap] : undefined
-  const item = useDonorStore((state) => state.data.donations.find((row) => row.id === request?.donationId))
-  if (!request || !item) return <DonorPage title="요청 상세" back={ROUTES.donor.myRequests}><EmptyState title="요청 정보를 찾을 수 없어요" to={ROUTES.donor.myRequests} label="요청 목록 보기" /></DonorPage>
+  const id = parseMatchId(requestId)
+  const query = useMatchQuery(id)
+  const request = query.data
+  if (id === null || query.isPending || query.isError || !request) return <div className="min-h-dvh bg-surface-canvas p-5">
+    <h1 className="typography-title-3">요청 상세</h1>
+    <p role={query.isError ? 'alert' : 'status'}>{id === null ? '올바른 매칭 번호가 필요해요.' : query.isError ? matchErrorMessage(query.error) : query.isPending ? '불러오는 중이에요.' : '매칭 정보를 찾을 수 없어요.'}</p>
+    {query.isError ? <Button onClick={() => void query.refetch()}>다시 시도</Button> : null}
+    <Button variant="secondary" onClick={() => navigate(ROUTES.donor.myRequests)}>목록으로</Button>
+  </div>
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -68,27 +39,27 @@ export function DonorRequestDetailPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="typography-heading-2 text-neutral-900">
-              {request.title}
+              {request.donationItemName}
             </h2>
             <p className="mt-2 typography-body-2 text-neutral-700">
-              {request.organization} · {request.location}
+              {request.neededItemName}
             </p>
           </div>
-          <TransactionStatus variant={request.status} className="shrink-0" />
+          <TransactionStatus variant={request.status === 'RESERVED' ? 'reserved' : 'trading'} className="shrink-0">{matchStatusLabel(request.status)}</TransactionStatus>
         </div>
 
         <section className="mt-5 rounded-card border border-neutral-200 bg-white p-4">
           <dl className="space-y-2 typography-body-2">
-            <InfoRow label="연결 물품" value={titleOf(item)} />
-            <InfoRow label="신청 수량" value={request.requestQuantity} />
-            <InfoRow label="남은 수량" value={`${availableQuantity(item)}${unitOf(item.name)}`} />
+            <InfoRow label="연결 물품" value={request.donationItemName} />
+            <InfoRow label="신청 수량" value={String(request.quantity)} />
+            <InfoRow label="최초 신청 수량" value={String(request.initialQuantity)} />
           </dl>
         </section>
 
         <section className="mt-5">
           <h3 className="typography-title-2 text-neutral-900">요청 내용</h3>
           <p className="mt-3 typography-body-1 text-neutral-900">
-            {request.reason}
+            {request.message}
           </p>
         </section>
       </main>
@@ -97,13 +68,8 @@ export function DonorRequestDetailPage() {
         <Button variant="secondary" onClick={() => navigate(-1)}>
           닫기
         </Button>
-        <Button
-          className="gap-2"
-          onClick={() => navigate(routePath.chatRoom('mock-need-chat'))}
-        >
-          <MessageCircle aria-hidden size={18} strokeWidth={2} />
-          채팅 미리보기
-        </Button>
+        <MatchActions key={request.matchId} match={request} audience="DONOR" />
+        {request.status === 'TRADING' || request.status === 'RESERVED' ? <Button variant="secondary" onClick={() => navigate(routePath.tradeDetail(String(request.matchId)))}>거래 상세</Button> : null}
       </footer>
     </div>
   )
