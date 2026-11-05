@@ -1,18 +1,25 @@
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { ChevronLeft, MessageCircle } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
-import { Dialog } from '@/components/common/Dialog/Dialog'
-import { ROUTES, routePath } from '@/routes/paths'
-import { organizationOffers } from './organizationOffers'
+import { ROUTES } from '@/routes/paths'
+import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
+import { matchErrorMessage, parseMatchId } from '@/apis/match'
+import { MatchActions, matchDirection, matchStatusLabel } from '@/features/matches/MatchActions'
 
 export function OfferDetailPage() {
   const navigate = useNavigate()
   const { offerId } = useParams()
-  const offer =
-    organizationOffers.find((item) => item.id === offerId) ?? organizationOffers[0]
-  const [rejectOpen, setRejectOpen] = useState(false)
-  const isReceived = offer.direction === 'received'
+  const id = parseMatchId(offerId)
+  const query = useMatchQuery(id)
+  const offer = query.data
+  const isReceived = offer && matchDirection(offer.requestedBy, 'ORGANIZATION') === 'received'
+  if (id === null || query.isPending || query.isError || !offer) return <div className="min-h-dvh bg-surface-canvas p-5">
+    <h1 className="typography-title-3">제안·요청 상세</h1>
+    <p role={query.isError ? 'alert' : 'status'}>{id === null ? '올바른 매칭 번호가 필요해요.' : query.isError ? matchErrorMessage(query.error) : query.isPending ? '불러오는 중이에요.' : '매칭 정보를 찾을 수 없어요.'}</p>
+    {query.isError ? <Button onClick={() => void query.refetch()}>다시 시도</Button> : null}
+    <Button variant="secondary" onClick={() => navigate(ROUTES.organization.offerList)}>목록으로</Button>
+  </div>
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -33,18 +40,18 @@ export function OfferDetailPage() {
       <main className="flex-1 overflow-y-auto px-5 pb-6 pt-5">
         <h2 className="text-xl font-bold leading-8 text-neutral-900">
           {isReceived
-            ? `${offer.donorName} 님의 기부 제안`
-            : `${offer.donorName} 님에게 보낸 요청`}
+            ? `${offer.donationItemName} 기부 제안`
+            : `${offer.donationItemName} 요청`}
         </h2>
 
         <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
           <h3 className="text-base font-semibold leading-6 text-neutral-900">
-            {isReceived ? `제안 ${offer.quantity}` : `요청 ${offer.quantity}`} · 추가 필요 수량 {offer.availableQuantity}
+            {isReceived ? `제안 ${offer.quantity}` : `요청 ${offer.quantity}`} · {matchStatusLabel(offer.status)}
           </h3>
           <dl className="mt-4 space-y-3 text-xs leading-[18px]">
-            <InfoRow label="물품 상태" value={offer.condition} />
-            <InfoRow label="기부자" value={`${offer.donorName} 님`} />
-            <InfoRow label="물품 위치" value={offer.location} />
+            <InfoRow label="기부 물품" value={offer.donationItemName} />
+            <InfoRow label="필요 물품" value={offer.neededItemName} />
+            <InfoRow label="최초 수량" value={offer.initialQuantity} />
           </dl>
         </section>
 
@@ -60,13 +67,6 @@ export function OfferDetailPage() {
 
         {isReceived ? (
           <>
-            <Button
-              variant="secondary"
-              className="mt-4 h-[50px] w-full border-primary-400 font-semibold"
-              onClick={() => setRejectOpen(true)}
-            >
-              거절
-            </Button>
             <p className="mt-4 text-xs font-normal leading-5 text-neutral-700">
               기부자가 물품을 전달하고 싶다는 제안이에요.
               <br />
@@ -76,31 +76,10 @@ export function OfferDetailPage() {
         ) : null}
       </main>
 
-      {isReceived ? (
-        <footer className="shrink-0 px-5 pb-4 pt-2">
-          <Button
-            className="h-[46px] w-full"
-            onClick={() =>
-              navigate(
-                `${routePath.chatRoom('donor-choi-yoonseo')}?audience=organization`,
-              )
-            }
-          >
-            수락하기
-          </Button>
-        </footer>
-      ) : null}
+      <footer className="shrink-0 px-5 pb-4 pt-2">
+        <MatchActions key={offer.matchId} match={offer} audience="ORGANIZATION" />
+      </footer>
 
-      <Dialog
-        open={rejectOpen}
-        title="제안을 거절할까요?"
-        description="거절한 제안은 목록에서 확인할 수 없어요."
-        confirmText="거절하기"
-        cancelText="계속 확인"
-        confirmVariant="danger"
-        onConfirm={() => navigate(ROUTES.organization.offerList)}
-        onCancel={() => setRejectOpen(false)}
-      />
     </div>
   )
 }
