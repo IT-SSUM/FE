@@ -2,6 +2,7 @@ import { isAxiosError } from 'axios'
 import axios from '@/apis/axios'
 import type { ApiResponse } from '@/types/api'
 import type { CreateMatchRequest, CreateMatchResponse, MatchListItem, MatchDetail, AcceptMatchResponse, MatchStateResponse } from '@/types/match'
+import type { UpdateMatchQuantityRequest, CancelMatchRequest, UpdateMatchAppointmentRequest } from '@/types/match'
 
 export class MatchApiError extends Error {
   readonly response: ApiResponse<unknown>
@@ -47,6 +48,27 @@ export async function withdrawMatch(id: number): Promise<MatchStateResponse> {
 }
 export async function reserveMatch(id: number): Promise<MatchStateResponse> {
   return unwrap((await axios.patch<ApiResponse<MatchStateResponse>>(`${path(id)}/reserve`)).data)
+}
+export async function rejectMatch(id: number): Promise<MatchStateResponse> {
+  return unwrap((await axios.patch<ApiResponse<MatchStateResponse>>(`${path(id)}/reject`)).data)
+}
+export async function updateMatchQuantity({ matchId, body }: { matchId: number; body: UpdateMatchQuantityRequest }): Promise<MatchStateResponse> {
+  const { quantity } = body
+  if (!Number.isSafeInteger(quantity) || quantity < 1) throw new Error('수량은 1 이상의 정수로 입력해 주세요.')
+  return unwrap((await axios.patch<ApiResponse<MatchStateResponse>>(`${path(matchId)}/quantity`, { quantity })).data)
+}
+export async function completeMatch(id: number): Promise<MatchStateResponse> {
+  return unwrap((await axios.patch<ApiResponse<MatchStateResponse>>(`${path(id)}/complete`)).data)
+}
+export async function cancelMatch({ matchId, body }: { matchId: number; body: CancelMatchRequest }): Promise<MatchStateResponse> {
+  const reason = body.reason.trim()
+  if (!reason) throw new Error('취소 사유를 입력해 주세요.')
+  return unwrap((await axios.patch<ApiResponse<MatchStateResponse>>(`${path(matchId)}/cancel`, { reason })).data)
+}
+export async function updateMatchAppointment({ matchId, body }: { matchId: number; body: UpdateMatchAppointmentRequest }): Promise<MatchStateResponse> {
+  const { deliveryMethod, scheduledAt, deliveryPlace, receiverName } = body
+  if (!deliveryMethod || !deliveryPlace.trim() || !receiverName.trim() || !/T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$/.test(scheduledAt) || !Number.isFinite(Date.parse(scheduledAt))) throw new Error('전달 방법·일시·장소·수령인을 확인해 주세요.')
+  return unwrap((await axios.patch<ApiResponse<MatchStateResponse>>(`${path(matchId)}/appointment`, { deliveryMethod, scheduledAt, deliveryPlace: deliveryPlace.trim(), receiverName: receiverName.trim() })).data)
 }
 export function matchErrorMessage(error: unknown): string {
   const response = isAxiosError<ApiResponse<unknown>>(error) ? error.response : undefined
