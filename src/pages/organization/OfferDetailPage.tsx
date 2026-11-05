@@ -2,7 +2,7 @@ import { type ReactNode } from 'react'
 import { ChevronLeft, MessageCircle } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
-import { ROUTES } from '@/routes/paths'
+import { ROUTES, routePath } from '@/routes/paths'
 import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
 import { matchErrorMessage, parseMatchId } from '@/apis/match'
 import { MatchActions, matchDirection, matchStatusLabel } from '@/features/matches/MatchActions'
@@ -78,6 +78,7 @@ export function OfferDetailPage() {
 
       <footer className="shrink-0 px-5 pb-4 pt-2">
         <MatchActions key={offer.matchId} match={offer} audience="ORGANIZATION" />
+        {offer.status === 'TRADING' || offer.status === 'RESERVED' ? <Button variant="secondary" className="mt-3 w-full" onClick={() => navigate(routePath.organizationActiveTradeDetail(String(offer.matchId)))}>거래 상세</Button> : null}
       </footer>
 
     </div>
