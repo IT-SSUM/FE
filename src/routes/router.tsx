@@ -116,6 +116,7 @@ export const router = createBrowserRouter([
         element: <SharedLayout />,
         children: [
           { path: ROUTES.tradeDetail, element: <TradeDetailPage /> },
+          { path: '/trades/:tradeId/appointment', element: <TradeAppointmentPage audience="DONOR" /> },
           { path: ROUTES.chatList, element: <ChatListPage /> },
           { path: ROUTES.chatRoom, element: <ChatRoomPage /> },
           { path: ROUTES.notifications, element: <NotificationPage /> },
