@@ -4,40 +4,23 @@ import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNav
 import { ItemRow } from '@/components/item/ItemRow/ItemRow'
 import { routePath } from '@/routes/paths'
 
-import { useDonorStore } from '@/features/donor/store'
-import { titleOf } from '@/features/donor/model'
-
-const requestItems = [
-  {
-    id: 'req-towels-a', donationId: 'towels-30', direction: 'received',
-    title: '구로희망복지관 요청',
-    item: '수건 30장 중 10장 신청',
-    meta: '기관 요청 · 오늘 14:20',
-    status: 'request' as const,
-  },
-  {
-    id: 'offer-books-b', donationId: 'books-12', direction: 'sent',
-    title: 'A지역아동센터 제안',
-    item: '아동 도서 12권 기부 제안',
-    meta: '보낸 제안 · 어제 18:10',
-    status: 'trading' as const,
-  },
-  {
-    id: 'req-water-c', donationId: 'water-24', direction: 'received',
-    title: '구로푸드뱅크 요청',
-    item: '미개봉 생수 24개 신청',
-    meta: '매칭 확정 · 10월 8일',
-    status: 'complete' as const,
-  },
-]
+import { useMatchesQuery } from '@/hooks/queries/useMatchesQuery'
+import { matchErrorMessage } from '@/apis/match'
+import { matchDirection, matchStatusLabel } from '@/features/matches/MatchActions'
+import { TransactionStatus } from '@/components/common/TransactionStatus/TransactionStatus'
 
 export function DonorRequestListPage() {
   const navigate = useNavigate()
-  const donations = useDonorStore((state) => state.data.donations)
+  const query = useMatchesQuery()
   const [params, setParams] = useSearchParams()
   const filter = params.get('filter') ?? '전체'
-  const current = requestItems.filter((item) => donations.some((row) => row.id === item.donationId)).map((item) => ({ ...item, item: titleOf(donations.find((row) => row.id === item.donationId)!) }))
-  const filtered = current.filter((item) => filter === '전체' || (filter === '받은 요청' && item.direction === 'received') || (filter === '보낸 제안' && item.direction === 'sent') || (filter === '확정' && item.status === 'complete'))
+  const current = (query.data ?? []).map((item) => ({
+    id: String(item.matchId), title: item.organizationName,
+    item: `${item.donationItemName} ${item.quantity}${item.unit}`,
+    meta: item.neededItemRegion, status: item.status,
+    direction: matchDirection(item.requestedBy, 'DONOR'),
+  }))
+  const filtered = current.filter((item) => filter === '전체' || (filter === '받은 요청' && item.direction === 'received') || (filter === '보낸 제안' && item.direction === 'sent') || (filter === '확정' && item.status === 'RESERVED'))
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -56,7 +39,8 @@ export function DonorRequestListPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
-        <p className="mb-3 typography-label-2 text-neutral-700">요청·제안 샘플입니다. 실제 전송과 매칭은 거래 연동 후 제공됩니다.</p>
+        {query.isPending ? <p role="status">목록을 불러오고 있어요.</p> : null}
+        {query.isError ? <div role="alert">{matchErrorMessage(query.error)} <button type="button" onClick={() => void query.refetch()}>다시 시도</button></div> : null}
         <section className="grid grid-cols-2 gap-3">
           <SummaryCard label="받은 요청" value={`${current.filter((item) => item.direction === 'received').length}건`} />
           <SummaryCard label="보낸 제안" value={`${current.filter((item) => item.direction === 'sent').length}건`} />
@@ -77,7 +61,7 @@ export function DonorRequestListPage() {
         </div>
 
         <section className="mt-4 space-y-3" aria-label="요청 및 제안 목록">
-          {filtered.length === 0 ? <p role="status">해당하는 요청이나 제안이 없어요.</p> : null}
+          {!query.isPending && !query.isError && filtered.length === 0 ? <p role="status">해당하는 요청이나 제안이 없어요.</p> : null}
           {filtered.map((item) => (
             <ItemRow
               key={item.id}
@@ -86,9 +70,9 @@ export function DonorRequestListPage() {
                 <>
                   <p>{item.item}</p>
                   <p>{item.meta}</p>
+                  <TransactionStatus variant={item.status === 'RESERVED' ? 'reserved' : 'trading'}>{matchStatusLabel(item.status)}</TransactionStatus>
                 </>
               }
-              status={item.status}
               statusType="transaction"
               statusPlacement="bottom"
               icon={<ClipboardList aria-hidden size={30} strokeWidth={2} />}
