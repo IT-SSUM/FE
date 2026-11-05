@@ -54,4 +54,19 @@ export type MatchStateResponse = {
   canceledAt?: string | null
   quantity?: number
   reservedAt?: string | null
+  respondedAt?: string | null
+  completedAt?: string | null
+  initialQuantity?: number
+  deliveryMethod?: string
+  scheduledAt?: string | null
+  deliveryPlace?: string | null
+  receiverName?: string | null
+}
+export type UpdateMatchQuantityRequest = { quantity: number }
+export type CancelMatchRequest = { reason: string }
+export type UpdateMatchAppointmentRequest = {
+  deliveryMethod: string
+  scheduledAt: string
+  deliveryPlace: string
+  receiverName: string
 }
