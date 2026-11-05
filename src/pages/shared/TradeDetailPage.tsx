@@ -2,62 +2,30 @@ import {
   CalendarCheck,
   ChevronLeft,
   MapPin,
-  MessageCircle,
   Package,
-  Phone,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import {
   TransactionStatus,
-  type TransactionStatusVariant,
 } from '@/components/common/TransactionStatus/TransactionStatus'
-import { routePath } from '@/routes/paths'
-
-type TradeDetail = {
-  title: string
-  status: TransactionStatusVariant
-  organization: string
-  manager: string
-  phone: string
-  quantity: string
-  location: string
-  schedule: string
-  memo: string
-}
-
-const tradeDetailMap: Record<string, TradeDetail> = {
-  'mock-trade-1': {
-    title: '수건 30장',
-    status: 'reserved' as const,
-    organization: '기관 A',
-    manager: '김담당',
-    phone: '02-123-4567',
-    quantity: '10장 예약 · 20장 가능',
-    location: '서울 구로구 ○○로 12',
-    schedule: '2026.10.18 오후 2시 협의 중',
-    memo: '채팅으로 정확한 전달 장소와 시간을 조율하고 있어요.',
-  },
-  'mock-need-chat': {
-    title: '아동 도서 12권',
-    status: 'trading' as const,
-    organization: 'A지역아동센터',
-    manager: '박담당',
-    phone: '02-987-6543',
-    quantity: '12권',
-    location: '서울 관악구 ○○로 8',
-    schedule: '이번 주 내 전달 가능',
-    memo: '기관에서 필요한 도서 종류를 확인 중이에요.',
-  },
-}
+import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
+import { parseMatchId, matchErrorMessage } from '@/apis/match'
+import { matchStatusLabel } from '@/features/matches/MatchActions'
 
 export function TradeDetailPage() {
   const navigate = useNavigate()
   const { tradeId } = useParams()
-  const trade =
-    tradeDetailMap[tradeId as keyof typeof tradeDetailMap] ??
-    tradeDetailMap['mock-trade-1']
+  const id = parseMatchId(tradeId)
+  const query = useMatchQuery(id)
+  const trade = query.data
+  if (id === null || query.isPending || query.isError || !trade) return <div className="min-h-dvh bg-surface-canvas p-5">
+    <h1 className="typography-title-3">거래 상세</h1>
+    <p role={query.isError ? 'alert' : 'status'}>{id === null ? '올바른 매칭 번호가 필요해요.' : query.isError ? matchErrorMessage(query.error) : query.isPending ? '불러오는 중이에요.' : '거래 정보를 찾을 수 없어요.'}</p>
+    {query.isError ? <Button onClick={() => void query.refetch()}>다시 시도</Button> : null}
+    <Button variant="secondary" onClick={() => navigate(-1)}>뒤로가기</Button>
+  </div>
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -77,13 +45,13 @@ export function TradeDetailPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="typography-heading-2 text-neutral-900">
-              {trade.title}
+              {trade.donationItemName}
             </h2>
             <p className="mt-2 typography-body-2 text-neutral-700">
-              {trade.organization} · {trade.manager}
+              {trade.neededItemName}
             </p>
           </div>
-          <TransactionStatus variant={trade.status} className="shrink-0" />
+          <TransactionStatus variant={trade.status === 'RESERVED' ? 'reserved' : 'trading'} className="shrink-0">{matchStatusLabel(trade.status)}</TransactionStatus>
         </div>
 
         <section className="mt-5 rounded-card bg-primary-100 p-4">
@@ -91,9 +59,9 @@ export function TradeDetailPage() {
           <ol className="mt-4 grid grid-cols-3 gap-2 text-center">
             {['매칭 완료', '거래 진행', '전달 완료'].map((step, index) => {
               const active =
-                trade.status === 'complete' ||
-                (trade.status === 'reserved' && index < 2) ||
-                (trade.status === 'trading' && index < 1)
+                Boolean(trade.completedAt) ||
+                (trade.status === 'RESERVED' && index < 2) ||
+                (trade.status === 'TRADING' && index < 1)
 
               return (
                 <li key={step}>
@@ -121,30 +89,26 @@ export function TradeDetailPage() {
             <TradeInfoRow
               icon={<Package aria-hidden size={18} strokeWidth={2} />}
               label="거래 수량"
-              value={trade.quantity}
+              value={String(trade.quantity)}
             />
             <TradeInfoRow
               icon={<MapPin aria-hidden size={18} strokeWidth={2} />}
               label="전달 위치"
-              value={trade.location}
+              value={trade.deliveryPlace ?? '미정'}
             />
             <TradeInfoRow
               icon={<CalendarCheck aria-hidden size={18} strokeWidth={2} />}
               label="전달 일정"
-              value={trade.schedule}
+              value={trade.scheduledAt ?? '미정'}
             />
-            <TradeInfoRow
-              icon={<Phone aria-hidden size={18} strokeWidth={2} />}
-              label="기관 연락처"
-              value={trade.phone}
-            />
+
           </dl>
         </section>
 
         <section className="mt-5">
           <h3 className="typography-title-2 text-neutral-900">메모</h3>
           <p className="mt-3 typography-body-1 text-neutral-900">
-            {trade.memo}
+            {trade.message}
           </p>
         </section>
       </main>
@@ -153,13 +117,7 @@ export function TradeDetailPage() {
         <Button variant="secondary" onClick={() => navigate(-1)}>
           닫기
         </Button>
-        <Button
-          className="gap-2"
-          onClick={() => navigate(routePath.chatRoom('mock-need-chat'))}
-        >
-          <MessageCircle aria-hidden size={18} strokeWidth={2} />
-          채팅
-        </Button>
+
       </footer>
     </div>
   )
