@@ -8,7 +8,7 @@ import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
 import { matchErrorMessage, parseMatchId } from '@/apis/match'
 import { MatchActions, matchStatusLabel } from '@/features/matches/MatchActions'
 
-export function DonorRequestDetailPage() {
+export function DonorRequestDetailPage({ authenticatedRole = null }: { authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const { requestId } = useParams()
   const id = parseMatchId(requestId)
@@ -51,8 +51,19 @@ export function DonorRequestDetailPage() {
         <section className="mt-5 rounded-card border border-neutral-200 bg-white p-4">
           <dl className="space-y-2 typography-body-2">
             <InfoRow label="연결 물품" value={request.donationItemName} />
-            <InfoRow label="신청 수량" value={String(request.quantity)} />
-            <InfoRow label="최초 신청 수량" value={String(request.initialQuantity)} />
+            <InfoRow label="신청 수량" value={`${request.quantity}${request.unit}`} />
+            <InfoRow label="최초 신청 수량" value={`${request.initialQuantity}${request.unit}`} />
+            <InfoRow label="남은 수량" value={`${request.donationItemRemainingQuantity}${request.unit}`} />
+            <InfoRow label="추가 필요 수량" value={`${request.neededItemAdditionalQuantity}${request.unit}`} />
+            <InfoRow label="기부자" value={request.donorName} />
+            <InfoRow label="기관" value={request.organizationName} />
+            <InfoRow label="기관 주소" value={request.organizationAddress} />
+            <InfoRow label="수령 주소" value={request.neededItemReceiveAddress} />
+            <InfoRow label="물품 분류" value={request.itemCategoryName} />
+            <InfoRow label="물품 상태" value={request.conditionGrade} />
+            <InfoRow label="물품 지역" value={request.donationItemRegion} />
+            <InfoRow label="기관 지역" value={request.neededItemRegion} />
+            {request.chatRoomId != null ? <InfoRow label="채팅방 번호" value={String(request.chatRoomId)} /> : null}
           </dl>
         </section>
 
@@ -68,7 +79,7 @@ export function DonorRequestDetailPage() {
         <Button variant="secondary" onClick={() => navigate(-1)}>
           닫기
         </Button>
-        <MatchActions key={request.matchId} match={request} audience="DONOR" />
+        <MatchActions key={request.matchId} match={request} audience="DONOR" authenticatedRole={authenticatedRole} />
         {request.status === 'TRADING' || request.status === 'RESERVED' ? <Button variant="secondary" onClick={() => navigate(routePath.tradeDetail(String(request.matchId)))}>거래 상세</Button> : null}
       </footer>
     </div>
