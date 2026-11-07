@@ -13,17 +13,19 @@ import { useAcceptMatchMutation } from '@/hooks/mutations/useAcceptMatchMutation
 import { useWithdrawMatchMutation } from '@/hooks/mutations/useWithdrawMatchMutation'
 import { useReserveMatchMutation } from '@/hooks/mutations/useReserveMatchMutation'
 
-export function matchDirection(requestedBy: string, audience: 'DONOR' | 'ORGANIZATION') {
+export function matchDirection(requestedBy: string, audience: 'DONOR' | 'ORGANIZATION' | null) {
   // 확인되지 않은 역할 값은 수신/발신으로 추측하지 않습니다.
-  if (requestedBy !== 'DONOR' && requestedBy !== 'ORGANIZATION') return null
+  if (!audience || (requestedBy !== 'DONOR' && requestedBy !== 'ORGANIZATION')) return null
   return requestedBy === audience ? 'sent' : 'received'
 }
 export function matchStatusLabel(status: string) {
   return ({ PENDING: '응답 대기', TRADING: '거래중', RESERVED: '예약중' } as Record<string, string>)[status] ?? status
 }
-export function MatchActions({ match, audience }: {
+export function MatchActions({ match, audience, authenticatedRole = null }: {
   match: { matchId: number; status: string; requestedBy: string; quantity: number }
   audience: 'DONOR' | 'ORGANIZATION'
+  // Auth 통합 이후 검증된 로그인 역할만 전달합니다. 화면 audience는 권한이 아닙니다.
+  authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null
 }) {
   const navigate = useNavigate()
   const reject = useRejectMatchMutation()
@@ -41,9 +43,9 @@ export function MatchActions({ match, audience }: {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const pending = accept.isPending || withdraw.isPending || reserve.isPending || reject.isPending || quantityMutation.isPending || complete.isPending || cancel.isPending
-  const direction = matchDirection(match.requestedBy, audience)
+  const direction = matchDirection(match.requestedBy, authenticatedRole)
   async function run(action: 'accept' | 'withdraw' | 'reserve' | 'reject' | 'quantity' | 'complete' | 'cancel') {
-    if (lock.current) return
+    if (lock.current || !authenticatedRole || authenticatedRole !== audience) return
     const allowed = action === 'accept' || action === 'reject'
       ? match.status === 'PENDING' && direction === 'received'
       : action === 'withdraw' ? match.status === 'PENDING' && direction === 'sent'
@@ -78,6 +80,7 @@ export function MatchActions({ match, audience }: {
     } catch (cause) { setError(matchErrorMessage(cause)) }
     finally { lock.current = false }
   }
+  if (!authenticatedRole || authenticatedRole !== audience) return <p role="status">로그인 역할 확인 후 매칭 작업을 이용할 수 있어요.</p>
   return <div className="space-y-3">
     {match.status === 'PENDING' && direction === 'received' ? <Button className="w-full" disabled={pending} onClick={() => void run('accept')}>수락하기</Button> : null}
     {match.status === 'PENDING' && direction === 'sent' ? <Button variant="secondary" className="w-full" disabled={pending} onClick={() => void run('withdraw')}>철회하기</Button> : null}
