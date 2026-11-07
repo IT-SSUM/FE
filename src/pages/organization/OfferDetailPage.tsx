@@ -7,13 +7,14 @@ import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
 import { matchErrorMessage, parseMatchId } from '@/apis/match'
 import { MatchActions, matchDirection, matchStatusLabel } from '@/features/matches/MatchActions'
 
-export function OfferDetailPage() {
+export function OfferDetailPage({ authenticatedRole = null }: { authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const { offerId } = useParams()
   const id = parseMatchId(offerId)
   const query = useMatchQuery(id)
   const offer = query.data
-  const isReceived = offer && matchDirection(offer.requestedBy, 'ORGANIZATION') === 'received'
+  const direction = offer && matchDirection(offer.requestedBy, authenticatedRole === 'ORGANIZATION' ? authenticatedRole : null)
+  const isReceived = direction === 'received'
   if (id === null || query.isPending || query.isError || !offer) return <div className="min-h-dvh bg-surface-canvas p-5">
     <h1 className="typography-title-3">제안·요청 상세</h1>
     <p role={query.isError ? 'alert' : 'status'}>{id === null ? '올바른 매칭 번호가 필요해요.' : query.isError ? matchErrorMessage(query.error) : query.isPending ? '불러오는 중이에요.' : '매칭 정보를 찾을 수 없어요.'}</p>
@@ -33,7 +34,7 @@ export function OfferDetailPage() {
           <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
         <h1 className="typography-title-3 text-neutral-900">
-          {isReceived ? '받은 제안' : '보낸 요청'}
+          {!direction ? '제안·요청 상세' : isReceived ? '받은 제안' : '보낸 요청'}
         </h1>
       </header>
 
@@ -46,19 +47,30 @@ export function OfferDetailPage() {
 
         <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
           <h3 className="text-base font-semibold leading-6 text-neutral-900">
-            {isReceived ? `제안 ${offer.quantity}` : `요청 ${offer.quantity}`} · {matchStatusLabel(offer.status)}
+            수량 {offer.quantity}{offer.unit} · {matchStatusLabel(offer.status)}
           </h3>
           <dl className="mt-4 space-y-3 text-xs leading-[18px]">
             <InfoRow label="기부 물품" value={offer.donationItemName} />
             <InfoRow label="필요 물품" value={offer.neededItemName} />
-            <InfoRow label="최초 수량" value={offer.initialQuantity} />
+            <InfoRow label="최초 수량" value={`${offer.initialQuantity}${offer.unit}`} />
+            <InfoRow label="기부자" value={offer.donorName} />
+            <InfoRow label="기관" value={offer.organizationName} />
+            <InfoRow label="기관 주소" value={offer.organizationAddress} />
+            <InfoRow label="수령 주소" value={offer.neededItemReceiveAddress} />
+            <InfoRow label="물품 상태" value={offer.conditionGrade} />
+            <InfoRow label="분류" value={offer.itemCategoryName} />
+            <InfoRow label="물품 지역" value={offer.donationItemRegion} />
+            <InfoRow label="기관 지역" value={offer.neededItemRegion} />
+            <InfoRow label="기부 잔여 수량" value={`${offer.donationItemRemainingQuantity}${offer.unit}`} />
+            <InfoRow label="추가 필요 수량" value={`${offer.neededItemAdditionalQuantity}${offer.unit}`} />
+            {offer.chatRoomId != null ? <InfoRow label="채팅방 번호" value={offer.chatRoomId} /> : null}
           </dl>
         </section>
 
         <section className="mt-4">
           <h3 className="flex items-center gap-1.5 text-xs font-semibold leading-[18px] text-primary-700">
             <MessageCircle aria-hidden size={16} strokeWidth={2} />
-            {isReceived ? '기부자가 보낸 메시지' : '기관에서 보낸 메시지'}
+            제안·요청 메시지
           </h3>
           <p className="mt-2 rounded-control bg-primary-100 p-4 text-sm font-medium leading-[22px] text-neutral-900">
             {offer.message}
@@ -77,7 +89,7 @@ export function OfferDetailPage() {
       </main>
 
       <footer className="shrink-0 px-5 pb-4 pt-2">
-        <MatchActions key={offer.matchId} match={offer} audience="ORGANIZATION" />
+        <MatchActions key={offer.matchId} match={offer} audience="ORGANIZATION" authenticatedRole={authenticatedRole} />
         {offer.status === 'TRADING' || offer.status === 'RESERVED' ? <Button variant="secondary" className="mt-3 w-full" onClick={() => navigate(routePath.organizationActiveTradeDetail(String(offer.matchId)))}>거래 상세</Button> : null}
       </footer>
 
