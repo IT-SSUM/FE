@@ -43,6 +43,18 @@ export type MatchDetail = CreateMatchResponse & {
   canceledAt: string | null
   cancelReason: string | null
   itemCategoryId: number
+  itemCategoryName: string
+  unit: string
+  conditionGrade: string
+  donationItemRegion: string
+  donationItemRemainingQuantity: number
+  neededItemRegion: string
+  neededItemAdditionalQuantity: number
+  neededItemReceiveAddress: string
+  donorName: string
+  organizationName: string
+  organizationAddress: string
+  chatRoomId: number | null
 }
 export type AcceptMatchResponse = CreateMatchResponse & {
   chatRoomId: number
