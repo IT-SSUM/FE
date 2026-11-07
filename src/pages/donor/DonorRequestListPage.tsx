@@ -9,16 +9,17 @@ import { matchErrorMessage } from '@/apis/match'
 import { matchDirection, matchStatusLabel } from '@/features/matches/MatchActions'
 import { TransactionStatus } from '@/components/common/TransactionStatus/TransactionStatus'
 
-export function DonorRequestListPage() {
+export function DonorRequestListPage({ authenticatedRole = null }: { authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const query = useMatchesQuery()
   const [params, setParams] = useSearchParams()
-  const filter = params.get('filter') ?? '전체'
+  const canClassify = authenticatedRole === 'DONOR'
+  const filter = canClassify ? params.get('filter') ?? '전체' : '전체'
   const current = (query.data ?? []).map((item) => ({
-    id: String(item.matchId), title: item.organizationName,
+    id: String(item.matchId), title: canClassify ? item.organizationName : `${item.donorName} · ${item.organizationName}`,
     item: `${item.donationItemName} ${item.quantity}${item.unit}`,
     meta: item.neededItemRegion, status: item.status,
-    direction: matchDirection(item.requestedBy, 'DONOR'),
+    direction: matchDirection(item.requestedBy, canClassify ? authenticatedRole : null),
   }))
   const filtered = current.filter((item) => filter === '전체' || (filter === '받은 요청' && item.direction === 'received') || (filter === '보낸 제안' && item.direction === 'sent') || (filter === '확정' && item.status === 'RESERVED'))
 
@@ -34,7 +35,7 @@ export function DonorRequestListPage() {
           <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
         <h1 className="typography-title-3 text-neutral-900">
-          보낸 제안 / 받은 요청
+          {canClassify ? '보낸 제안 / 받은 요청' : '제안·요청 목록'}
         </h1>
       </header>
 
@@ -42,14 +43,15 @@ export function DonorRequestListPage() {
         {query.isPending ? <p role="status">목록을 불러오고 있어요.</p> : null}
         {query.isError ? <div role="alert">{matchErrorMessage(query.error)} <button type="button" onClick={() => void query.refetch()}>다시 시도</button></div> : null}
         <section className="grid grid-cols-2 gap-3">
-          <SummaryCard label="받은 요청" value={`${current.filter((item) => item.direction === 'received').length}건`} />
-          <SummaryCard label="보낸 제안" value={`${current.filter((item) => item.direction === 'sent').length}건`} />
+          <SummaryCard label="받은 요청" value={canClassify ? `${current.filter((item) => item.direction === 'received').length}건` : '역할 확인 필요'} />
+          <SummaryCard label="보낸 제안" value={canClassify ? `${current.filter((item) => item.direction === 'sent').length}건` : '역할 확인 필요'} />
         </section>
 
         <div className="mt-4 flex gap-2 overflow-x-auto">
           {['전체', '받은 요청', '보낸 제안', '확정'].map((value) => (
             <button
               key={value}
+              disabled={!canClassify && value !== '전체'}
               aria-pressed={filter === value}
               onClick={() => setParams({ filter: value }, { replace: true })}
               type="button"
