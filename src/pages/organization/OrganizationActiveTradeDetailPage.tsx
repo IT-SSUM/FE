@@ -6,7 +6,7 @@ import { parseMatchId, matchErrorMessage } from '@/apis/match'
 import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
 import { MatchActions, matchStatusLabel } from '@/features/matches/MatchActions'
 
-export function OrganizationActiveTradeDetailPage() {
+export function OrganizationActiveTradeDetailPage({ authenticatedRole = null }: { authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const { tradeId } = useParams()
   const id = parseMatchId(tradeId)
@@ -27,7 +27,7 @@ export function OrganizationActiveTradeDetailPage() {
           : !trade ? <p role="status">거래 정보를 찾을 수 없어요.</p>
           : <>
             <section className="rounded-card border border-neutral-200 bg-white p-4">
-              <h2 className="text-base font-semibold leading-6 text-neutral-900">{trade.donationItemName} · 수량 {trade.quantity}</h2>
+              <h2 className="text-base font-semibold leading-6 text-neutral-900">{trade.donorName} · {trade.donationItemName} {trade.quantity}{trade.unit}</h2>
               <p className="mt-3 text-xs font-semibold leading-[18px] text-primary-700">{matchStatusLabel(trade.status)}</p>
             </section>
             <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
@@ -35,8 +35,14 @@ export function OrganizationActiveTradeDetailPage() {
               <dl className="mt-4 space-y-3 text-xs leading-[18px]">
                 <InfoRow label="기부 물품" value={trade.donationItemName} />
                 <InfoRow label="필요 물품" value={trade.neededItemName} />
-                <InfoRow label="합의 수량" value={String(trade.quantity)} />
-                <InfoRow label="최초 수량" value={String(trade.initialQuantity)} />
+                <InfoRow label="합의 수량" value={`${trade.quantity}${trade.unit}`} />
+                <InfoRow label="최초 수량" value={`${trade.initialQuantity}${trade.unit}`} />
+                <InfoRow label="기관" value={trade.organizationName} />
+                <InfoRow label="기관 주소" value={trade.organizationAddress} />
+                <InfoRow label="수령 주소" value={trade.neededItemReceiveAddress} />
+                <InfoRow label="기부 잔여 수량" value={`${trade.donationItemRemainingQuantity}${trade.unit}`} />
+                <InfoRow label="추가 필요 수량" value={`${trade.neededItemAdditionalQuantity}${trade.unit}`} />
+                {trade.chatRoomId != null ? <InfoRow label="채팅방 번호" value={String(trade.chatRoomId)} /> : null}
               </dl>
             </section>
             <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
@@ -51,7 +57,7 @@ export function OrganizationActiveTradeDetailPage() {
           </>}
       </main>
       <footer className="shrink-0 px-5 pb-4 pt-2">
-        {id !== null && trade && !query.isError ? <MatchActions key={trade.matchId} match={trade} audience="ORGANIZATION" /> : <Button onClick={() => navigate(ROUTES.organization.offerList)}>목록으로</Button>}
+        {id !== null && trade && !query.isError ? <MatchActions key={trade.matchId} match={trade} audience="ORGANIZATION" authenticatedRole={authenticatedRole} /> : <Button onClick={() => navigate(ROUTES.organization.offerList)}>목록으로</Button>}
       </footer>
     </div>
   )
