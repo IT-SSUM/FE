@@ -12,9 +12,9 @@ import {
 } from '@/components/common/TransactionStatus/TransactionStatus'
 import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
 import { parseMatchId, matchErrorMessage } from '@/apis/match'
-import { matchStatusLabel } from '@/features/matches/MatchActions'
+import { MatchActions, matchStatusLabel } from '@/features/matches/MatchActions'
 
-export function TradeDetailPage() {
+export function TradeDetailPage({ authenticatedRole = null }: { authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const { tradeId } = useParams()
   const id = parseMatchId(tradeId)
@@ -48,7 +48,7 @@ export function TradeDetailPage() {
               {trade.donationItemName}
             </h2>
             <p className="mt-2 typography-body-2 text-neutral-700">
-              {trade.neededItemName}
+              {trade.donorName} · {trade.organizationName}
             </p>
           </div>
           <TransactionStatus variant={trade.status === 'RESERVED' ? 'reserved' : 'trading'} className="shrink-0">{matchStatusLabel(trade.status)}</TransactionStatus>
@@ -89,7 +89,7 @@ export function TradeDetailPage() {
             <TradeInfoRow
               icon={<Package aria-hidden size={18} strokeWidth={2} />}
               label="거래 수량"
-              value={String(trade.quantity)}
+              value={`${trade.quantity}${trade.unit}`}
             />
             <TradeInfoRow
               icon={<MapPin aria-hidden size={18} strokeWidth={2} />}
@@ -102,6 +102,13 @@ export function TradeDetailPage() {
               value={trade.scheduledAt ?? '미정'}
             />
 
+          </dl>
+          <dl className="mt-4 space-y-2 typography-body-2">
+            <dt>기관 주소</dt><dd>{trade.organizationAddress}</dd>
+            <dt>수령 주소</dt><dd>{trade.neededItemReceiveAddress}</dd>
+            <dt>기부 잔여 수량</dt><dd>{trade.donationItemRemainingQuantity}{trade.unit}</dd>
+            <dt>추가 필요 수량</dt><dd>{trade.neededItemAdditionalQuantity}{trade.unit}</dd>
+            {trade.chatRoomId != null ? <><dt>채팅방 번호</dt><dd>{trade.chatRoomId}</dd></> : null}
           </dl>
         </section>
 
@@ -117,7 +124,7 @@ export function TradeDetailPage() {
         <Button variant="secondary" onClick={() => navigate(-1)}>
           닫기
         </Button>
-
+        {authenticatedRole ? <MatchActions key={trade.matchId} match={trade} audience={authenticatedRole} authenticatedRole={authenticatedRole} /> : <p role="status">로그인 역할 확인 후 매칭 작업을 이용할 수 있어요.</p>}
       </footer>
     </div>
   )
