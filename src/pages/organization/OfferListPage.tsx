@@ -18,13 +18,14 @@ const tabLabels: Record<OfferTab, string> = {
   sent: '보낸 요청',
 }
 
-export function OfferListPage() {
+export function OfferListPage({ authenticatedRole = null }: { authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') === 'sent' ? 'sent' : 'received'
   const [tab, setTab] = useState<OfferTab>(initialTab)
   const query = useMatchesQuery()
-  const allOffers: ApiOffer[] = (query.data ?? []).map(item => ({ ...item, direction: matchDirection(item.requestedBy, 'ORGANIZATION') }))
+  const canClassify = authenticatedRole === 'ORGANIZATION'
+  const allOffers: ApiOffer[] = (query.data ?? []).map(item => ({ ...item, direction: matchDirection(item.requestedBy, canClassify ? authenticatedRole : null) }))
   const offers = allOffers.filter((offer) => offer.direction === tab || offer.direction === null)
 
   const selectTab = (nextTab: OfferTab) => {
@@ -43,11 +44,11 @@ export function OfferListPage() {
         >
           <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
-        <h1 className="typography-title-3 text-neutral-900">받은 제안 · 보낸 요청</h1>
+        <h1 className="typography-title-3 text-neutral-900">{canClassify ? '받은 제안 · 보낸 요청' : '제안·요청 목록'}</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-3">
-        <SegmentedTabs
+        {canClassify ? <SegmentedTabs
           ariaLabel="제안과 요청 구분"
           value={tab}
           onChange={(value) => selectTab(value as OfferTab)}
@@ -56,9 +57,9 @@ export function OfferListPage() {
             value,
             label: `${tabLabels[value]} ${allOffers.filter((offer) => offer.direction === value).length}`,
           }))}
-        />
+        /> : <p role="status">로그인 역할 확인 전에는 전체 제안·요청을 표시합니다.</p>}
 
-        <section className="mt-4 space-y-4" aria-label={tabLabels[tab]}>
+        <section className="mt-4 space-y-4" aria-label={canClassify ? tabLabels[tab] : '전체 제안·요청'}>
           {query.isPending ? <p role="status">목록을 불러오고 있어요.</p> : null}
           {query.isError ? <div role="alert">{matchErrorMessage(query.error)} <button type="button" onClick={() => void query.refetch()}>다시 시도</button></div> : null}
           {!query.isPending && !query.isError && offers.length === 0 ? <p role="status">해당하는 제안·요청이 없어요.</p> : null}
@@ -87,7 +88,7 @@ function OfferCard({ offer, onClick }: { offer: ApiOffer; onClick: () => void })
   return (
     <article className="rounded-card border border-neutral-200 bg-white p-4">
       <h2 className="text-base font-semibold leading-6 text-neutral-900">
-        {offer.donorName} 님
+        {offer.direction ? `${offer.donorName} 님` : `${offer.donorName} · ${offer.organizationName}`}
       </h2>
       <p className="mt-2 text-xs font-normal leading-[18px] text-neutral-700">
         {offer.donationItemName} {offer.quantity}{offer.unit} · {offer.donationItemRegion}
@@ -108,7 +109,7 @@ function OfferCard({ offer, onClick }: { offer: ApiOffer; onClick: () => void })
           onClick={onClick}
           className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700"
         >
-          {offer.direction === 'received' ? '자세히 보기' : '요청 내용 보기'}
+          {offer.direction === 'sent' ? '요청 내용 보기' : '자세히 보기'}
           <ChevronRight aria-hidden size={16} strokeWidth={2} />
         </button>
       </div>
