@@ -6,6 +6,7 @@ import type {
   DonationItemListParams,
   DonationItemListResponse,
   UpdateDonationItemRequest,
+  PresignedDonationImage,
 } from '@/types/donationItem'
 
 export class DonationItemApiError extends Error {
@@ -74,6 +75,29 @@ export async function createDonationItem(
     )
 
   return unwrap(response.data)
+}
+
+export async function uploadDonationItemImages(images: string[]) {
+  return Promise.all(images.map(async (dataUrl) => {
+    const image = await (await fetch(dataUrl)).blob()
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type)) {
+      throw new Error('JPG, PNG, WebP 형식의 사진만 등록할 수 있어요.')
+    }
+    const presignResponse = await axiosInstance.post<ApiResponse<PresignedDonationImage>>(
+      '/api/donation-items/images/presign',
+      { contentType: image.type },
+    )
+    const presigned = unwrap(presignResponse.data)
+    const uploadResponse = await fetch(presigned.uploadUrl, {
+      method: 'PUT',
+      headers: presigned.requiredHeaders,
+      body: image,
+    })
+    if (!uploadResponse.ok) {
+      throw new Error('기부 물품 사진을 업로드하지 못했어요. 다시 시도해 주세요.')
+    }
+    return presigned.objectKey
+  }))
 }
 
 export async function getDonationItems(

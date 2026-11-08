@@ -34,7 +34,7 @@ export function validateDonation(input: DonationInput, currentDate = today()) {
   if (!validDate(input.startDate)) errors.startDate = '수령 시작일을 입력해 주세요.'
   if (!validDate(input.endDate) || input.endDate < input.startDate || input.endDate < currentDate) errors.endDate = '종료일은 시작일 및 오늘 이후로 선택해 주세요.'
   if (input.description.length > 1000) errors.description = '설명은 1000자 이하로 입력해 주세요.'
-  if (input.photos.length < 1 || input.photos.length > 3 || input.photos.some((photo) => !/^(data:image\/(png|jpeg|webp);base64,|\/)/.test(photo))) errors.photos = '사진을 1~3장 선택해 주세요.'
+  if (input.photos.length < 1 || input.photos.length > 5 || input.photos.some((photo) => !/^(data:image\/(png|jpeg|webp);base64,|\/)/.test(photo))) errors.photos = '사진을 1~5장 선택해 주세요.'
   return errors
 }
 export function validateProfile(profile: Profile) {

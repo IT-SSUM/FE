@@ -24,6 +24,9 @@ export class NeededItemApiError extends Error {
 const NEEDED_ITEM_ERROR_MESSAGES: Record<string, string> = {
   ITEM_400: '선택한 물품 정보가 올바르지 않아요. 입력 내용을 다시 확인해 주세요.',
   ITEM_400_1: '참고 사진을 확인하지 못했어요. 사진을 다시 선택해 주세요.',
+  ITEM_403: '이 필요 물품을 변경할 권한이 없어요.',
+  ITEM_404: '삭제되었거나 존재하지 않는 필요 물품이에요.',
+  ITEM_409: '응답 대기 중인 제안·요청이나 진행 중인 거래가 있어 처리할 수 없어요.',
   ITEM_503: '현재 사진 업로드를 이용할 수 없어요. 잠시 후 다시 시도해 주세요.',
 }
 
@@ -32,6 +35,13 @@ const SERVER_ERROR_CODE_PATTERN = /\b[A-Z]+_\d+(?:_\d+)?\b/
 function unwrap<T>(response: ApiResponse<T>): T {
   if (!response.success) throw new NeededItemApiError(response)
   return response.data
+}
+
+function neededItemPath(neededItemId: number) {
+  if (!Number.isSafeInteger(neededItemId) || neededItemId < 1) {
+    throw new Error('올바른 필요 물품 번호가 필요해요.')
+  }
+  return `/api/needed-items/${neededItemId}`
 }
 
 function errorResponse(error: unknown) {
@@ -72,6 +82,26 @@ export async function createNeededItem(request: CreateNeededItemRequest) {
     request,
   )
   return unwrap(response.data)
+}
+
+export async function getNeededItem(neededItemId: number, signal?: AbortSignal) {
+  const response = await axiosInstance.get<ApiResponse<NeededItemDetail>>(
+    neededItemPath(neededItemId),
+    { signal },
+  )
+  return unwrap(response.data)
+}
+
+export async function closeNeededItem(neededItemId: number) {
+  const response = await axiosInstance.patch<ApiResponse<NeededItemDetail>>(
+    `${neededItemPath(neededItemId)}/close`,
+  )
+  return unwrap(response.data)
+}
+
+export async function deleteNeededItem(neededItemId: number) {
+  const response = await axiosInstance.delete<ApiResponse<null>>(neededItemPath(neededItemId))
+  unwrap(response.data)
 }
 
 export async function getAllMyNeededItems(signal?: AbortSignal) {
