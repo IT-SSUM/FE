@@ -26,3 +26,8 @@ export async function getItemCategories(): Promise<
 
   return response.data.data
 }
+
+export async function getItemUnits(): Promise<string[]> {
+  const response = await axiosInstance.get<ApiResponse<string[]>>('/api/item-units')
+  return response.data.data
+}
