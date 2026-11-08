@@ -6,6 +6,15 @@ import { AddressSearchField } from '@/components/common/AddressSearchField/Addre
 import { DateField } from '@/components/common/DateField/DateField'
 import { RegionSelect } from '@/components/common/RegionSelect/RegionSelect'
 import { ROUTES, routePath } from '@/routes/paths'
+import {
+  confirmEmailVerification,
+  getAuthErrorMessage,
+  sendEmailVerification,
+  signUpDonor,
+  signUpOrganization,
+  verifyBusiness,
+} from '@/features/auth/api'
+import { saveAuthSession } from '@/features/auth/storage'
 
 type SignupRole = 'donor' | 'organization'
 type SignupStep = 'profile' | 'account' | 'business' | 'eligibility' | 'agreements'
@@ -73,7 +82,16 @@ export function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
   const [businessVerified, setBusinessVerified] = useState(false)
+  const [businessVerificationToken, setBusinessVerificationToken] = useState('')
   const [eligibilityConfirmed, setEligibilityConfirmed] = useState(false)
+  const [emailVerificationToken, setEmailVerificationToken] = useState('')
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false)
+  const [emailVerificationLoading, setEmailVerificationLoading] = useState<'send' | 'confirm' | null>(null)
+  const [emailVerificationError, setEmailVerificationError] = useState('')
+  const [businessVerificationLoading, setBusinessVerificationLoading] = useState(false)
+  const [businessVerificationError, setBusinessVerificationError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [isComplete, setIsComplete] = useState(false)
 
   if (roleParam && roleParam !== 'donor' && roleParam !== 'organization') {
@@ -93,12 +111,12 @@ export function SignupPage() {
     .every((field) => values[field.name]?.trim())
   const accountComplete =
     Boolean(values.email?.trim()) &&
+    Boolean(emailVerificationToken) &&
     Boolean(values.password) &&
     Boolean(values.passwordConfirm) &&
-    values.password === values.passwordConfirm
+    values.password === values.passwordConfirm &&
+    /^(?=.*[A-Za-z])(?=.*\d)\S{8,20}$/.test(values.password)
   const businessFieldsComplete =
-    Boolean(values.businessAddress?.trim()) &&
-    Boolean(values.businessAddressDetail?.trim()) &&
     values.businessNumber?.replace(/\D/g, '').length === 10 &&
     Boolean(values.openingDate?.trim())
   const agreementsComplete = agreementItems
@@ -113,8 +131,73 @@ export function SignupPage() {
 
   const updateValue = (name: string, value: string) => {
     setValues((current) => ({ ...current, [name]: value }))
-    if (['businessAddress', 'businessAddressDetail', 'businessNumber', 'openingDate'].includes(name)) {
+    if (name === 'email') {
+      setEmailVerificationToken('')
+      setEmailVerificationSent(false)
+      setEmailVerificationError('')
+      setValues((current) => ({ ...current, email: value, emailCode: '' }))
+    }
+    if (['businessNumber', 'openingDate', 'representative'].includes(name)) {
       setBusinessVerified(false)
+      setBusinessVerificationToken('')
+      setBusinessVerificationError('')
+    }
+  }
+
+  const handleSendEmailVerification = async () => {
+    const email = values.email?.trim() ?? ''
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailVerificationError('이메일 형식을 확인해 주세요.')
+      return
+    }
+
+    setEmailVerificationLoading('send')
+    setEmailVerificationError('')
+    setEmailVerificationToken('')
+    try {
+      await sendEmailVerification(email)
+      setEmailVerificationSent(true)
+    } catch (error) {
+      setEmailVerificationError(getAuthErrorMessage(error, '인증번호를 보내지 못했어요. 잠시 후 다시 시도해 주세요.'))
+    } finally {
+      setEmailVerificationLoading(null)
+    }
+  }
+
+  const handleConfirmEmailVerification = async () => {
+    const code = values.emailCode?.trim() ?? ''
+    if (!/^\d{6}$/.test(code)) {
+      setEmailVerificationError('메일로 받은 6자리 인증번호를 입력해 주세요.')
+      return
+    }
+
+    setEmailVerificationLoading('confirm')
+    setEmailVerificationError('')
+    try {
+      const result = await confirmEmailVerification(values.email.trim(), code)
+      setEmailVerificationToken(result.emailVerificationToken)
+    } catch (error) {
+      setEmailVerificationError(getAuthErrorMessage(error, '인증번호를 확인하지 못했어요.'))
+    } finally {
+      setEmailVerificationLoading(null)
+    }
+  }
+
+  const handleVerifyBusiness = async () => {
+    setBusinessVerificationLoading(true)
+    setBusinessVerificationError('')
+    try {
+      const result = await verifyBusiness({
+        businessNumber: values.businessNumber.trim(),
+        openingDate: values.openingDate,
+        representativeName: values.representative.trim(),
+      })
+      setBusinessVerificationToken(result.businessVerificationToken)
+      setBusinessVerified(true)
+    } catch (error) {
+      setBusinessVerificationError(getAuthErrorMessage(error, '사업자 정보를 확인하지 못했어요.'))
+    } finally {
+      setBusinessVerificationLoading(false)
     }
   }
 
@@ -131,7 +214,7 @@ export function SignupPage() {
     setStepIndex((current) => current - 1)
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canContinue) return
 
@@ -141,8 +224,42 @@ export function SignupPage() {
       return
     }
 
-    setIsComplete(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setIsSubmitting(true)
+    setSubmitError('')
+    try {
+      const session = role === 'donor'
+        ? await signUpDonor({
+            emailVerificationToken,
+            email: values.email.trim(),
+            password: values.password,
+            name: values.name.trim(),
+            birthDate: values.birthDate,
+            phone: values.phone.trim(),
+            ...(values.region === '경기도 부천시' ? { regionId: 1 } : {}),
+            agreedTerms: ['SERVICE', 'PRIVACY'],
+          })
+        : await signUpOrganization({
+            emailVerificationToken,
+            businessVerificationToken,
+            email: values.email.trim(),
+            password: values.password,
+            name: values.organizationName.trim(),
+            representativeName: values.representative.trim(),
+            businessNumber: values.businessNumber.trim(),
+            openingDate: values.openingDate,
+            phone: values.phone.trim(),
+            address: values.address.trim(),
+            addressDetail: values.addressDetail?.trim() || undefined,
+            agreedTerms: ['SERVICE', 'PRIVACY', 'ORG_ELIGIBILITY'],
+          })
+      saveAuthSession(session)
+      setIsComplete(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (error) {
+      setSubmitError(getAuthErrorMessage(error, '회원가입을 완료하지 못했어요. 입력 정보를 확인해 주세요.'))
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleStart = () => {
@@ -193,6 +310,12 @@ export function SignupPage() {
                 onChange={updateValue}
                 onTogglePassword={() => setShowPassword((current) => !current)}
                 onTogglePasswordConfirm={() => setShowPasswordConfirm((current) => !current)}
+                verificationSent={emailVerificationSent}
+                verified={Boolean(emailVerificationToken)}
+                verificationLoading={emailVerificationLoading}
+                verificationError={emailVerificationError}
+                onSendVerification={handleSendEmailVerification}
+                onConfirmVerification={handleConfirmEmailVerification}
               />
             ) : null}
 
@@ -202,7 +325,9 @@ export function SignupPage() {
                 verified={businessVerified}
                 canVerify={businessFieldsComplete}
                 onChange={updateValue}
-                onVerify={() => setBusinessVerified(true)}
+                loading={businessVerificationLoading}
+                error={businessVerificationError}
+                onVerify={handleVerifyBusiness}
               />
             ) : null}
 
@@ -219,8 +344,9 @@ export function SignupPage() {
           </div>
 
           <div className="sticky bottom-0 z-2 mt-auto border-t border-neutral-200 bg-surface-canvas px-5 py-4">
-            <button type="submit" className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-primary-700 bg-primary-700 px-5 text-sm font-bold text-white transition-colors hover:border-primary-800 hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-500" disabled={!canContinue}>
-              {step === 'agreements' ? '가입하기' : '다음'}
+            {submitError ? <p className="mb-3 text-center text-xs leading-[18px] text-error" role="alert">{submitError}</p> : null}
+            <button type="submit" className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-primary-700 bg-primary-700 px-5 text-sm font-bold text-white transition-colors hover:border-primary-800 hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-500" disabled={!canContinue || isSubmitting}>
+              {isSubmitting ? '가입 중...' : step === 'agreements' ? '가입하기' : '다음'}
             </button>
           </div>
         </form>
@@ -388,10 +514,32 @@ type SignupAccountStepProps = {
   onChange: (name: string, value: string) => void
   onTogglePassword: () => void
   onTogglePasswordConfirm: () => void
+  verificationSent: boolean
+  verified: boolean
+  verificationLoading: 'send' | 'confirm' | null
+  verificationError: string
+  onSendVerification: () => void
+  onConfirmVerification: () => void
 }
 
-function SignupAccountStep({ role, values, showPassword, showPasswordConfirm, onChange, onTogglePassword, onTogglePasswordConfirm }: SignupAccountStepProps) {
+function SignupAccountStep({
+  role,
+  values,
+  showPassword,
+  showPasswordConfirm,
+  onChange,
+  onTogglePassword,
+  onTogglePasswordConfirm,
+  verificationSent,
+  verified,
+  verificationLoading,
+  verificationError,
+  onSendVerification,
+  onConfirmVerification,
+}: SignupAccountStepProps) {
   const passwordsDiffer = Boolean(values.passwordConfirm) && values.password !== values.passwordConfirm
+  const passwordInvalid = Boolean(values.password) && !/^(?=.*[A-Za-z])(?=.*\d)\S{8,20}$/.test(values.password)
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email?.trim() ?? '')
 
   return (
     <>
@@ -402,15 +550,53 @@ function SignupAccountStep({ role, values, showPassword, showPasswordConfirm, on
           <label htmlFor="signup-email" className="mb-2 block text-sm font-medium leading-5 text-neutral-900">
             {role === 'organization' ? '기관 이메일' : '이메일'}
           </label>
-          <input
-            id="signup-email"
-            type="email"
-            className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
-            placeholder={role === 'organization' ? 'example@organization.com' : 'example@email.com'}
-            value={values.email ?? ''}
-            onChange={(event) => onChange('email', event.target.value)}
-          />
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+            <input
+              id="signup-email"
+              type="email"
+              autoComplete="email"
+              className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
+              placeholder={role === 'organization' ? 'example@organization.com' : 'example@email.com'}
+              value={values.email ?? ''}
+              disabled={verified}
+              onChange={(event) => onChange('email', event.target.value)}
+            />
+            <button
+              type="button"
+              className="inline-flex h-[52px] min-w-24 items-center justify-center rounded-input border border-neutral-500 bg-white px-3 text-[13px] font-semibold text-primary-700 hover:border-primary-700 hover:bg-primary-100 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-500"
+              disabled={!emailValid || verified || verificationLoading !== null}
+              onClick={onSendVerification}
+            >
+              {verified ? '인증 완료' : verificationLoading === 'send' ? '발송 중...' : verificationSent ? '재발송' : '인증번호'}
+            </button>
+          </div>
         </div>
+        {verificationSent && !verified ? (
+          <div>
+            <label htmlFor="signup-email-code" className="mb-2 block text-sm font-medium leading-5 text-neutral-900">이메일 인증번호</label>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+              <input
+                id="signup-email-code"
+                inputMode="numeric"
+                maxLength={6}
+                className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
+                placeholder="6자리 인증번호"
+                value={values.emailCode ?? ''}
+                onChange={(event) => onChange('emailCode', event.target.value.replace(/\D/g, '').slice(0, 6))}
+              />
+              <button
+                type="button"
+                className="inline-flex h-[52px] min-w-24 items-center justify-center rounded-input border border-primary-700 bg-primary-700 px-3 text-[13px] font-semibold text-white hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-200 disabled:text-neutral-500"
+                disabled={values.emailCode?.length !== 6 || verificationLoading !== null}
+                onClick={onConfirmVerification}
+              >
+                {verificationLoading === 'confirm' ? '확인 중...' : '확인'}
+              </button>
+            </div>
+          </div>
+        ) : null}
+        {verified ? <p className="text-xs font-semibold leading-[18px] text-primary-700">이메일 인증이 완료됐어요.</p> : null}
+        {verificationError ? <p className="text-xs leading-[18px] text-error" role="alert">{verificationError}</p> : null}
         <PasswordField
           id="signup-password"
           label="비밀번호"
@@ -430,6 +616,7 @@ function SignupAccountStep({ role, values, showPassword, showPasswordConfirm, on
           onToggle={onTogglePasswordConfirm}
         />
       </div>
+      {passwordInvalid ? <p className="mt-2 text-xs leading-[18px] text-error">비밀번호는 영문과 숫자를 포함한 8~20자로 입력해 주세요.</p> : null}
       {passwordsDiffer ? <p className="mt-2 text-xs leading-[18px] text-error">비밀번호가 일치하지 않아요.</p> : null}
       <p className="mt-5 text-[13px] leading-5 text-primary-700 [&_a]:font-semibold [&_a]:underline [&_a]:underline-offset-3">이미 계정이 있나요? <Link to={ROUTES.login}>로그인</Link></p>
     </>
@@ -440,6 +627,8 @@ type BusinessVerificationStepProps = {
   values: Record<string, string>
   verified: boolean
   canVerify: boolean
+  loading: boolean
+  error: string
   onChange: (name: string, value: string) => void
   onVerify: () => void
 }
@@ -448,6 +637,8 @@ function BusinessVerificationStep({
   values,
   verified,
   canVerify,
+  loading,
+  error,
   onChange,
   onVerify,
 }: BusinessVerificationStepProps) {
@@ -458,14 +649,6 @@ function BusinessVerificationStep({
       <h2>사업자 정보를 확인해요</h2>
       <p className="mb-5 mt-1 text-[11px] leading-4 text-neutral-600">기관 심사에 필요한 사업자 정보를 입력해 주세요.</p>
       <div className="grid gap-3.5">
-        <AddressSearchField
-          id="signup-business-address"
-          label="기관 상세주소"
-          address={values.businessAddress ?? ''}
-          detailAddress={values.businessAddressDetail ?? ''}
-          onAddressChange={(value) => onChange('businessAddress', value)}
-          onDetailAddressChange={(value) => onChange('businessAddressDetail', value)}
-        />
         <div>
           <label htmlFor="signup-business-number" className="mb-2 block text-sm font-medium leading-5 text-neutral-900">사업자번호 10자리</label>
           <input
@@ -487,12 +670,13 @@ function BusinessVerificationStep({
         <button
           type="button"
           className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-neutral-300 bg-white px-5 text-sm font-bold text-primary-700 transition-colors hover:bg-primary-100 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-500"
-          disabled={!canVerify || verified}
+          disabled={!canVerify || verified || loading}
           onClick={onVerify}
         >
-          {verified ? '사업자 정보 확인 완료' : '사업자 정보 확인'}
+          {verified ? '사업자 정보 확인 완료' : loading ? '확인 중...' : '사업자 정보 확인'}
         </button>
       </div>
+      {error ? <p className="mt-3 text-xs leading-[18px] text-error" role="alert">{error}</p> : null}
       {verified ? (
         <div className="mt-4 flex gap-2.5 rounded-control bg-primary-100 p-4 text-primary-700 [&>svg]:mt-0.5 [&>svg]:shrink-0 [&_strong]:block [&_strong]:text-sm [&_strong]:leading-5 [&_span]:mt-1.5 [&_span]:block [&_span]:text-xs [&_span]:leading-[18px] [&_span]:text-neutral-700" role="status">
           <CircleCheck aria-hidden size={18} />
