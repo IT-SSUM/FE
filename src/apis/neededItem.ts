@@ -7,6 +7,7 @@ import type {
   MyNeededItemPage,
   NeededItemDetail,
   PresignedImageUpload,
+  UpdateNeededItemRequest,
 } from '@/types/neededItem'
 
 export class NeededItemApiError extends Error {
@@ -95,6 +96,17 @@ export async function getNeededItem(neededItemId: number, signal?: AbortSignal) 
 export async function closeNeededItem(neededItemId: number) {
   const response = await axiosInstance.patch<ApiResponse<NeededItemDetail>>(
     `${neededItemPath(neededItemId)}/close`,
+  )
+  return unwrap(response.data)
+}
+
+export async function updateNeededItem(
+  neededItemId: number,
+  request: UpdateNeededItemRequest,
+) {
+  const response = await axiosInstance.patch<ApiResponse<NeededItemDetail>>(
+    neededItemPath(neededItemId),
+    request,
   )
   return unwrap(response.data)
 }

@@ -15,6 +15,12 @@ export type CreateNeededItemInput = Omit<CreateNeededItemRequest, 'referenceImag
   referenceImage?: string
 }
 
+export type UpdateNeededItemRequest = {
+  description?: string
+  receiveAddress?: string
+  referenceImageKey?: string
+}
+
 export type NeededItemDetail = {
   neededItemId: number
   status: 'RECRUITING' | 'FULL' | 'CLOSED'
