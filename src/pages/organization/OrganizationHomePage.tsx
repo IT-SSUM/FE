@@ -1,4 +1,4 @@
-import { Bell, BookOpen, PackageCheck, Plus } from 'lucide-react'
+import { Bell, BookOpen } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
@@ -8,34 +8,18 @@ import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 import wordmarkLogo from '@/assets/logo/itssum-wordmark.svg'
 
 const organizationHomeMock = {
-  organizationName: 'A지역아동센터',
   stats: [
-    { label: '필요 물품', value: 3 },
-    { label: '진행 거래', value: 2 },
-    { label: '수령 완료', value: 8 },
+    { label: '등록 물품', value: 4 },
+    { label: '진행 중', value: 4 },
+    { label: '수령 완료', value: 5 },
   ],
-  activeNeed: {
+  registeredItem: {
     id: 'stationery-30',
     title: '학용품 30세트',
-    description: '등록 10월 10일 · 이번 주까지 필요',
-    status: 'progress' as const,
+    organization: 'A지역아동센터',
+    distance: '2.1km',
+    dueText: '이번 주까지 필요',
   },
-  recommendedDonations: [
-    {
-      id: 'towels-30',
-      title: '수건 30장',
-      donor: '최윤서',
-      distance: '1.8km',
-      condition: '상태 중',
-    },
-    {
-      id: 'books-12',
-      title: '아동 도서 12권',
-      donor: '김나눔',
-      distance: '2.4km',
-      condition: '상태 중',
-    },
-  ],
 }
 
 export function OrganizationHomePage() {
@@ -43,14 +27,14 @@ export function OrganizationHomePage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center justify-between bg-surface-canvas px-5">
+      <header className="flex h-14 shrink-0 items-center justify-between px-5">
         <img
           src={wordmarkLogo}
           alt="IT:SSUM"
           className="h-[22.72px] w-[119px]"
         />
         <Link
-          to={ROUTES.notifications}
+          to={ROUTES.organization.notifications}
           aria-label="알림"
           className="flex size-10 items-center justify-center rounded-full text-primary-700 transition-colors hover:bg-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
         >
@@ -59,43 +43,48 @@ export function OrganizationHomePage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
-        <section>
-          <h1 className="typography-heading-2 text-neutral-900">
-            {organizationHomeMock.organizationName}
+        <section aria-labelledby="organization-home-title">
+          <h1
+            id="organization-home-title"
+            className="text-xl font-bold leading-7 text-neutral-900"
+          >
+            우리 기관의 물품 지원 현황
           </h1>
-          <p className="mt-2 typography-body-2 text-neutral-700">
-            필요한 물품을 등록하고 가까운 기부를 확인해요.
+          <p className="mt-2 typography-body-2 text-neutral-600">
+            필요한 물품과 진행 상황을 한눈에 확인해요.
           </p>
         </section>
 
         <section className="mt-3 rounded-card bg-primary-200 p-4">
-          <div className="flex items-start gap-2">
+          <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <h2 className="typography-title-1 text-neutral-900">
                 필요한 물품을
                 <br />
-                빠르게 알려주세요
+                쉽고 빠르게 찾아요
               </h2>
               <p className="mt-1 typography-label-2 text-neutral-700">
-                기부자에게 필요한 물품이 공개돼요.
+                새로운 물품을 확인해 보세요.
               </p>
             </div>
             <img
               src={boxHappyImage}
               alt=""
-              className="size-[88px] shrink-0 object-contain"
+              className="size-[76px] shrink-0 object-contain"
             />
           </div>
           <Button
-            className="mt-3 w-full gap-2"
+            className="mt-3 w-full"
             onClick={() => navigate(ROUTES.organization.needNew)}
           >
-            <Plus aria-hidden size={18} strokeWidth={2} />
             필요 물품 등록하기
           </Button>
         </section>
 
-        <section className="mt-3 rounded-card border border-neutral-200 bg-white p-4">
+        <section
+          className="mt-[18px] rounded-card border border-neutral-200 bg-white p-4"
+          aria-label="물품 지원 통계"
+        >
           <dl className="grid grid-cols-3 gap-2 text-center">
             {organizationHomeMock.stats.map((stat) => (
               <div key={stat.label}>
@@ -110,68 +99,37 @@ export function OrganizationHomePage() {
           </dl>
         </section>
 
-        <section className="mt-5">
-          <div className="flex items-center justify-between">
-            <h2 className="typography-title-2 text-neutral-900">
-              진행 중 모집
-            </h2>
-            <Link
-              to={routePath.organizationNeedDetail(organizationHomeMock.activeNeed.id)}
-              className="typography-label-2 text-primary-700"
-            >
-              더보기
-            </Link>
-          </div>
+        <section className="mt-7" aria-labelledby="registered-items-title">
+          <h2
+            id="registered-items-title"
+            className="typography-title-2 text-neutral-900"
+          >
+            등록한 물품
+          </h2>
           <ItemRow
-            title={organizationHomeMock.activeNeed.title}
-            description={organizationHomeMock.activeNeed.description}
-            status={organizationHomeMock.activeNeed.status}
-            statusType="badge"
-            icon={<BookOpen aria-hidden size={32} strokeWidth={2} />}
-            thumbnailClassName="h-[82px] w-[72px] rounded-input !bg-error-bg"
-            className="mt-3 h-[126px] gap-4 p-4 shadow-none"
-            titleClassName="typography-title-2"
-            descriptionClassName="typography-label-2"
+            title={organizationHomeMock.registeredItem.title}
+            description={
+              <>
+                <p>
+                  {organizationHomeMock.registeredItem.organization} ·{' '}
+                  {organizationHomeMock.registeredItem.distance}
+                </p>
+                <p>{organizationHomeMock.registeredItem.dueText}</p>
+              </>
+            }
+            icon={<BookOpen aria-hidden size={30} strokeWidth={2} />}
+            thumbnailClassName="h-[82px] w-[72px] rounded-input !bg-primary-100"
+            className="mt-3 h-[120px] gap-4 p-4 shadow-none"
+            titleClassName="typography-title-3"
+            descriptionClassName="typography-body-2 line-clamp-none"
             onClick={() =>
-              navigate(routePath.organizationNeedDetail(organizationHomeMock.activeNeed.id))
+              navigate(
+                routePath.organizationNeedDetail(
+                  organizationHomeMock.registeredItem.id,
+                ),
+              )
             }
           />
-        </section>
-
-        <section className="mt-5">
-          <div className="flex items-center justify-between">
-            <h2 className="typography-title-2 text-neutral-900">
-              추천 기부 물품
-            </h2>
-            <Link
-              to={ROUTES.organization.donationList}
-              className="typography-label-2 text-primary-700"
-            >
-              더보기
-            </Link>
-          </div>
-          <div className="mt-3 space-y-3">
-            {organizationHomeMock.recommendedDonations.map((item) => (
-              <ItemRow
-                key={item.id}
-                title={item.title}
-                description={
-                  <>
-                    <p>
-                      {item.donor} · {item.distance}
-                    </p>
-                    <p>{item.condition}</p>
-                  </>
-                }
-                icon={<PackageCheck aria-hidden size={32} strokeWidth={2} />}
-                thumbnailClassName="h-[82px] w-[72px] rounded-input !bg-primary-100"
-                className="h-[126px] gap-4 p-4 shadow-none"
-                titleClassName="typography-title-2"
-                descriptionClassName="typography-body-2 line-clamp-none"
-                onClick={() => navigate(routePath.organizationDonationDetail(item.id))}
-              />
-            ))}
-          </div>
         </section>
       </main>
 

@@ -1,6 +1,23 @@
 import { useRef, useState } from 'react'
+import { ImagePlus, X } from 'lucide-react'
 
-export function PhotoInput({ photos, onChange, error, onBusyChange }: { photos: string[]; onChange: (photos: string[]) => void; error?: string; onBusyChange: (busy: boolean) => void }) {
+type PhotoInputProps = {
+  photos: string[]
+  onChange: (photos: string[]) => void
+  error?: string
+  onBusyChange: (busy: boolean) => void
+  label?: string
+  optional?: boolean
+}
+
+export function PhotoInput({
+  photos,
+  onChange,
+  error,
+  onBusyChange,
+  label = '사진',
+  optional = false,
+}: PhotoInputProps) {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const reading = useRef(false)
@@ -31,18 +48,68 @@ export function PhotoInput({ photos, onChange, error, onBusyChange }: { photos: 
     } catch (cause) { setMessage(cause instanceof Error ? cause.message : '사진 추가에 실패했어요.') }
     finally { reading.current = false; setBusy(false); onBusyChange(false) }
   }
-  return <fieldset className="space-y-2" disabled={busy}>
-    <legend className="typography-label-1">사진 (1~3장)</legend>
-    <p className="typography-label-2 text-neutral-700">JPG·PNG·WebP, 장당 최대 1MB</p>
-    <input aria-label="물품 사진 추가" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || photos.length >= 3}
-      onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ''; void readFiles(files) }} className="w-full text-sm" />
-    <div className="grid grid-cols-3 gap-2">
-      {photos.map((photo, index) => <div key={`${index}-${photo.slice(-20)}`}>
-        <img src={photo} alt={`물품 사진 ${index + 1}`} className="aspect-square w-full rounded-input object-cover" />
-        <button type="button" onClick={() => onChange(photos.filter((_, i) => i !== index))} aria-label={`물품 사진 ${index + 1} 삭제`} className="w-full py-2 text-error">삭제</button>
-      </div>)}
-    </div>
-    {busy ? <p role="status">사진을 확인하고 있어요.</p> : null}
-    {message || error ? <p role="alert" className="typography-label-2 text-error">{message || error}</p> : null}
-  </fieldset>
+  return (
+    <fieldset className="space-y-2" disabled={busy}>
+      <legend className="text-xs font-bold leading-[18px] text-neutral-900">
+        {label}{optional ? ' (선택)' : ' (1~3장)'}
+      </legend>
+      <label className="flex min-h-[72px] cursor-pointer items-center gap-3 rounded-input border border-dashed border-neutral-400 bg-white px-4 transition-colors hover:border-primary-700 hover:bg-primary-100 focus-within:border-primary-700 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-700 has-[:disabled]:cursor-not-allowed has-[:disabled]:hover:border-neutral-400 has-[:disabled]:hover:bg-white">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+          <ImagePlus aria-hidden size={21} strokeWidth={2} />
+        </span>
+        <span className="min-w-0">
+          <strong className="block typography-body-2 font-medium text-neutral-900">
+            {photos.length >= 3 ? '사진을 모두 추가했어요' : '사진 추가하기'}
+          </strong>
+          <span className="mt-1 block typography-label-2 text-neutral-600">
+            JPG·PNG·WebP · 최대 3장
+          </span>
+        </span>
+        <input
+          aria-label={`${label} 추가`}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          disabled={busy || photos.length >= 3}
+          onChange={(event) => {
+            const files = Array.from(event.target.files ?? [])
+            event.target.value = ''
+            void readFiles(files)
+          }}
+          className="sr-only"
+        />
+      </label>
+      {photos.length ? (
+        <div className="grid grid-cols-3 gap-2 pt-1">
+          {photos.map((photo, index) => (
+            <div className="relative" key={`${index}-${photo.slice(-20)}`}>
+              <img
+                src={photo}
+                alt={`${label} ${index + 1}`}
+                className="aspect-square w-full rounded-input object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => onChange(photos.filter((_, i) => i !== index))}
+                aria-label={`${label} ${index + 1} 삭제`}
+                className="absolute right-1 top-1 flex size-7 items-center justify-center rounded-full bg-neutral-900/70 text-white"
+              >
+                <X aria-hidden size={15} />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {busy ? (
+        <p role="status" className="typography-label-2 text-neutral-700">
+          사진을 확인하고 있어요.
+        </p>
+      ) : null}
+      {message || error ? (
+        <p role="alert" className="typography-label-2 text-error">
+          {message || error}
+        </p>
+      ) : null}
+    </fieldset>
+  )
 }

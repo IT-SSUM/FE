@@ -5,10 +5,24 @@ type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> & {
   id?: string
   label: string
   error?: string
+  labelClassName?: string
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ id, label, error, required, disabled, className, maxLength, ...props }, ref) => {
+  (
+    {
+      id,
+      label,
+      error,
+      required,
+      disabled,
+      className,
+      labelClassName,
+      maxLength,
+      ...props
+    },
+    ref,
+  ) => {
     const generatedId = useId()
     const textareaId = id ?? generatedId
     const messageId = error ? `${textareaId}-error` : undefined
@@ -17,7 +31,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       <div className="flex w-full flex-col gap-2">
         <label
           htmlFor={textareaId}
-          className="typography-label-1 text-neutral-900"
+          className={cn(
+            'text-neutral-900',
+            labelClassName ?? 'typography-label-1',
+          )}
         >
           {label}
           {required ? <span className="text-error"> *</span> : null}

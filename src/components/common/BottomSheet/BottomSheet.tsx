@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Button } from '@/components/common/Button/Button'
 import { cn } from '@/utils/cn'
 
@@ -9,6 +10,7 @@ type BottomSheetProps = {
   onPrimaryClick?: () => void
   onSecondaryClick?: () => void
   className?: string
+  children?: ReactNode
 }
 
 export function BottomSheet({
@@ -19,6 +21,7 @@ export function BottomSheet({
   onPrimaryClick,
   onSecondaryClick,
   className,
+  children,
 }: BottomSheetProps) {
   if (!open) {
     return null
@@ -41,6 +44,7 @@ export function BottomSheet({
         >
           {title}
         </h2>
+        {children ? <div className="mt-5">{children}</div> : null}
         <div className="mt-5 flex flex-col gap-2">
           <Button onClick={onPrimaryClick}>{primaryText}</Button>
           <Button variant="secondary" onClick={onSecondaryClick}>

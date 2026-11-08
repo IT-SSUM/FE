@@ -1,9 +1,9 @@
 import { BookOpen, ChevronLeft } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { routePath } from '@/routes/paths'
 
-const chatRooms = [
+const donorChatRooms = [
   {
     id: 'guro-child-center',
     organization: '구로지역아동센터',
@@ -39,8 +39,33 @@ const chatRooms = [
   },
 ]
 
+const organizationChatRooms = [
+  {
+    id: 'donor-choi-yoonseo',
+    organization: '최윤서',
+    lastMessage: '네, 금요일 오후 2시에 뵐게요!',
+    time: '오후 1:42',
+    unreadCount: 2,
+  },
+  {
+    id: 'donor-choi-hyobi',
+    organization: '최효비',
+    lastMessage: '안녕하세요.',
+    time: '오후 1:42',
+  },
+  {
+    id: 'donor-choi-kkokko',
+    organization: '홍길동',
+    lastMessage: '나눔 받고 싶습니다!',
+    time: '오후 1:42',
+  },
+]
+
 export function ChatListPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isOrganization = searchParams.get('audience') === 'organization'
+  const chatRooms = isOrganization ? organizationChatRooms : donorChatRooms
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -53,7 +78,7 @@ export function ChatListPage() {
         >
           <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
-        <h1 className="typography-title-3 text-neutral-900">채팅</h1>
+        <h1 className="text-base font-bold leading-6 text-neutral-900">채팅</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 pb-8 pt-2">
@@ -62,7 +87,11 @@ export function ChatListPage() {
             <button
               key={room.id}
               type="button"
-              onClick={() => navigate(routePath.chatRoom(room.id))}
+              onClick={() =>
+                navigate(
+                  `${routePath.chatRoom(room.id)}${isOrganization ? '?audience=organization' : ''}`,
+                )
+              }
               className="flex h-[82px] w-full items-center gap-3 rounded-control bg-white py-4 pl-4 pr-2 text-left transition-colors hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
             >
               <span className="flex size-12 shrink-0 items-center justify-center rounded-pill bg-primary-100 text-primary-700">
@@ -70,20 +99,20 @@ export function ChatListPage() {
               </span>
 
               <span className="min-w-0 flex-1">
-                <strong className="block truncate typography-title-3 text-neutral-900">
+                <strong className="block truncate text-base font-bold leading-6 text-neutral-900">
                   {room.organization}
                 </strong>
-                <span className="mt-1 block truncate typography-body-2 text-neutral-700">
+                <span className="mt-1 block truncate text-sm font-normal leading-[22px] text-neutral-700">
                   {room.lastMessage}
                 </span>
               </span>
 
               <span className="flex w-14 shrink-0 flex-col items-end gap-2">
-                <span className="whitespace-nowrap text-right typography-label-2 text-neutral-700">
+                <span className="whitespace-nowrap text-right text-xs font-normal leading-[18px] text-neutral-700">
                   {room.time}
                 </span>
                 {room.unreadCount ? (
-                  <span className="flex size-5 items-center justify-center rounded-pill bg-primary-700 typography-label-2 text-white">
+                  <span className="flex size-5 items-center justify-center rounded-pill bg-primary-700 text-xs font-bold leading-[18px] text-white">
                     {room.unreadCount}
                   </span>
                 ) : null}
@@ -93,7 +122,11 @@ export function ChatListPage() {
         </section>
       </main>
 
-      <BottomNavigation activeItem="chat" className="sticky bottom-0 shrink-0" />
+      <BottomNavigation
+        audience={isOrganization ? 'organization' : 'donor'}
+        activeItem="chat"
+        className="sticky bottom-0 shrink-0"
+      />
     </div>
   )
 }
