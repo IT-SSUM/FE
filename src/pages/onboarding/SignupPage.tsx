@@ -15,7 +15,7 @@ import {
   signUpOrganization,
   verifyBusiness,
 } from '@/features/auth/api'
-import { saveAuthSession } from '@/features/auth/storage'
+import { clearAuthSession } from '@/features/auth/storage'
 
 type SignupRole = 'donor' | 'organization'
 type SignupStep = 'profile' | 'account' | 'business' | 'eligibility' | 'agreements'
@@ -110,7 +110,6 @@ export function SignupPage() {
   const [businessVerificationError, setBusinessVerificationError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {
     if (emailVerificationExpiresIn <= 0 && emailResendCooldown <= 0) return
@@ -237,11 +236,6 @@ export function SignupPage() {
   }
 
   const handleBack = () => {
-    if (isComplete) {
-      setIsComplete(false)
-      return
-    }
-
     if (stepIndex === 0) {
       navigate(ROUTES.signup)
       return
@@ -262,53 +256,40 @@ export function SignupPage() {
     setIsSubmitting(true)
     setSubmitError('')
     try {
-      const session = role === 'donor'
-        ? await signUpDonor({
-            emailVerificationToken,
-            email: values.email.trim(),
-            password: values.password,
-            name: values.name.trim(),
-            birthDate: values.birthDate,
-            phone: values.phone.trim(),
-            ...(values.region === '경기도 부천시' ? { regionId: 1 } : {}),
-            agreedTerms: ['SERVICE', 'PRIVACY'],
-          })
-        : await signUpOrganization({
-            emailVerificationToken,
-            businessVerificationToken,
-            email: values.email.trim(),
-            password: values.password,
-            name: values.organizationName.trim(),
-            representativeName: values.representative.trim(),
-            businessNumber: values.businessNumber.trim(),
-            openingDate: values.openingDate,
-            phone: values.phone.trim(),
-            address: values.address.trim(),
-            addressDetail: values.addressDetail?.trim() || undefined,
-            agreedTerms: ['SERVICE', 'PRIVACY', 'ORG_ELIGIBILITY'],
-          })
-      saveAuthSession(session)
-      setIsComplete(true)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      if (role === 'donor') {
+        await signUpDonor({
+          emailVerificationToken,
+          email: values.email.trim(),
+          password: values.password,
+          name: values.name.trim(),
+          birthDate: values.birthDate,
+          phone: values.phone.trim(),
+          ...(values.region === '경기도 부천시' ? { regionId: 1 } : {}),
+          agreedTerms: ['SERVICE', 'PRIVACY'],
+        })
+      } else {
+        await signUpOrganization({
+          emailVerificationToken,
+          businessVerificationToken,
+          email: values.email.trim(),
+          password: values.password,
+          name: values.organizationName.trim(),
+          representativeName: values.representative.trim(),
+          businessNumber: values.businessNumber.trim(),
+          openingDate: values.openingDate,
+          phone: values.phone.trim(),
+          address: values.address.trim(),
+          addressDetail: values.addressDetail?.trim() || undefined,
+          agreedTerms: ['SERVICE', 'PRIVACY', 'ORG_ELIGIBILITY'],
+        })
+      }
+      clearAuthSession()
+      navigate(ROUTES.root, { replace: true })
     } catch (error) {
       setSubmitError(getAuthErrorMessage(error, '회원가입을 완료하지 못했어요. 입력 정보를 확인해 주세요.'))
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const handleStart = () => {
-    navigate(role === 'donor' ? ROUTES.donor.home : ROUTES.organization.home)
-  }
-
-  if (isComplete) {
-    return (
-      <SignupComplete
-        role={role}
-        onBack={handleBack}
-        onStart={handleStart}
-      />
-    )
   }
 
   return (
@@ -387,49 +368,6 @@ export function SignupPage() {
             </button>
           </div>
         </form>
-      </section>
-    </main>
-  )
-}
-
-type SignupCompleteProps = {
-  role: SignupRole
-  onBack: () => void
-  onStart: () => void
-}
-
-function SignupComplete({ role, onBack, onStart }: SignupCompleteProps) {
-  const isDonor = role === 'donor'
-
-  return (
-    <main className="min-h-dvh bg-[#eaf2ed]">
-      <section className="mx-auto flex min-h-dvh w-full max-w-[393px] flex-col bg-surface-canvas min-[394px]:shadow-[0_0_0_1px_rgb(31_122_96/6%),0_18px_48px_rgb(18_61_49/10%)]">
-        <header className="flex min-h-[72px] items-center px-5 [&_h1]:ml-2 [&_h1]:text-base [&_h1]:font-semibold [&_h1]:leading-6">
-          <button type="button" onClick={onBack} className="inline-flex size-10 items-center justify-center rounded-full border-0 bg-transparent text-primary-700 hover:bg-primary-100" aria-label="약관 동의로 돌아가기">
-            <ArrowLeft aria-hidden size={21} strokeWidth={1.8} />
-          </button>
-          <h1>가입 완료</h1>
-        </header>
-
-        <div className="px-5 pb-8 pt-[104px] text-center [&_h2]:mt-6 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-8 [&_h2]:tracking-[-0.02em] [&_p]:mt-5 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-neutral-600">
-          <div className="flex h-[170px] w-full items-center justify-center rounded-[18px] bg-primary-100 [&_img]:w-28">
-            <img src={mascot} alt="IT:SSUM 상자 마스코트" />
-          </div>
-          <h2>{isDonor ? '나눔을 시작할 준비가 됐어요' : '함께하게 되어 반가워요'}</h2>
-          <p>
-            {isDonor ? (
-              <>쓸 수 있는 물품을<br />필요한 곳에 이어 주세요.</>
-            ) : (
-              '사업자 확인과 필수 동의가 완료됐어요.'
-            )}
-          </p>
-        </div>
-
-        <div className="sticky bottom-0 z-2 mt-auto border-t border-neutral-200 bg-surface-canvas px-5 py-4">
-          <button type="button" onClick={onStart} className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-primary-700 bg-primary-700 px-5 text-sm font-bold text-white transition-colors hover:border-primary-800 hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-500">
-            시작하기
-          </button>
-        </div>
       </section>
     </main>
   )

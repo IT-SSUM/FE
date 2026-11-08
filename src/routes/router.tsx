@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { ROUTES } from '@/routes/paths'
 import { DonorLayout } from '@/layouts/DonorLayout'
@@ -48,7 +48,7 @@ import { TradeDetailPage } from '@/pages/shared/TradeDetailPage'
 export const router = createBrowserRouter([
   {
     path: ROUTES.root,
-    element: <Navigate to={ROUTES.start} replace />,
+    element: <HomePage />,
     errorElement: <NotFoundPage />,
   },
   { path: ROUTES.start, element: <HomePage /> },
