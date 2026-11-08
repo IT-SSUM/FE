@@ -9,6 +9,7 @@ type FilterSelectProps = {
   options: readonly string[]
   onChange: (value: string) => void
   className?: string
+  showMenuLabel?: boolean
 }
 
 const MENU_WIDTH = 208
@@ -21,6 +22,7 @@ export function FilterSelect({
   options,
   onChange,
   className,
+  showMenuLabel = true,
 }: FilterSelectProps) {
   const [open, setOpen] = useState(false)
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({})
@@ -51,7 +53,10 @@ export function FilterSelect({
         Math.max(rect.left, boundaryLeft + VIEWPORT_GAP),
         boundaryRight - width - VIEWPORT_GAP,
       )
-      const estimatedHeight = Math.min((options.length + 1) * 44 + 58, 280)
+      const estimatedHeight = Math.min(
+        (options.length + 1) * 44 + (showMenuLabel ? 58 : 16),
+        280,
+      )
       const placeAbove =
         window.innerHeight - rect.bottom < estimatedHeight + MENU_GAP &&
         rect.top > window.innerHeight - rect.bottom
@@ -91,7 +96,7 @@ export function FilterSelect({
       window.removeEventListener('resize', updatePosition)
       window.removeEventListener('scroll', updatePosition, true)
     }
-  }, [open, options.length])
+  }, [open, options.length, showMenuLabel])
 
   const selectValue = (nextValue: string) => {
     onChange(nextValue)
@@ -108,9 +113,11 @@ export function FilterSelect({
       style={menuStyle}
       className="fixed z-50 overflow-hidden rounded-[18px] border border-neutral-200 bg-white p-2 shadow-[0_16px_40px_rgb(18_61_49/18%)]"
     >
-      <p className="px-3 pb-2 pt-1 typography-label-1 text-neutral-900">
-        {label} 선택
-      </p>
+      {showMenuLabel ? (
+        <p className="px-3 pb-2 pt-1 typography-label-1 text-neutral-900">
+          {label} 선택
+        </p>
+      ) : null}
       <div className="max-h-56 space-y-1 overflow-y-auto">
         {['', ...options].map((option) => {
           const selected = option === value

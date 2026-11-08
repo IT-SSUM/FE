@@ -83,18 +83,21 @@ export function DonationListPage() {
         <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <FilterSelect
             label="카테고리"
+            showMenuLabel={false}
             value={selected.category}
             options={(categoriesQuery.data ?? []).map((item) => item.name)}
             onChange={(value) => updateFilter('category', value)}
           />
           <FilterSelect
             label="지역"
+            showMenuLabel={false}
             value={selected.location}
             options={[serviceRegion.name]}
             onChange={(value) => updateFilter('location', value)}
           />
           <FilterSelect
             label="물품 상태"
+            showMenuLabel={false}
             value={selected.condition}
             options={(conditionsQuery.data ?? []).map((item) => item.description)}
             onChange={(value) => updateFilter('condition', value)}
