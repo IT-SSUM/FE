@@ -15,6 +15,7 @@ import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 import { useLogout } from '@/hooks/auth/useLogout'
+import { useOrganizationProfile } from '@/hooks/organization/useOrganizationProfile'
 
 const organizationMenus = [
   {
@@ -52,6 +53,7 @@ export function OrganizationMyPage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const { logout, isLoggingOut } = useLogout()
+  const { data: profile, isLoading, isError, refetch } = useOrganizationProfile()
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -70,12 +72,23 @@ export function OrganizationMyPage() {
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
         <section className="flex h-24 items-center gap-3 rounded-card bg-primary-100 px-4 py-3">
           <div className="min-w-0 flex-1">
-            <h2 className="truncate whitespace-nowrap typography-title-1 text-neutral-900">
-              기관 A · 경기도 부천시
-            </h2>
-            <p className="mt-2 typography-label-2 text-neutral-700">
-              기관 · 등록 4 · 진행 3 · 수령 7
-            </p>
+            {isError ? (
+              <div role="alert">
+                <h2 className="typography-title-3 text-error">기관 정보를 불러오지 못했어요.</h2>
+                <button type="button" className="mt-2 typography-label-2 text-primary-700 underline underline-offset-2" onClick={() => void refetch()}>다시 시도</button>
+              </div>
+            ) : (
+              <>
+                <h2 className="truncate whitespace-nowrap typography-title-1 text-neutral-900">
+                  {isLoading ? '기관 정보를 불러오는 중...' : `${profile?.name} · ${profile?.address}`}
+                </h2>
+                <p className="mt-2 typography-label-2 text-neutral-700">
+                  {isLoading
+                    ? '잠시만 기다려 주세요.'
+                    : `기관 · ${profile?.verificationStatus === 'VERIFIED' ? '사업자 확인 완료' : '사업자 확인 필요'}`}
+                </p>
+              </>
+            )}
           </div>
           <img
             src={boxHappyImage}
