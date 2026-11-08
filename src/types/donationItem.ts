@@ -78,7 +78,7 @@ export type DonationItemListItem = {
 
   conditionGrade: ItemConditionCode
 
-  imageUrl: string
+  imageUrl: string | null
   createdAt: string
 }
 
