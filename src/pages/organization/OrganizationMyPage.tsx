@@ -14,7 +14,7 @@ import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
-import { useLogout } from '@/features/auth/useLogout'
+import { useLogout } from '@/hooks/auth/useLogout'
 
 const organizationMenus = [
   {

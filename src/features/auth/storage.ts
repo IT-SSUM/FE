@@ -1,9 +1,4 @@
-export type AuthSession = {
-  userId: number
-  role: 'DONOR' | 'ORGANIZATION'
-  accessToken: string
-  refreshToken: string
-}
+import type { AuthSession } from '@/apis/auth/types'
 
 const AUTH_SESSION_KEY = 'itssum.auth.session'
 

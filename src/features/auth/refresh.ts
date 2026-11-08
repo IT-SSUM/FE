@@ -3,12 +3,8 @@ import {
   clearAuthSession,
   getAuthSession,
   saveAuthSession,
-  type AuthSession,
 } from './storage'
-
-type ApiResponse<T> = {
-  data: T
-}
+import type { ApiResponse, AuthSession } from '@/apis/auth/types'
 
 let pendingRefresh: Promise<AuthSession> | null = null
 

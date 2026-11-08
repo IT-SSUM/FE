@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/routes/paths'
-import { logout as requestLogout } from './api'
-import { clearAuthSession, getAuthSession } from './storage'
+import { logout as requestLogout } from '@/apis/auth'
+import { clearAuthSession, getAuthSession } from '@/features/auth/storage'
 
 export function useLogout() {
   const navigate = useNavigate()

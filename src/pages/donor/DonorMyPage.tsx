@@ -15,7 +15,7 @@ import { ROUTES } from '@/routes/paths'
 import { useDonorStore } from '@/features/donor/store'
 import { statsOf } from '@/features/donor/model'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
-import { useLogout } from '@/features/auth/useLogout'
+import { useLogout } from '@/hooks/auth/useLogout'
 
 const donationMenus = [
   {
