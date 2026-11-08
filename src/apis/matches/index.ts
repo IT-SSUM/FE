@@ -1,3 +1,3 @@
 export { getMatchErrorMessage } from './errors'
-export { getMatches } from './matches'
-export type { MatchListItem, MatchStatus } from './types'
+export { getMatch, getMatches } from './matches'
+export type { MatchDetail, MatchListItem, MatchStatus } from './types'
