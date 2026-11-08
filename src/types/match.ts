@@ -4,13 +4,8 @@ export type CreateMatchRequest = {
   quantity: number
   message: string
 }
-export type CreateMatchResponse = CreateMatchRequest & {
+export type CreateMatchResponse = {
   matchId: number
-  donationItemName: string
-  neededItemName: string
-  donorId: number
-  organizationId: number
-  requestedBy: string
   status: string
   createdAt: string
 }
@@ -31,7 +26,12 @@ export type MatchListItem = {
   scheduledAt: string | null
   completedAt: string | null
 }
-export type MatchDetail = CreateMatchResponse & {
+export type MatchDetail = CreateMatchResponse & CreateMatchRequest & {
+  donationItemName: string
+  neededItemName: string
+  donorId: number
+  organizationId: number
+  requestedBy: string
   initialQuantity: number
   deliveryMethod: string | null
   scheduledAt: string | null
@@ -56,9 +56,11 @@ export type MatchDetail = CreateMatchResponse & {
   organizationAddress: string
   chatRoomId: number | null
 }
-export type AcceptMatchResponse = CreateMatchResponse & {
+export type AcceptMatchResponse = {
+  matchId: number
+  status: string
   chatRoomId: number
-  respondedAt: string
+  respondedAt: string | null
 }
 export type MatchStateResponse = {
   matchId: number
