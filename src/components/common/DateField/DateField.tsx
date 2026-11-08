@@ -10,6 +10,7 @@ type DateFieldProps = {
   onChange: (value: string) => void
   min?: string
   max?: string
+  onInvalidSelection?: () => void
   labelClassName?: string
   yearOrder?: 'ascending' | 'descending'
 }
@@ -59,6 +60,7 @@ export function DateField({
   onChange,
   min,
   max,
+  onInvalidSelection,
   labelClassName,
   yearOrder = 'descending',
 }: DateFieldProps) {
@@ -115,7 +117,10 @@ export function DateField({
     Boolean((minDate && date < minDate) || (maxDate && date > maxDate))
 
   const chooseDate = (date: Date) => {
-    if (isDisabled(date)) return
+    if (isDisabled(date)) {
+      onInvalidSelection?.()
+      return
+    }
     onChange(formatDate(date))
     setViewDate(date)
     setOpen(false)
@@ -123,7 +128,6 @@ export function DateField({
   }
 
   const chooseToday = () => {
-    if (isDisabled(today)) return
     chooseDate(today)
   }
 
@@ -283,8 +287,10 @@ export function DateField({
                     !currentMonth && 'text-neutral-400',
                     currentDay && 'font-bold text-primary-700 shadow-[inset_0_0_0_1px_#76d6b7]',
                     selected && 'bg-primary-700 font-bold text-white shadow-none hover:bg-primary-700 hover:text-white',
+                    disabled && onInvalidSelection && 'cursor-not-allowed text-neutral-300 hover:bg-transparent hover:text-neutral-300',
                   )}
-                  disabled={disabled}
+                  disabled={disabled && !onInvalidSelection}
+                  aria-disabled={disabled}
                   aria-label={`${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`}
                   aria-pressed={selected}
                   onClick={() => chooseDate(date)}
@@ -297,7 +303,7 @@ export function DateField({
 
           <div className="mt-2.5 flex items-center justify-between border-t border-neutral-200 pt-2.5 [&_button]:rounded-[10px] [&_button]:border-0 [&_button]:bg-transparent [&_button]:px-2.5 [&_button]:py-[7px] [&_button]:text-xs [&_button]:font-semibold [&_button]:text-primary-700 [&_button]:hover:bg-primary-100 [&_button]:disabled:cursor-not-allowed [&_button]:disabled:text-neutral-400 [&_button]:disabled:hover:bg-transparent">
             <button type="button" onClick={() => { onChange(''); setOpen(false); setSelectorOpen(null) }}>초기화</button>
-            <button type="button" onClick={chooseToday} disabled={isDisabled(today)}>오늘</button>
+            <button type="button" onClick={chooseToday} disabled={isDisabled(today) && !onInvalidSelection}>오늘</button>
           </div>
         </section>
       ) : null}

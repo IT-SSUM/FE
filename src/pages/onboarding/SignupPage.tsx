@@ -5,6 +5,7 @@ import mascot from '@/assets/images/mascot/mascot.svg'
 import { AddressSearchField } from '@/components/common/AddressSearchField/AddressSearchField'
 import { DateField } from '@/components/common/DateField/DateField'
 import { RegionSelect } from '@/components/common/RegionSelect/RegionSelect'
+import { Toast } from '@/components/common/Toast/Toast'
 import { ROUTES, routePath } from '@/routes/paths'
 import {
   confirmEmailVerification,
@@ -69,6 +70,15 @@ function getToday() {
   const year = today.getFullYear()
   const month = String(today.getMonth() + 1).padStart(2, '0')
   const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function getYesterday() {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  const year = yesterday.getFullYear()
+  const month = String(yesterday.getMonth() + 1).padStart(2, '0')
+  const day = String(yesterday.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
 
@@ -463,7 +473,14 @@ type SignupProfileStepProps = {
 }
 
 function SignupProfileStep({ role, fields, values, onChange }: SignupProfileStepProps) {
-  const today = getToday()
+  const latestBirthDate = getYesterday()
+  const [birthDateToastKey, setBirthDateToastKey] = useState(0)
+
+  useEffect(() => {
+    if (!birthDateToastKey) return
+    const timer = window.setTimeout(() => setBirthDateToastKey(0), 3000)
+    return () => window.clearTimeout(timer)
+  }, [birthDateToastKey])
 
   return (
     <>
@@ -479,8 +496,9 @@ function SignupProfileStep({ role, fields, values, onChange }: SignupProfileStep
               id="signup-birthDate"
               label="생년월일"
               value={values.birthDate ?? ''}
-              max={today}
+              max={latestBirthDate}
               onChange={(value) => onChange('birthDate', value)}
+              onInvalidSelection={() => setBirthDateToastKey((current) => current + 1)}
             />
             <TextField field={fields[2]} values={values} onChange={onChange} />
             <RegionSelect
@@ -507,6 +525,16 @@ function SignupProfileStep({ role, fields, values, onChange }: SignupProfileStep
           </>
         )}
       </div>
+      {birthDateToastKey ? (
+        <div className="pointer-events-none fixed left-1/2 top-4 z-300 w-full max-w-[393px] -translate-x-1/2 px-5">
+          <Toast
+            variant="error"
+            title="생년월일을 확인해 주세요"
+            description="생년월일은 오늘보다 이전 날짜를 선택해 주세요."
+            className="shadow-[0_12px_32px_rgb(18_61_49/18%)]"
+          />
+        </div>
+      ) : null}
     </>
   )
 }
