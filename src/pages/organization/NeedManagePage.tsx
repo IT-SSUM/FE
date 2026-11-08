@@ -68,6 +68,7 @@ export function NeedManagePage() {
           value={selectedCategory}
           onChange={setSelectedCategory}
           items={filterItems}
+          className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         />
 
         <section className="mt-4 space-y-3" aria-label="등록한 필요 물품">
