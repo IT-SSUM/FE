@@ -84,6 +84,14 @@ export async function signUpOrganization(request: OrganizationSignUpRequest) {
   return unwrap(response)
 }
 
+export async function login(request: { email: string; password: string }) {
+  const response = await axiosInstance.post<ApiResponse<AuthSession>>(
+    '/api/auth/login',
+    request,
+  )
+  return unwrap(response)
+}
+
 export function getAuthErrorMessage(error: unknown, fallback: string) {
   if (!axios.isAxiosError(error)) return fallback
 

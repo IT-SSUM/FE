@@ -3,18 +3,35 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/routes/paths'
 import mascot from '@/assets/images/mascot/mascot.svg'
+import { getAuthErrorMessage, login } from '@/features/auth/api'
+import { saveAuthSession } from '@/features/auth/storage'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
-  const isFormComplete = email.trim().length > 0 && password.length > 0
+  const isFormComplete = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && password.length > 0
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!isFormComplete) return
-    navigate(ROUTES.donor.home)
+    if (!isFormComplete || isSubmitting) return
+
+    setIsSubmitting(true)
+    setError('')
+    try {
+      const session = await login({ email: email.trim(), password })
+      saveAuthSession(session)
+      navigate(session.role === 'ORGANIZATION' ? ROUTES.organization.home : ROUTES.donor.home, {
+        replace: true,
+      })
+    } catch (requestError) {
+      setError(getAuthErrorMessage(requestError, '로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.'))
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -50,7 +67,10 @@ export function LoginPage() {
               placeholder="이메일을 입력해 주세요"
               className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                setError('')
+              }}
             />
 
             <label htmlFor="login-password" className="mb-2 mt-5 block text-sm font-medium leading-5 text-neutral-900">비밀번호</label>
@@ -63,7 +83,10 @@ export function LoginPage() {
                 placeholder="비밀번호를 입력해 주세요"
                 className="h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 pr-12 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10 [&::-ms-clear]:hidden [&::-ms-reveal]:hidden"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) => {
+                  setPassword(event.target.value)
+                  setError('')
+                }}
               />
               <button
                 type="button"
@@ -76,6 +99,8 @@ export function LoginPage() {
               </button>
             </div>
 
+            {error ? <p className="mt-3 text-xs leading-[18px] text-error" role="alert">{error}</p> : null}
+
             <div className="mt-6 min-h-28 rounded-control border border-neutral-200 bg-primary-100 p-4">
               <p className="text-base font-bold leading-6">기관 담당자이신가요?</p>
               <span className="mt-2 block text-sm leading-5 text-neutral-700">기관 계정으로 로그인하면 신청과 수령 내역을 확인할 수 있어요.</span>
@@ -83,8 +108,8 @@ export function LoginPage() {
           </div>
 
           <div className="mt-auto border-t border-neutral-200 bg-surface-canvas px-5 py-4">
-            <button type="submit" className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-primary-700 bg-primary-700 px-5 text-sm font-bold text-white transition-colors hover:border-primary-800 hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-500" disabled={!isFormComplete}>
-              로그인
+            <button type="submit" className="inline-flex h-[52px] w-full items-center justify-center rounded-[14px] border border-primary-700 bg-primary-700 px-5 text-sm font-bold text-white transition-colors hover:border-primary-800 hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-500" disabled={!isFormComplete || isSubmitting}>
+              {isSubmitting ? '로그인 중...' : '로그인'}
             </button>
           </div>
         </form>
