@@ -27,6 +27,14 @@ export function SegmentedTabs({
       className={cn('flex gap-2 overflow-x-auto', className)}
       role="tablist"
       aria-label={ariaLabel}
+      onWheel={(event) => {
+        const tabs = event.currentTarget
+        if (tabs.scrollWidth <= tabs.clientWidth) return
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
+
+        event.preventDefault()
+        tabs.scrollLeft += event.deltaY
+      }}
     >
       {items.map((item) => {
         const selected = item.value === value

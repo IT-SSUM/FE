@@ -3,9 +3,18 @@ import type { CSSProperties } from 'react'
 import { SegmentedTabs } from '@/components/common/SegmentedTabs/SegmentedTabs'
 import {
   tradeStatusLabels,
-  type OrganizationTrade,
   type OrganizationTradeStatus,
 } from './organizationTrades'
+
+export type OrganizationTradeCardData = {
+  id: string
+  donorName: string
+  itemName: string
+  category: 'book' | 'package'
+  status: OrganizationTradeStatus
+  description: string
+  badge: string
+}
 
 export function TradeStatusTabs({
   status,
@@ -30,7 +39,7 @@ export function OrganizationTradeCard({
   trade,
   onClick,
 }: {
-  trade: OrganizationTrade
+  trade: OrganizationTradeCardData
   onClick?: () => void
 }) {
   const Icon = trade.category === 'book' ? BookOpen : Package
