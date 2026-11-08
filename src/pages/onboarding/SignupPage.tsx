@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { ArrowLeft, CircleCheck, Eye, EyeOff } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import mascot from '@/assets/images/mascot/mascot.svg'
@@ -72,6 +72,12 @@ function getToday() {
   return `${year}-${month}-${day}`
 }
 
+function formatCountdown(seconds: number) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = String(seconds % 60).padStart(2, '0')
+  return `${minutes}:${remainingSeconds}`
+}
+
 export function SignupPage() {
   const { role: roleParam } = useParams()
   const navigate = useNavigate()
@@ -88,11 +94,24 @@ export function SignupPage() {
   const [emailVerificationSent, setEmailVerificationSent] = useState(false)
   const [emailVerificationLoading, setEmailVerificationLoading] = useState<'send' | 'confirm' | null>(null)
   const [emailVerificationError, setEmailVerificationError] = useState('')
+  const [emailVerificationExpiresIn, setEmailVerificationExpiresIn] = useState(0)
+  const [emailResendCooldown, setEmailResendCooldown] = useState(0)
   const [businessVerificationLoading, setBusinessVerificationLoading] = useState(false)
   const [businessVerificationError, setBusinessVerificationError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [isComplete, setIsComplete] = useState(false)
+
+  useEffect(() => {
+    if (emailVerificationExpiresIn <= 0 && emailResendCooldown <= 0) return
+
+    const timer = window.setInterval(() => {
+      setEmailVerificationExpiresIn((current) => Math.max(0, current - 1))
+      setEmailResendCooldown((current) => Math.max(0, current - 1))
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [emailVerificationExpiresIn, emailResendCooldown])
 
   if (roleParam && roleParam !== 'donor' && roleParam !== 'organization') {
     return <Navigate to={ROUTES.signup} replace />
@@ -135,6 +154,8 @@ export function SignupPage() {
       setEmailVerificationToken('')
       setEmailVerificationSent(false)
       setEmailVerificationError('')
+      setEmailVerificationExpiresIn(0)
+      setEmailResendCooldown(0)
       setValues((current) => ({ ...current, email: value, emailCode: '' }))
     }
     if (['businessNumber', 'openingDate', 'representative'].includes(name)) {
@@ -155,8 +176,11 @@ export function SignupPage() {
     setEmailVerificationError('')
     setEmailVerificationToken('')
     try {
-      await sendEmailVerification(email)
+      const result = await sendEmailVerification(email)
+      setValues((current) => ({ ...current, emailCode: '' }))
       setEmailVerificationSent(true)
+      setEmailVerificationExpiresIn(result.expiresInSeconds)
+      setEmailResendCooldown(60)
     } catch (error) {
       setEmailVerificationError(getAuthErrorMessage(error, '인증번호를 보내지 못했어요. 잠시 후 다시 시도해 주세요.'))
     } finally {
@@ -176,6 +200,7 @@ export function SignupPage() {
     try {
       const result = await confirmEmailVerification(values.email.trim(), code)
       setEmailVerificationToken(result.emailVerificationToken)
+      setEmailVerificationExpiresIn(0)
     } catch (error) {
       setEmailVerificationError(getAuthErrorMessage(error, '인증번호를 확인하지 못했어요.'))
     } finally {
@@ -314,6 +339,8 @@ export function SignupPage() {
                 verified={Boolean(emailVerificationToken)}
                 verificationLoading={emailVerificationLoading}
                 verificationError={emailVerificationError}
+                verificationExpiresIn={emailVerificationExpiresIn}
+                resendCooldown={emailResendCooldown}
                 onSendVerification={handleSendEmailVerification}
                 onConfirmVerification={handleConfirmEmailVerification}
               />
@@ -518,6 +545,8 @@ type SignupAccountStepProps = {
   verified: boolean
   verificationLoading: 'send' | 'confirm' | null
   verificationError: string
+  verificationExpiresIn: number
+  resendCooldown: number
   onSendVerification: () => void
   onConfirmVerification: () => void
 }
@@ -534,6 +563,8 @@ function SignupAccountStep({
   verified,
   verificationLoading,
   verificationError,
+  verificationExpiresIn,
+  resendCooldown,
   onSendVerification,
   onConfirmVerification,
 }: SignupAccountStepProps) {
@@ -564,10 +595,18 @@ function SignupAccountStep({
             <button
               type="button"
               className="inline-flex h-[52px] min-w-24 items-center justify-center rounded-input border border-neutral-500 bg-white px-3 text-[13px] font-semibold text-primary-700 hover:border-primary-700 hover:bg-primary-100 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-500"
-              disabled={!emailValid || verified || verificationLoading !== null}
+              disabled={!emailValid || verified || verificationLoading !== null || resendCooldown > 0}
               onClick={onSendVerification}
             >
-              {verified ? '인증 완료' : verificationLoading === 'send' ? '발송 중...' : verificationSent ? '재발송' : '인증번호'}
+              {verified
+                ? '인증 완료'
+                : verificationLoading === 'send'
+                  ? '발송 중...'
+                  : resendCooldown > 0
+                    ? `${resendCooldown}초`
+                    : verificationSent
+                      ? '재발송'
+                      : '인증번호'}
             </button>
           </div>
         </div>
@@ -587,12 +626,17 @@ function SignupAccountStep({
               <button
                 type="button"
                 className="inline-flex h-[52px] min-w-24 items-center justify-center rounded-input border border-primary-700 bg-primary-700 px-3 text-[13px] font-semibold text-white hover:bg-primary-800 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-200 disabled:text-neutral-500"
-                disabled={values.emailCode?.length !== 6 || verificationLoading !== null}
+                disabled={values.emailCode?.length !== 6 || verificationLoading !== null || verificationExpiresIn <= 0}
                 onClick={onConfirmVerification}
               >
                 {verificationLoading === 'confirm' ? '확인 중...' : '확인'}
               </button>
             </div>
+            <p className={`mt-2 text-xs leading-[18px] ${verificationExpiresIn > 0 ? 'text-neutral-600' : 'text-error'}`}>
+              {verificationExpiresIn > 0
+                ? `인증번호 유효시간 ${formatCountdown(verificationExpiresIn)}`
+                : '인증번호가 만료됐어요. 다시 발송해 주세요.'}
+            </p>
           </div>
         ) : null}
         {verified ? <p className="text-xs font-semibold leading-[18px] text-primary-700">이메일 인증이 완료됐어요.</p> : null}
