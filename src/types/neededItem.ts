@@ -46,3 +46,24 @@ export type PresignedImageUpload = {
   uploadUrl: string
   requiredHeaders: Record<string, string>
 }
+
+export type MyNeededItem = {
+  neededItemId: number
+  itemName: string
+  requiredQuantity: number
+  reservedQuantity: number
+  receivedQuantity: number
+  availableQuantity: number
+  unit: string
+  status: 'RECRUITING' | 'FULL' | 'CLOSED'
+  categoryId: number
+  categoryName: string
+  referenceImageUrl: string | null
+  createdAt: string
+}
+
+export type MyNeededItemPage = {
+  items: MyNeededItem[]
+  nextCursor: number | null
+  hasNext: boolean
+}

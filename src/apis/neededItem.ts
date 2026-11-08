@@ -3,6 +3,8 @@ import axiosInstance from '@/apis/axios'
 import type { ApiFieldError, ApiResponse } from '@/types/api'
 import type {
   CreateNeededItemRequest,
+  MyNeededItem,
+  MyNeededItemPage,
   NeededItemDetail,
   PresignedImageUpload,
 } from '@/types/neededItem'
@@ -70,6 +72,30 @@ export async function createNeededItem(request: CreateNeededItemRequest) {
     request,
   )
   return unwrap(response.data)
+}
+
+export async function getAllMyNeededItems(signal?: AbortSignal) {
+  const items = new Map<number, MyNeededItem>()
+  const seenCursors = new Set<number>()
+  let beforeId: number | undefined
+
+  while (true) {
+    const response = await axiosInstance.get<ApiResponse<MyNeededItemPage>>(
+      '/api/organizations/me/needed-items',
+      { params: { beforeId, size: 50 }, signal },
+    )
+    const page = unwrap(response.data)
+    page.items.forEach((item) => items.set(item.neededItemId, item))
+
+    if (!page.hasNext || page.nextCursor === null) break
+    if (seenCursors.has(page.nextCursor)) {
+      throw new Error('필요 물품 목록을 이어서 불러오지 못했어요.')
+    }
+    seenCursors.add(page.nextCursor)
+    beforeId = page.nextCursor
+  }
+
+  return [...items.values()]
 }
 
 export async function uploadNeededItemImage(dataUrl: string) {

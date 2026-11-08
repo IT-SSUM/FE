@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createNeededItem, uploadNeededItemImage } from '@/apis/neededItem'
+import { myNeededItemKeys } from '@/hooks/queries/useMyNeededItemsQuery'
 import type { CreateNeededItemInput } from '@/types/neededItem'
 
 export function useCreateNeededItemMutation() {
@@ -14,7 +15,7 @@ export function useCreateNeededItemMutation() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ['organization', 'needed-items'],
+        queryKey: myNeededItemKeys.all,
       })
     },
   })
