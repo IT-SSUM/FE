@@ -7,14 +7,18 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
+import { Toast } from '@/components/common/Toast/Toast'
 import { ROUTES } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
+import { getUserErrorMessage } from '@/apis/users'
 import { useLogout } from '@/hooks/auth/useLogout'
+import { useWithdrawAccount } from '@/hooks/auth/useWithdrawAccount'
+import { useOrganizationProfile } from '@/hooks/organization/useOrganizationProfile'
 
 const organizationMenus = [
   {
@@ -47,11 +51,45 @@ const accountMenus = [
   },
 ]
 
+function formatOrganizationRegion(address: string) {
+  const parts = address.replace(/^\[\d+]\s*/, '').trim().split(/\s+/)
+  const districtIndex = parts.findIndex((part) => /(?:구|군)$/.test(part))
+  if (districtIndex >= 0) return parts.slice(0, districtIndex + 1).join(' ')
+
+  const cityIndex = parts.findIndex((part, index) => index > 0 && /시$/.test(part))
+  if (cityIndex >= 0) return parts.slice(0, cityIndex + 1).join(' ')
+  return parts.slice(0, 2).join(' ')
+}
+
 export function OrganizationMyPage() {
   const navigate = useNavigate()
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const { logout, isLoggingOut } = useLogout()
+  const { mutateAsync: withdrawAccount, isPending: isWithdrawing } = useWithdrawAccount()
+  const { data: profile, isLoading, isError, refetch } = useOrganizationProfile()
+
+  useEffect(() => {
+    if (!withdrawError) return
+    const timer = window.setTimeout(() => setWithdrawError(null), 4000)
+    return () => window.clearTimeout(timer)
+  }, [withdrawError])
+
+  const handleWithdraw = async () => {
+    if (isWithdrawing) return
+
+    setWithdrawError(null)
+    try {
+      await withdrawAccount()
+    } catch (error) {
+      setWithdrawOpen(false)
+      setWithdrawError(getUserErrorMessage(
+        error,
+        '회원 탈퇴를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      ))
+    }
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -68,19 +106,32 @@ export function OrganizationMyPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
-        <section className="flex h-24 items-center gap-3 rounded-card bg-primary-100 px-4 py-3">
+        <section className="flex min-h-[112px] items-center gap-3 rounded-card bg-primary-100 px-4 py-4">
           <div className="min-w-0 flex-1">
-            <h2 className="truncate whitespace-nowrap typography-title-1 text-neutral-900">
-              기관 A · 경기도 부천시
-            </h2>
-            <p className="mt-2 typography-label-2 text-neutral-700">
-              기관 · 등록 4 · 진행 3 · 수령 7
-            </p>
+            {isError ? (
+              <div role="alert">
+                <h2 className="typography-title-3 text-error">기관 정보를 불러오지 못했어요.</h2>
+                <button type="button" className="mt-2 typography-label-2 text-primary-700 underline underline-offset-2" onClick={() => void refetch()}>다시 시도</button>
+              </div>
+            ) : (
+              <>
+                <h2 className="break-keep text-[17px] font-bold leading-6 text-neutral-900">
+                  {isLoading
+                    ? '기관 정보를 불러오는 중...'
+                    : `${profile?.name} · ${formatOrganizationRegion(profile?.address ?? '')}`}
+                </h2>
+                <p className="mt-1.5 typography-label-2 text-neutral-700">
+                  {isLoading
+                    ? '잠시만 기다려 주세요.'
+                    : `기관 · ${profile?.verificationStatus === 'VERIFIED' ? '사업자 확인 완료' : '사업자 확인 필요'}`}
+                </p>
+              </>
+            )}
           </div>
           <img
             src={boxHappyImage}
             alt=""
-            className="size-20 shrink-0 object-contain"
+            className="size-16 shrink-0 object-contain"
           />
         </section>
 
@@ -114,13 +165,17 @@ export function OrganizationMyPage() {
       <Dialog
         open={withdrawOpen}
         title="회원 탈퇴를 진행할까요?"
-        description="다음에 다시 만나요."
-        confirmText="탈퇴하기"
+        description="탈퇴하면 모든 기기에서 로그아웃되며 계정 정보가 삭제됩니다."
+        confirmText={isWithdrawing ? '탈퇴 처리 중...' : '탈퇴하기'}
         cancelText="취소"
         confirmVariant="danger"
+        confirmDisabled={isWithdrawing}
+        cancelDisabled={isWithdrawing}
         className="text-center"
-        onConfirm={() => navigate(ROUTES.start)}
-        onCancel={() => setWithdrawOpen(false)}
+        onConfirm={() => void handleWithdraw()}
+        onCancel={() => {
+          if (!isWithdrawing) setWithdrawOpen(false)
+        }}
       />
       <Dialog
         open={logoutOpen}
@@ -134,6 +189,16 @@ export function OrganizationMyPage() {
           if (!isLoggingOut) setLogoutOpen(false)
         }}
       />
+      {withdrawError ? (
+        <div className="pointer-events-none fixed left-1/2 top-4 z-300 w-full max-w-[393px] -translate-x-1/2 px-5">
+          <Toast
+            variant="error"
+            title="회원 탈퇴를 진행할 수 없어요"
+            description={withdrawError}
+            className="shadow-[0_12px_32px_rgb(18_61_49/18%)]"
+          />
+        </div>
+      ) : null}
     </div>
   )
 }
