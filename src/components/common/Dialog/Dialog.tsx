@@ -12,6 +12,8 @@ type DialogProps = {
   onCancel?: () => void
   className?: string
   confirmVariant?: 'primary' | 'secondary' | 'danger'
+  confirmDisabled?: boolean
+  cancelDisabled?: boolean
 }
 
 export function Dialog({
@@ -24,6 +26,8 @@ export function Dialog({
   onCancel,
   className,
   confirmVariant = 'primary',
+  confirmDisabled = false,
+  cancelDisabled = false,
 }: DialogProps) {
   const panel = useRef<HTMLElement>(null)
   const titleId = useId()
@@ -76,8 +80,8 @@ export function Dialog({
           </p>
         ) : null}
         <div className="mt-6 flex flex-col gap-2">
-          <Button variant={confirmVariant} onClick={onConfirm}>{confirmText}</Button>
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant={confirmVariant} disabled={confirmDisabled} onClick={onConfirm}>{confirmText}</Button>
+          <Button variant="secondary" disabled={cancelDisabled} onClick={onCancel}>
             {cancelText}
           </Button>
         </div>

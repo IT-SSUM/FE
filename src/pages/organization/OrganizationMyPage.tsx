@@ -7,14 +7,17 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
+import { Toast } from '@/components/common/Toast/Toast'
 import { ROUTES } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
+import { getUserErrorMessage } from '@/apis/users'
 import { useLogout } from '@/hooks/auth/useLogout'
+import { useWithdrawAccount } from '@/hooks/auth/useWithdrawAccount'
 import { useOrganizationProfile } from '@/hooks/organization/useOrganizationProfile'
 
 const organizationMenus = [
@@ -61,9 +64,32 @@ function formatOrganizationRegion(address: string) {
 export function OrganizationMyPage() {
   const navigate = useNavigate()
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const { logout, isLoggingOut } = useLogout()
+  const { mutateAsync: withdrawAccount, isPending: isWithdrawing } = useWithdrawAccount()
   const { data: profile, isLoading, isError, refetch } = useOrganizationProfile()
+
+  useEffect(() => {
+    if (!withdrawError) return
+    const timer = window.setTimeout(() => setWithdrawError(null), 4000)
+    return () => window.clearTimeout(timer)
+  }, [withdrawError])
+
+  const handleWithdraw = async () => {
+    if (isWithdrawing) return
+
+    setWithdrawError(null)
+    try {
+      await withdrawAccount()
+    } catch (error) {
+      setWithdrawOpen(false)
+      setWithdrawError(getUserErrorMessage(
+        error,
+        '회원 탈퇴를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      ))
+    }
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -139,13 +165,17 @@ export function OrganizationMyPage() {
       <Dialog
         open={withdrawOpen}
         title="회원 탈퇴를 진행할까요?"
-        description="다음에 다시 만나요."
-        confirmText="탈퇴하기"
+        description="탈퇴하면 모든 기기에서 로그아웃되며 계정 정보가 삭제됩니다."
+        confirmText={isWithdrawing ? '탈퇴 처리 중...' : '탈퇴하기'}
         cancelText="취소"
         confirmVariant="danger"
+        confirmDisabled={isWithdrawing}
+        cancelDisabled={isWithdrawing}
         className="text-center"
-        onConfirm={() => navigate(ROUTES.start)}
-        onCancel={() => setWithdrawOpen(false)}
+        onConfirm={() => void handleWithdraw()}
+        onCancel={() => {
+          if (!isWithdrawing) setWithdrawOpen(false)
+        }}
       />
       <Dialog
         open={logoutOpen}
@@ -159,6 +189,16 @@ export function OrganizationMyPage() {
           if (!isLoggingOut) setLogoutOpen(false)
         }}
       />
+      {withdrawError ? (
+        <div className="pointer-events-none fixed left-1/2 top-4 z-300 w-full max-w-[393px] -translate-x-1/2 px-5">
+          <Toast
+            variant="error"
+            title="회원 탈퇴를 진행할 수 없어요"
+            description={withdrawError}
+            className="shadow-[0_12px_32px_rgb(18_61_49/18%)]"
+          />
+        </div>
+      ) : null}
     </div>
   )
 }
