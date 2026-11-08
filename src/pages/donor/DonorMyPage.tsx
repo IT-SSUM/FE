@@ -14,6 +14,7 @@ import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES } from '@/routes/paths'
 import { useDonorStore } from '@/features/donor/store'
 import { statsOf } from '@/features/donor/model'
+import { useDonorProfileQuery } from '@/hooks/queries/useDonorProfileQuery'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
 import { useLogout } from '@/hooks/auth/useLogout'
 
@@ -41,15 +42,29 @@ const accountMenus = [
     to: ROUTES.donor.myProfile,
     icon: <UserRound aria-hidden size={22} strokeWidth={2} />,
   },
-
 ]
 
 export function DonorMyPage() {
   const navigate = useNavigate()
-  const { profile, donations } = useDonorStore((state) => state.data)
+
+  const {
+    profile: localProfile,
+    donations,
+  } = useDonorStore((state) => state.data)
+
+  const {
+    data: donorProfile,
+  } = useDonorProfileQuery()
+
   const stats = statsOf(donations)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const { logout, isLoggingOut } = useLogout()
+
+  const profileName =
+    donorProfile?.name ?? localProfile.name
+
+  const regionName =
+    donorProfile?.regionName ?? localProfile.address
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -60,21 +75,31 @@ export function DonorMyPage() {
           onClick={() => navigate(-1)}
           className="flex size-5 shrink-0 items-center justify-center text-primary-700"
         >
-          <ChevronLeft aria-hidden size={20} strokeWidth={2} />
+          <ChevronLeft
+            aria-hidden
+            size={20}
+            strokeWidth={2}
+          />
         </button>
-        <h1 className="typography-title-3 text-neutral-900">마이페이지</h1>
+
+        <h1 className="typography-title-3 text-neutral-900">
+          마이페이지
+        </h1>
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
         <section className="flex h-24 items-center gap-3 rounded-card bg-primary-100 px-4 py-3">
           <div className="min-w-0 flex-1">
             <h2 className="truncate whitespace-nowrap typography-title-2 text-neutral-900">
-              {profile.name}님 · {profile.address}
+              {profileName}님 · {regionName}
             </h2>
+
             <p className="mt-2 typography-label-2 text-neutral-700">
-              기부자 · 등록 {stats.total} · 진행 {stats.active} · 완료 {stats.complete}
+              기부자 · 등록 {stats.total} · 진행 {stats.active} · 완료{' '}
+              {stats.complete}
             </p>
           </div>
+
           <img
             src={boxHappyImage}
             alt=""
@@ -82,8 +107,15 @@ export function DonorMyPage() {
           />
         </section>
 
-        <MenuSection title="나의 기부" items={donationMenus} />
-        <MenuSection title="계정 관리" items={accountMenus} />
+        <MenuSection
+          title="나의 기부"
+          items={donationMenus}
+        />
+
+        <MenuSection
+          title="계정 관리"
+          items={accountMenus}
+        />
       </main>
 
       <div className="shrink-0 px-5 pb-9 pt-2">
@@ -125,26 +157,36 @@ type MenuSectionProps = {
   items: MenuItem[]
 }
 
-function MenuSection({ title, items }: MenuSectionProps) {
+function MenuSection({
+  title,
+  items,
+}: MenuSectionProps) {
   const navigate = useNavigate()
 
   return (
     <section className="mt-5">
-      <h2 className="typography-label-2 text-neutral-700">{title}</h2>
+      <h2 className="typography-label-2 text-neutral-700">
+        {title}
+      </h2>
+
       <div className="mt-2 overflow-hidden rounded-card border border-neutral-200 bg-white">
         {items.map((item) => (
           <button
             key={item.title}
             type="button"
-            onClick={() => item.to && navigate(item.to)}
+            onClick={() =>
+              item.to && navigate(item.to)
+            }
             className="flex h-[60px] w-full items-center gap-3 bg-white p-4 text-left transition-colors hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-primary-700"
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-input bg-primary-100 text-primary-700">
               {item.icon}
             </span>
+
             <span className="min-w-0 flex-1 truncate typography-title-3 text-neutral-900">
               {item.title}
             </span>
+
             <ChevronRight
               aria-hidden
               size={20}
