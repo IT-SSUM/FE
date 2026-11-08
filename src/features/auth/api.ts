@@ -101,6 +101,10 @@ export async function login(request: { email: string; password: string }) {
   return unwrap(response)
 }
 
+export async function logout(refreshToken: string) {
+  await axiosInstance.post('/api/auth/logout', { refreshToken })
+}
+
 export function getAuthErrorMessage(error: unknown, fallback: string) {
   if (!axios.isAxiosError(error)) return fallback
 

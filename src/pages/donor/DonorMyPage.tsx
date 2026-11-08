@@ -6,14 +6,16 @@ import {
   Package,
   UserRound,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
+import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES } from '@/routes/paths'
 import { useDonorStore } from '@/features/donor/store'
 import { statsOf } from '@/features/donor/model'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
+import { useLogout } from '@/features/auth/useLogout'
 
 const donationMenus = [
   {
@@ -46,6 +48,8 @@ export function DonorMyPage() {
   const navigate = useNavigate()
   const { profile, donations } = useDonorStore((state) => state.data)
   const stats = statsOf(donations)
+  const [logoutOpen, setLogoutOpen] = useState(false)
+  const { logout, isLoggingOut } = useLogout()
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -85,15 +89,27 @@ export function DonorMyPage() {
       <div className="shrink-0 px-5 pb-9 pt-2">
         <Button
           variant="secondary"
-          disabled
           className="w-full border-neutral-400 text-neutral-700 hover:bg-neutral-100"
+          onClick={() => setLogoutOpen(true)}
         >
-          로그아웃 (인증 연동 예정)
+          로그아웃
         </Button>
-        <p className="mt-2 typography-label-2 text-neutral-700">현재 데모에서는 로그인·로그아웃 및 회원 탈퇴를 지원하지 않습니다.</p>
       </div>
 
       <BottomNavigation activeItem="my" className="sticky bottom-0 shrink-0" />
+
+      <Dialog
+        open={logoutOpen}
+        title="로그아웃할까요?"
+        description="다음에 이용할 때 다시 로그인해 주세요."
+        confirmText={isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+        cancelText="취소"
+        className="text-center"
+        onConfirm={() => void logout()}
+        onCancel={() => {
+          if (!isLoggingOut) setLogoutOpen(false)
+        }}
+      />
     </div>
   )
 }
