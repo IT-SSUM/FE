@@ -14,6 +14,7 @@ import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { ROUTES } from '@/routes/paths'
 import boxHappyImage from '@/assets/images/mascot/box-happy.png'
+import { useLogout } from '@/hooks/auth/useLogout'
 
 const organizationMenus = [
   {
@@ -50,6 +51,7 @@ export function OrganizationMyPage() {
   const navigate = useNavigate()
   const [withdrawOpen, setWithdrawOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
+  const { logout, isLoggingOut } = useLogout()
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -124,11 +126,13 @@ export function OrganizationMyPage() {
         open={logoutOpen}
         title="로그아웃할까요?"
         description="다음에 이용할 때 다시 로그인해 주세요."
-        confirmText="로그아웃"
+        confirmText={isLoggingOut ? '로그아웃 중...' : '로그아웃'}
         cancelText="취소"
         className="text-center"
-        onConfirm={() => navigate(ROUTES.start)}
-        onCancel={() => setLogoutOpen(false)}
+        onConfirm={() => void logout()}
+        onCancel={() => {
+          if (!isLoggingOut) setLogoutOpen(false)
+        }}
       />
     </div>
   )
