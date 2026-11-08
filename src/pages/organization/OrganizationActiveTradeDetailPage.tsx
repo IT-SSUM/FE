@@ -1,30 +1,39 @@
-import { useState, type ReactNode } from 'react'
-import { ChevronLeft } from 'lucide-react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Button } from '@/components/common/Button/Button'
-import { Dialog } from '@/components/common/Dialog/Dialog'
-import { ROUTES, routePath } from '@/routes/paths'
+import type { ReactNode } from 'react'
+import { ChevronLeft, MessageCircle } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
-  organizationTrades,
-  type TradeAppointment,
-} from './organizationTrades'
+  getMatchErrorMessage,
+  type MatchStatus,
+} from '@/apis/matches'
+import { Button } from '@/components/common/Button/Button'
+import { useMatch } from '@/hooks/matches/useMatches'
+import { routePath } from '@/routes/paths'
+import { cn } from '@/utils/cn'
+
+const conditionLabels = {
+  HIGH: '상 · 미개봉 또는 새 상품 수준',
+  MID: '중 · 사용감이 있지만 양호함',
+  LOW: '하 · 사용감이 많음',
+} as const
+
+const statusConfig: Record<MatchStatus, { label: string; className: string }> = {
+  PENDING: { label: '응답 대기', className: 'bg-warning-bg text-warning' },
+  TRADING: { label: '거래중', className: 'bg-primary-100 text-primary-700' },
+  RESERVED: { label: '예약중', className: 'bg-warning-bg text-warning' },
+  COMPLETED: { label: '전달 완료', className: 'bg-success-bg text-success' },
+  REJECTED: { label: '거절됨', className: 'bg-error-bg text-error' },
+  CANCELED: { label: '거래 취소', className: 'bg-neutral-100 text-neutral-700' },
+}
 
 export function OrganizationActiveTradeDetailPage() {
   const navigate = useNavigate()
-  const location = useLocation()
   const { tradeId } = useParams()
-  const trade =
-    organizationTrades.find((item) => item.id === tradeId) ?? organizationTrades[0]
-  const [cancelOpen, setCancelOpen] = useState(false)
-  const [completeOpen, setCompleteOpen] = useState(false)
-  const [itemName, defaultQuantity = '10개'] = splitItem(trade.itemName)
-  const routeState = location.state as {
-    appointment?: TradeAppointment
-    quantity?: string
-  } | null
-  const quantity = routeState?.quantity ?? defaultQuantity
-  const isReserved = trade.badge === '예약중'
-  const appointment = routeState?.appointment
+  const matchId = tradeId && /^\d+$/.test(tradeId) ? Number(tradeId) : undefined
+  const matchQuery = useMatch(matchId)
+  const match = matchQuery.data
+  const errorMessage = matchQuery.error
+    ? getMatchErrorMessage(matchQuery.error, '거래 상세 정보를 불러오지 못했어요.')
+    : !matchId ? '잘못된 거래 주소예요.' : ''
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -38,159 +47,92 @@ export function OrganizationActiveTradeDetailPage() {
           <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
         <h1 className="typography-title-3 text-neutral-900">
-          {isReserved ? '예약중' : '거래중'}
+          {match ? statusConfig[match.status].label : '거래 상세'}
         </h1>
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-6 pt-3">
-        <section className="rounded-card border border-neutral-200 bg-white p-4">
-          <h2 className="text-base font-semibold leading-6 text-neutral-900">
-            {trade.donorName} 님 · {itemName} {quantity}
-          </h2>
-          <p className="mt-3 text-xs font-semibold leading-[18px] text-primary-700">
-            거래중 → 예약중 → 전달 완료
-          </p>
-          {isReserved ? (
-            <>
-              <p className="mt-3 text-xs font-normal leading-[18px] text-neutral-700">
-                기부자가 협의한 {quantity}를 예약했어요.
-              </p>
-              <button
-                type="button"
-                onClick={() => setCompleteOpen(true)}
-                className="mt-4 h-10 w-full rounded-control border-2 border-primary-600 bg-white text-xs font-bold text-primary-700 shadow-sm"
-              >
-                전달 완료
-              </button>
-            </>
-          ) : null}
-        </section>
-
-        <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-semibold leading-6 text-neutral-900">
-              {itemName} {quantity}
-            </h2>
-            {!isReserved ? (
-              <button
-                type="button"
-                onClick={() =>
-                  navigate(routePath.organizationTradeQuantityEdit(trade.id), {
-                    state: { quantity },
-                  })
-                }
-                className="h-9 rounded-pill border border-primary-200 bg-white px-4 text-xs font-semibold text-primary-700"
-              >
-                수량 변경
-              </button>
-            ) : null}
+        {matchQuery.isLoading ? (
+          <p className="py-12 text-center typography-body-2 text-neutral-700" role="status">거래 상세 정보를 불러오는 중이에요.</p>
+        ) : errorMessage ? (
+          <div className="py-12 text-center" role="alert">
+            <p className="typography-body-2 text-error">{errorMessage}</p>
+            {matchId ? <Button variant="secondary" className="mt-4 h-10" onClick={() => void matchQuery.refetch()}>다시 시도</Button> : null}
           </div>
-          <dl className="mt-4 space-y-3 text-xs leading-[18px]">
-            <InfoRow
-              label="품목 · 수량"
-              value={`${itemName} · ${isReserved ? '예약' : '협의'} 수량 ${quantity}`}
-            />
-            <InfoRow label="물품 상태" value="중 · 처음 상태와 유사" />
-            <InfoRow label="물품 위치" value="경기도 부천시" />
-          </dl>
-        </section>
-
-        {isReserved ? (
-          <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
-            <h2 className="text-base font-semibold leading-6 text-neutral-900">
-              전달 약속
-            </h2>
-            {appointment ? (
-              <>
-                <div className="mt-3 space-y-1 text-xs font-normal leading-[18px] text-neutral-700">
-                  <p>{formatAppointmentDateTime(appointment)}</p>
-                  <p>{formatAppointmentLocation(appointment)}</p>
-                  <p>{appointment.method}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate(routePath.organizationTradeAppointment(trade.id), {
-                      state: { appointment, quantity },
-                    })
-                  }
-                  className="mt-4 h-10 w-full rounded-control border border-primary-400 bg-primary-100 text-xs font-bold text-primary-700 shadow-sm"
-                >
-                  전달 약속 수정
-                </button>
-              </>
-            ) : (
-              <>
+        ) : match ? (
+          <>
+            <section className="rounded-card border border-neutral-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="text-base font-semibold leading-6 text-neutral-900">
+                  {match.donorName} 님 · {match.donationItemName} {match.quantity}{match.unit}
+                </h2>
+                <span className={cn('inline-flex h-7 shrink-0 items-center rounded-pill px-3 text-xs font-semibold', statusConfig[match.status].className)}>
+                  {statusConfig[match.status].label}
+                </span>
+              </div>
+              <p className="mt-3 text-xs font-semibold leading-[18px] text-primary-700">
+                거래중 → 예약중 → 전달 완료
+              </p>
+              {match.status === 'RESERVED' ? (
                 <p className="mt-3 text-xs font-normal leading-[18px] text-neutral-700">
-                  아직 저장한 약속이 없어요.
-                  <br />
-                  날짜·장소·전달 방법을 함께 정해 주세요.
+                  기부자가 협의한 {match.quantity}{match.unit}를 예약했어요.
                 </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate(routePath.organizationTradeAppointment(trade.id), {
-                      state: { quantity },
-                    })
-                  }
-                  className="mt-4 h-10 w-full rounded-control border border-neutral-200 bg-white text-xs font-semibold text-primary-700"
-                >
-                  약속 입력
-                </button>
-              </>
-            )}
-          </section>
-        ) : (
-          <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
-            <dl className="space-y-3 text-xs leading-[18px]">
-              <InfoRow label="기부자" value={`${trade.donorName} 님`} />
-              <InfoRow label="기관 주소" value="경기도 부천시 가마안로 12" />
-              <InfoRow label="전달 방법" value="직접 전달 · 채팅에서 협의" />
-              <InfoRow label="전달 일정" value="채팅에서 조율 중" />
-            </dl>
-          </section>
-        )}
+              ) : null}
+              {match.status === 'CANCELED' && match.cancelReason ? (
+                <p className="mt-3 text-xs font-normal leading-[18px] text-error">취소 사유: {match.cancelReason}</p>
+              ) : null}
+            </section>
+
+            <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
+              <h2 className="text-base font-semibold leading-6 text-neutral-900">물품 및 수량</h2>
+              <dl className="mt-4 space-y-3 text-xs leading-[18px]">
+                <InfoRow label="기부 물품" value={match.donationItemName} />
+                <InfoRow label="필요 물품" value={match.neededItemName} />
+                <InfoRow label="거래 수량" value={`${match.quantity}${match.unit}`} />
+                <InfoRow label="최초 수량" value={`${match.initialQuantity}${match.unit}`} />
+                <InfoRow label="물품 상태" value={conditionLabels[match.conditionGrade]} />
+                <InfoRow label="물품 위치" value={match.donationItemRegion} />
+                <InfoRow label="추가 필요" value={`${match.neededItemAdditionalQuantity}${match.unit}`} />
+              </dl>
+            </section>
+
+            <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
+              <h2 className="text-base font-semibold leading-6 text-neutral-900">전달 정보</h2>
+              <dl className="mt-4 space-y-3 text-xs leading-[18px]">
+                <InfoRow label="기부자" value={`${match.donorName} 님`} />
+                <InfoRow label="기관 주소" value={match.organizationAddress} />
+                <InfoRow label="수령 장소" value={match.neededItemReceiveAddress || '아직 정하지 않았어요.'} />
+                <InfoRow label="전달 방법" value={formatDeliveryMethod(match.deliveryMethod)} />
+                <InfoRow label="전달 일정" value={formatDateTime(match.scheduledAt)} />
+                {match.deliveryPlace ? <InfoRow label="약속 장소" value={match.deliveryPlace} /> : null}
+                {match.receiverName ? <InfoRow label="수령인" value={match.receiverName} /> : null}
+                {match.completedAt ? <InfoRow label="완료 일시" value={formatDateTime(match.completedAt)} /> : null}
+              </dl>
+            </section>
+
+            <section className="mt-4">
+              <h2 className="flex items-center gap-1.5 text-xs font-semibold leading-[18px] text-primary-700">
+                <MessageCircle aria-hidden size={16} strokeWidth={2} />
+                거래 메시지
+              </h2>
+              <p className="mt-2 rounded-control bg-primary-100 p-4 text-sm font-medium leading-[22px] text-neutral-900">
+                {match.message || '작성된 메시지가 없어요.'}
+              </p>
+            </section>
+          </>
+        ) : null}
       </main>
 
-      <footer className="grid shrink-0 grid-cols-2 gap-3 px-5 pb-4 pt-2">
-        <Button
-          className="h-[46px]"
-          onClick={() =>
-            navigate(
-              `${routePath.chatRoom('donor-choi-yoonseo')}?audience=organization`,
-            )
-          }
-        >
-          채팅
-        </Button>
-        <Button
-          variant="secondary"
-          className="h-[46px]"
-          onClick={() => setCancelOpen(true)}
-        >
-          거래 취소
-        </Button>
-      </footer>
-
-      <Dialog
-        open={cancelOpen}
-        title="거래를 취소할까요?"
-        description="취소한 거래는 다시 진행할 수 없어요."
-        confirmText="거래 취소"
-        cancelText="계속 진행"
-        confirmVariant="danger"
-        onConfirm={() => navigate(ROUTES.organization.tradeStatus)}
-        onCancel={() => setCancelOpen(false)}
-      />
-      <Dialog
-        open={completeOpen}
-        title="전달을 완료했나요?"
-        description="완료 처리하면 전달 완료 내역에서 확인할 수 있어요."
-        confirmText="전달 완료"
-        cancelText="아직이에요"
-        onConfirm={() => navigate(ROUTES.organization.tradeStatus)}
-        onCancel={() => setCompleteOpen(false)}
-      />
+      {match?.chatRoomId ? (
+        <footer className="shrink-0 px-5 pb-4 pt-2">
+          <Button
+            className="h-[46px] w-full"
+            onClick={() => navigate(`${routePath.chatRoom(String(match.chatRoomId))}?audience=organization`)}
+          >
+            채팅방으로 이동
+          </Button>
+        </footer>
+      ) : null}
     </div>
   )
 }
@@ -204,25 +146,18 @@ function InfoRow({ label, value }: { label: string; value: ReactNode }) {
   )
 }
 
-function splitItem(itemName: string) {
-  const match = itemName.match(/^(.+?)\s+(\d+(?:개|권|벌|세트))$/)
-  return match ? [match[1], match[2]] : [itemName, '10개']
+function formatDeliveryMethod(method: 'DIRECT' | 'PARCEL' | null) {
+  if (method === 'DIRECT') return '직접 전달'
+  if (method === 'PARCEL') return '택배 전달'
+  return '아직 정하지 않았어요.'
 }
 
-function formatAppointmentDateTime(appointment: TradeAppointment) {
-  const [year, month, day] = appointment.date.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토']
-  const [hourValue, minuteValue = '00'] = appointment.time.split(':')
-  const hour24 = Number(hourValue)
-  const meridiem = hour24 < 12 ? '오전' : '오후'
-  const hour = hour24 % 12 || 12
-  const minute = Number(minuteValue)
-  return `${year}년 ${month}월 ${day}일 (${weekdays[date.getDay()]}) ${meridiem} ${hour}시${minute ? ` ${minute}분` : ''}`
-}
-
-function formatAppointmentLocation(appointment: TradeAppointment) {
-  return appointment.detailAddress
-    ? `${appointment.address}, ${appointment.detailAddress}`
-    : appointment.address
+function formatDateTime(value: string | null) {
+  if (!value) return '아직 정하지 않았어요.'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '아직 정하지 않았어요.'
+  return new Intl.DateTimeFormat('ko-KR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
 }

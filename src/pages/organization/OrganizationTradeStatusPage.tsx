@@ -112,7 +112,7 @@ export function OrganizationTradeStatusPage() {
               <OrganizationTradeCard
                 key={trade.id}
                 trade={trade}
-                onClick={() => navigate(routePath.organizationOfferDetail(trade.id))}
+                onClick={() => navigate(routePath.organizationActiveTradeDetail(trade.id))}
               />
             ))
           )}
