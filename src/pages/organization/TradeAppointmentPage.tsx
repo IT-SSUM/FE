@@ -13,7 +13,7 @@ import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
 import { useUpdateMatchAppointmentMutation } from '@/hooks/mutations/useUpdateMatchAppointmentMutation'
 import type { MatchDetail } from '@/types/match'
 
-export function TradeAppointmentPage({ audience = 'ORGANIZATION' }: { audience?: 'DONOR' | 'ORGANIZATION' }) {
+export function TradeAppointmentPage({ audience = 'ORGANIZATION', authenticatedRole = null }: { audience?: 'DONOR' | 'ORGANIZATION'; authenticatedRole?: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const { tradeId } = useParams()
   const id = parseMatchId(tradeId)
@@ -24,10 +24,10 @@ export function TradeAppointmentPage({ audience = 'ORGANIZATION' }: { audience?:
     {query.isError ? <Button onClick={() => void query.refetch()}>다시 시도</Button> : null}
     <Button variant="secondary" onClick={() => navigate(-1)}>뒤로가기</Button>
   </div>
-  return <AppointmentForm key={query.data.matchId} item={query.data} audience={audience} />
+  return <AppointmentForm key={query.data.matchId} item={query.data} audience={audience} authenticatedRole={authenticatedRole} />
 }
 
-function AppointmentForm({ item, audience }: { item: MatchDetail; audience: 'DONOR' | 'ORGANIZATION' }) {
+function AppointmentForm({ item, audience, authenticatedRole }: { item: MatchDetail; audience: 'DONOR' | 'ORGANIZATION'; authenticatedRole: 'DONOR' | 'ORGANIZATION' | null }) {
   const navigate = useNavigate()
   const mutation = useUpdateMatchAppointmentMutation()
   const lock = useRef(false)
@@ -42,7 +42,7 @@ function AppointmentForm({ item, audience }: { item: MatchDetail; audience: 'DON
   // DIRECT만 명세로 확인됨. 그 외 기존 서버 값은 변경 없이 보존할 수 있습니다.
   const [originalMethod] = useState(item.deliveryMethod)
   const options = originalMethod && originalMethod !== 'DIRECT' ? ['직접 전달', originalMethod] : ['직접 전달']
-  const allowed = item.status === 'RESERVED'
+  const allowed = item.status === 'RESERVED' && authenticatedRole === audience
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (lock.current || !allowed) return
@@ -66,7 +66,7 @@ function AppointmentForm({ item, audience }: { item: MatchDetail; audience: 'DON
       <h1 className="typography-title-3 text-neutral-900">전달 약속 입력</h1>
     </header>
     <main className="flex-1 overflow-y-auto px-5 pb-6 pt-5">
-      {!allowed ? <p role="alert">예약중인 거래에서만 약속을 저장할 수 있어요.</p> : null}
+      {!allowed ? <p role="alert">{authenticatedRole !== audience ? '로그인 역할 확인 후 약속을 저장할 수 있어요.' : '예약중인 거래에서만 약속을 저장할 수 있어요.'}</p> : null}
       <fieldset disabled={!allowed || mutation.isPending} className="space-y-6">
         <DateField id="appointment-date" label="날짜" value={date} onChange={setDate} yearOrder="ascending" labelClassName="text-xs font-bold leading-[18px]" />
         <TimeField id="appointment-time" label="시간" value={time} onChange={setTime} labelClassName="text-xs font-bold leading-[18px]" />
