@@ -48,6 +48,16 @@ const accountMenus = [
   },
 ]
 
+function formatOrganizationRegion(address: string) {
+  const parts = address.replace(/^\[\d+]\s*/, '').trim().split(/\s+/)
+  const districtIndex = parts.findIndex((part) => /(?:구|군)$/.test(part))
+  if (districtIndex >= 0) return parts.slice(0, districtIndex + 1).join(' ')
+
+  const cityIndex = parts.findIndex((part, index) => index > 0 && /시$/.test(part))
+  if (cityIndex >= 0) return parts.slice(0, cityIndex + 1).join(' ')
+  return parts.slice(0, 2).join(' ')
+}
+
 export function OrganizationMyPage() {
   const navigate = useNavigate()
   const [withdrawOpen, setWithdrawOpen] = useState(false)
@@ -70,7 +80,7 @@ export function OrganizationMyPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 pb-8 pt-2">
-        <section className="flex h-24 items-center gap-3 rounded-card bg-primary-100 px-4 py-3">
+        <section className="flex min-h-[112px] items-center gap-3 rounded-card bg-primary-100 px-4 py-4">
           <div className="min-w-0 flex-1">
             {isError ? (
               <div role="alert">
@@ -79,10 +89,12 @@ export function OrganizationMyPage() {
               </div>
             ) : (
               <>
-                <h2 className="truncate whitespace-nowrap typography-title-1 text-neutral-900">
-                  {isLoading ? '기관 정보를 불러오는 중...' : `${profile?.name} · ${profile?.address}`}
+                <h2 className="break-keep text-[17px] font-bold leading-6 text-neutral-900">
+                  {isLoading
+                    ? '기관 정보를 불러오는 중...'
+                    : `${profile?.name} · ${formatOrganizationRegion(profile?.address ?? '')}`}
                 </h2>
-                <p className="mt-2 typography-label-2 text-neutral-700">
+                <p className="mt-1.5 typography-label-2 text-neutral-700">
                   {isLoading
                     ? '잠시만 기다려 주세요.'
                     : `기관 · ${profile?.verificationStatus === 'VERIFIED' ? '사업자 확인 완료' : '사업자 확인 필요'}`}
@@ -93,7 +105,7 @@ export function OrganizationMyPage() {
           <img
             src={boxHappyImage}
             alt=""
-            className="size-20 shrink-0 object-contain"
+            className="size-16 shrink-0 object-contain"
           />
         </section>
 
