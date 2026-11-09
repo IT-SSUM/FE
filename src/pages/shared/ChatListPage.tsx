@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft } from 'lucide-react'
+import { BookOpen, ChevronLeft, MessageCircle } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { ChatRoom } from '@/apis/chat'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
@@ -26,14 +26,10 @@ export function ChatListPage() {
         <h1 className="text-base font-bold leading-6 text-neutral-900">채팅</h1>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 pb-8 pt-2">
+      <main className="flex flex-1 flex-col overflow-y-auto px-4 pb-8 pt-2">
         {isPending ? <ChatListSkeleton /> : null}
         {isError ? <ChatListError onRetry={() => void refetch()} /> : null}
-        {!isPending && !isError && chatRooms.length === 0 ? (
-          <p className="py-16 text-center text-sm text-neutral-700">
-            아직 시작된 채팅이 없어요.
-          </p>
-        ) : null}
+        {!isPending && !isError && chatRooms.length === 0 ? <ChatListEmpty /> : null}
         {!isPending && !isError && chatRooms.length > 0 ? (
           <section className="space-y-4" aria-label="채팅 목록">
             {chatRooms.map((room) => (
@@ -57,6 +53,27 @@ export function ChatListPage() {
         className="sticky bottom-0 shrink-0"
       />
     </div>
+  )
+}
+
+function ChatListEmpty() {
+  return (
+    <section
+      className="flex flex-1 flex-col items-center justify-center px-6 text-center"
+      aria-label="채팅 없음"
+    >
+      <span className="flex size-16 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+        <MessageCircle aria-hidden size={30} strokeWidth={1.8} />
+      </span>
+      <h2 className="mt-5 text-base font-bold leading-6 text-neutral-900">
+        아직 시작된 채팅이 없어요
+      </h2>
+      <p className="mt-2 text-sm font-normal leading-[22px] text-neutral-700">
+        나눔이 연결되면 상대방과
+        <br />
+        전달 방법과 일정을 이야기할 수 있어요.
+      </p>
+    </section>
   )
 }
 
