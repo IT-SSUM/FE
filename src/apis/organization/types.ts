@@ -10,6 +10,15 @@ export type OrganizationProfile = {
   verificationStatus: 'VERIFIED' | 'SUSPENDED'
 }
 
+export type OrganizationDetail = {
+  organizationId: number
+  name: string
+  phone: string
+  address: string
+  addressDetail: string
+  introduction: string
+}
+
 export type UpdateOrganizationProfileRequest = {
   name?: string
   phone?: string
@@ -22,7 +31,10 @@ export type ApiResponse<T> = {
   code: string
   message: string
   data: T
-  fieldErrors?: Array<{ field?: string; reason?: string }>
+  fieldErrors?: Array<{
+    field?: string
+    reason?: string
+  }>
 }
 
 export type MyNeededItem = {
