@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/routes/paths'
 import { logout as requestLogout } from '@/apis/auth'
 import { clearAuthSession, getAuthSession } from '@/features/auth/storage'
+import { deletePushRegistration } from '@/apis/notification'
+import { getPushRegistration, clearPushRegistration } from '@/features/notifications/pushRegistrationStorage'
 
 export function useLogout() {
   const navigate = useNavigate()
@@ -14,7 +16,17 @@ export function useLogout() {
 
     logoutPending.current = true
     setIsLoggingOut(true)
-    const refreshToken = getAuthSession()?.refreshToken
+    const session = getAuthSession()
+    const refreshToken = session?.refreshToken
+    const registration = session ? getPushRegistration(session.userId) : null
+    if (registration) {
+      try {
+        await deletePushRegistration(registration.pushRegistrationId)
+        clearPushRegistration(registration.userId, registration.pushRegistrationId)
+      } catch {
+        // 삭제 실패 시 재시도할 수 있도록 등록 ID를 보관하되 로그아웃은 계속합니다.
+      }
+    }
     try {
       if (refreshToken) await requestLogout(refreshToken)
     } catch {
