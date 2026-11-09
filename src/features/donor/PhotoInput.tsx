@@ -8,6 +8,7 @@ type PhotoInputProps = {
   onBusyChange: (busy: boolean) => void
   label?: string
   optional?: boolean
+  maxPhotos?: number
 }
 
 export function PhotoInput({
@@ -17,6 +18,7 @@ export function PhotoInput({
   onBusyChange,
   label = '사진',
   optional = false,
+  maxPhotos = 3,
 }: PhotoInputProps) {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
@@ -24,7 +26,7 @@ export function PhotoInput({
   async function readFiles(files: File[]) {
     if (reading.current || !files.length) return
     setMessage('')
-    if (files.length + photos.length > 3) { setMessage('사진은 최대 3장까지 추가할 수 있어요.'); return }
+    if (files.length + photos.length > maxPhotos) { setMessage(`사진은 최대 ${maxPhotos}장까지 추가할 수 있어요.`); return }
     if (files.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 1024 * 1024)) {
       setMessage('JPG, PNG, WebP 형식의 1MB 이하 사진만 추가해 주세요.'); return
     }
@@ -59,10 +61,10 @@ export function PhotoInput({
         </span>
         <span className="min-w-0">
           <strong className="block typography-body-2 font-medium text-neutral-900">
-            {photos.length >= 3 ? '사진을 모두 추가했어요' : '사진 추가하기'}
+            {photos.length >= maxPhotos ? '사진을 모두 추가했어요' : '사진 추가하기'}
           </strong>
           <span className="mt-1 block typography-label-2 text-neutral-600">
-            JPG·PNG·WebP · 최대 3장
+            JPG·PNG·WebP · 최대 {maxPhotos}장
           </span>
         </span>
         <input
@@ -70,7 +72,7 @@ export function PhotoInput({
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
-          disabled={busy || photos.length >= 3}
+          disabled={busy || photos.length >= maxPhotos}
           onChange={(event) => {
             const files = Array.from(event.target.files ?? [])
             event.target.value = ''

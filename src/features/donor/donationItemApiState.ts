@@ -16,7 +16,11 @@ export function getDonationItemFailure(error: unknown) {
   const code = body?.code ?? ''
   const status = response?.status
   let message = '기부 물품 요청을 처리하지 못했어요. 다시 시도해 주세요.'
-  if (status === 401) message = '로그인이 필요하거나 인증이 만료됐어요. 로그인 후 다시 시도해 주세요.'
+  if (error instanceof Error && !isAxiosError(error) && !(error instanceof DonationItemApiError)) message = error.message
+  else if (status === 401) message = '로그인이 필요하거나 인증이 만료됐어요. 로그인 후 다시 시도해 주세요.'
+  else if (code === 'ITEM_400') message = '선택한 물품 정보나 단위가 올바르지 않아요.'
+  else if (code === 'ITEM_400_1') message = '등록한 사진을 확인하지 못했어요. 사진을 다시 선택해 주세요.'
+  else if (code === 'ITEM_503') message = '현재 사진 업로드를 이용할 수 없어요. 잠시 후 다시 시도해 주세요.'
   else if (status === 403 || code === 'ITEM_403') message = '이 물품에 접근하거나 변경할 권한이 없어요.'
   else if (status === 404 || code === 'ITEM_404') message = '삭제되었거나 존재하지 않는 물품이에요.'
   else if (status === 409 || code === 'ITEM_409') message = '응답 대기 중인 제안·요청이나 진행 중인 거래가 있어 삭제할 수 없어요.'

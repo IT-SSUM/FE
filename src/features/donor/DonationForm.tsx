@@ -4,9 +4,9 @@ import { Button } from '@/components/common/Button/Button'
 import { Input } from '@/components/common/Input/Input'
 import { Textarea } from '@/components/common/Textarea/Textarea'
 import { Dialog } from '@/components/common/Dialog/Dialog'
+import { SelectField } from '@/components/common/SelectField/SelectField'
 import { ROUTES, routePath } from '@/routes/paths'
 import {
-  unitOf,
   canEdit,
   catalog,
   today,
@@ -19,12 +19,21 @@ import { DonorPage, EmptyState } from './DonorPage'
 import { PhotoInput } from './PhotoInput'
 import { useItemConditionsQuery } from '@/hooks/queries/useItemConditionsQuery'
 import { useItemCategoriesQuery } from '@/hooks/queries/useItemCategoriesQuery'
+import { useItemUnitsQuery } from '@/hooks/queries/useItemUnitsQuery'
+import { useCreateDonationItemMutation } from '@/hooks/mutations/useCreateDonationItemMutation'
+import { getDonationItemFailure } from './donationItemApiState'
 import type { ItemConditionCode } from '@/types/item'
 
 const conditionValueByCode: Record<ItemConditionCode, string> = {
   HIGH: '상',
   MID: '중',
   LOW: '하',
+}
+
+const conditionCodeByValue: Record<string, ItemConditionCode> = {
+  상: 'HIGH',
+  중: 'MID',
+  하: 'LOW',
 }
 
 export function DonationForm({
@@ -56,6 +65,13 @@ export function DonationForm({
     isError: isCategoriesError,
     refetch: refetchCategories,
   } = useItemCategoriesQuery()
+  const {
+    data: itemUnits = [],
+    isLoading: isUnitsLoading,
+    isError: isUnitsError,
+    refetch: refetchUnits,
+  } = useItemUnitsQuery()
+  const createMutation = useCreateDonationItemMutation()
 
   const [draft, setDraft] = useState<DonationInput>(() =>
     item ?? {
@@ -81,6 +97,7 @@ export function DonationForm({
   const [busy, setBusy] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [savedId, setSavedId] = useState('')
+  const [unit, setUnit] = useState('개')
 
   const blocker = useBlocker(dirty && !savedId)
 
@@ -143,12 +160,16 @@ export function DonationForm({
     )
   }
 
-  function submit() {
-    if (busy || submitted.current) {
+  async function submit() {
+    if (busy || createMutation.isPending || submitted.current) {
       return
     }
 
     const checked = validateDonation(draft)
+    if (!editing) {
+      delete checked.startDate
+      delete checked.endDate
+    }
 
     const visibleErrors =
       step === 1
@@ -176,20 +197,32 @@ export function DonationForm({
     submitted.current = true
 
     try {
-      setSavedId(
-        save(
-          draft,
-          editing ? item?.id : undefined,
-        ),
-      )
+      if (editing) {
+        setSavedId(save(draft, item?.id))
+      } else {
+        const category = itemCategories.find((value) => value.name === draft.category)
+        const conditionGrade = conditionCodeByValue[draft.condition]
+        const selectedUnit = itemUnits.includes(unit) ? unit : itemUnits[0]
+        if (!category || !conditionGrade || !selectedUnit) {
+          throw new Error('카테고리, 상태와 단위를 다시 확인해 주세요.')
+        }
+        const created = await createMutation.mutateAsync({
+          categoryId: category.categoryId,
+          itemName: draft.name,
+          quantity: draft.quantity,
+          unit: selectedUnit,
+          conditionGrade,
+          description: draft.description.trim(),
+          images: draft.photos,
+          pickupAddress: draft.location.trim(),
+          pickupAddressDetail: '',
+        })
+        setSavedId(String(created.donationItemId))
+      }
 
       setDirty(false)
     } catch (cause) {
-      setFailure(
-        cause instanceof Error
-          ? cause.message
-          : '저장하지 못했어요. 다시 시도해 주세요.',
-      )
+      setFailure(getDonationItemFailure(cause).message)
 
       submitted.current = false
     }
@@ -207,7 +240,7 @@ export function DonationForm({
           {step === 2 ? (
             <Button
               variant="secondary"
-              disabled={busy || Boolean(savedId)}
+              disabled={busy || createMutation.isPending || Boolean(savedId)}
               onClick={() => setStep(1)}
             >
               이전
@@ -216,12 +249,14 @@ export function DonationForm({
 
           <Button
             className="flex-1"
-            disabled={busy || Boolean(savedId)}
+            disabled={busy || createMutation.isPending || Boolean(savedId) || (step === 1 && (isUnitsLoading || isUnitsError))}
             onClick={() => form.current?.requestSubmit()}
           >
             {step === 1
               ? '다음'
-              : editing
+                : createMutation.isPending
+                  ? '등록 중...'
+                  : editing
                 ? '수정 완료'
                 : '등록하기'}
           </Button>
@@ -241,7 +276,7 @@ export function DonationForm({
         className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault()
-          submit()
+          void submit()
         }}
       >
         {step === 1 ? (
@@ -343,31 +378,39 @@ export function DonationForm({
               ) : null}
             </label>
 
-            <Input
-              label={`수량 (${unitOf(draft.name)})`}
-              type="number"
-              min={1}
-              max={9999}
-              step={1}
-              required
-              value={
-                Number.isNaN(draft.quantity)
-                  ? ''
-                  : draft.quantity
-              }
-              error={errors.quantity}
-              onChange={(event) =>
-                change(
-                  'quantity',
-                  event.target.value === ''
-                    ? NaN
-                    : Number(event.target.value),
-                )
-              }
-            />
+            <div className="grid grid-cols-[minmax(0,1fr)_112px] items-end gap-2">
+              <Input
+                label="수량"
+                type="number"
+                min={1}
+                max={9999}
+                step={1}
+                required
+                value={Number.isNaN(draft.quantity) ? '' : draft.quantity}
+                error={errors.quantity}
+                onChange={(event) => change('quantity', event.target.value === '' ? NaN : Number(event.target.value))}
+              />
+              <div className="flex flex-col gap-2">
+                <span className="typography-label-1 text-neutral-900">단위 *</span>
+                <SelectField
+                  label="물품 단위"
+                  value={itemUnits.includes(unit) ? unit : (itemUnits[0] ?? '')}
+                  options={itemUnits}
+                  disabled={isUnitsLoading || isUnitsError}
+                  onChange={(value) => {
+                    setUnit(value)
+                    setDirty(true)
+                    setFailure('')
+                  }}
+                />
+              </div>
+            </div>
+            {isUnitsError ? (
+              <p role="alert" className="typography-label-2 text-error">단위 목록을 불러오지 못했어요. <button type="button" className="font-semibold underline" onClick={() => void refetchUnits()}>다시 시도</button></p>
+            ) : null}
 
             <Input
-              label="수령 지역 (시·구 단위)"
+              label="물품 위치"
               required
               maxLength={100}
               value={draft.location}
@@ -375,10 +418,10 @@ export function DonationForm({
               onChange={(event) =>
                 change('location', event.target.value)
               }
-              placeholder="서울 구로구"
+              placeholder="도로명 주소를 입력해 주세요."
             />
 
-            <Input
+            {editing ? <><Input
               label="수령 시작일"
               type="date"
               required
@@ -403,7 +446,7 @@ export function DonationForm({
               onChange={(event) =>
                 change('endDate', event.target.value)
               }
-            />
+            /></> : null}
           </>
         ) : (
           <>
@@ -493,6 +536,7 @@ export function DonationForm({
             />
 
             <PhotoInput
+              maxPhotos={5}
               photos={draft.photos}
               error={errors.photos}
               onChange={(photos) =>
@@ -520,7 +564,7 @@ export function DonationForm({
             ? '물품을 수정했어요'
             : '물품을 등록했어요'
         }
-        description="현재 브라우저에 저장했어요. 실제 기관에는 공개되지 않습니다."
+        description={editing ? '물품 정보를 수정했어요.' : '기부 물품이 등록되어 기관에 공개됐어요.'}
         confirmText="내 물품 보기"
         cancelText="추천 기관 보기"
         onConfirm={() =>

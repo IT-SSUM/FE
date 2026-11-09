@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { getDonationItems } from '@/apis/donationItem'
 import type { DonationItemListParams } from '@/types/donationItem'
 
@@ -24,6 +24,7 @@ export const donationItemKeys = {
 
 export function useDonationItemsQuery(
   params: DonationItemListParams = {},
+  enabled = true,
 ) {
   return useQuery({
     queryKey:
@@ -32,6 +33,25 @@ export function useDonationItemsQuery(
     queryFn: () =>
       getDonationItems(params),
 
+    enabled,
+
     staleTime: 1000 * 60,
+  })
+}
+
+export function useInfiniteDonationItemsQuery(
+  params: Omit<DonationItemListParams, 'beforeId'> = {},
+) {
+  return useInfiniteQuery({
+    queryKey: donationItemKeys.list(params),
+    queryFn: ({ pageParam }) => getDonationItems({
+      ...params,
+      beforeId: pageParam ?? undefined,
+      size: 20,
+    }),
+    initialPageParam: null as number | null,
+    getNextPageParam: (lastPage) => lastPage.hasNext
+      ? lastPage.nextCursor
+      : undefined,
   })
 }
