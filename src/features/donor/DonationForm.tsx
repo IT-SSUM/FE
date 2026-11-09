@@ -734,6 +734,9 @@ export function DonationForm({
             ),
             {
               replace: true,
+              state: {
+                recalculate: true,
+              },
             },
           )
         }
