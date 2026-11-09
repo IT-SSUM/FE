@@ -18,3 +18,6 @@ export type NotificationPageResponse = {
 export type NotificationSettings = { matchEnabled: boolean; chatEnabled: boolean }
 export type UnreadNotificationCount = { unreadCount: number }
 
+export type RegisterPushRequest = { fid: string; deviceType: string }
+export type PushRegistration = { pushRegistrationId: number; deviceType: string }
+
