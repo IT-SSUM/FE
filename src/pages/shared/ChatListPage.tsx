@@ -1,14 +1,14 @@
 import { BookOpen, ChevronLeft, MessageCircle } from 'lucide-react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import type { ChatRoom } from '@/apis/chat'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
+import { getAuthSession } from '@/features/auth/storage'
 import { useChatRoomsQuery } from '@/hooks/queries/useChatRoomsQuery'
 import { routePath } from '@/routes/paths'
 
 export function ChatListPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const isOrganization = searchParams.get('audience') === 'organization'
+  const isOrganization = getAuthSession()?.role === 'ORGANIZATION'
   const { data: chatRooms = [], isPending, isError, refetch } =
     useChatRoomsQuery()
 
@@ -37,9 +37,7 @@ export function ChatListPage() {
                 key={room.chatRoomId}
                 room={room}
                 onClick={() =>
-                  navigate(
-                    `${routePath.chatRoom(String(room.chatRoomId))}${isOrganization ? '?audience=organization' : ''}`,
-                  )
+                  navigate(routePath.chatRoom(String(room.chatRoomId)))
                 }
               />
             ))}
