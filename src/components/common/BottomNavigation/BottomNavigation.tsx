@@ -55,7 +55,7 @@ const organizationNavigationItems: BottomNavigationItem[] = [
   {
     key: 'chat',
     label: '채팅',
-    to: `${ROUTES.chatList}?audience=organization`,
+    to: ROUTES.chatList,
     icon: MessageSquare,
   },
   { key: 'my', label: '마이', to: ROUTES.organization.myPage, icon: UserRound },
