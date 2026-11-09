@@ -31,6 +31,9 @@ export function ChatRoomPage() {
   const { status: socketStatus, sendMessage: publishMessage } =
     useChatSocket(chatRoomId)
   const room = roomsQuery.data?.find((item) => item.chatRoomId === chatRoomId)
+  const canSendMessage =
+    socketStatus === 'connected' &&
+    (room?.matchStatus === 'RESERVED' || room?.matchStatus === 'SHARING')
   const messages = useMemo(
     () =>
       messagesQuery.data?.pages
@@ -208,7 +211,7 @@ export function ChatRoomPage() {
         <button
           type="button"
           aria-label="이미지 보내기"
-          disabled={socketStatus !== 'connected' || isUploadingImage}
+          disabled={!canSendMessage || isUploadingImage}
           onClick={() => fileInputRef.current?.click()}
           className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-primary-700 disabled:text-neutral-500"
         >
@@ -220,13 +223,19 @@ export function ChatRoomPage() {
           type="text"
           value={message}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder={socketStatus === 'connected' ? '메시지를 입력하세요' : connectionLabel(socketStatus)}
-          disabled={socketStatus !== 'connected'}
+          placeholder={
+            socketStatus !== 'connected'
+              ? connectionLabel(socketStatus)
+              : canSendMessage
+                ? '메시지를 입력하세요'
+                : '현재 거래 상태에서는 메시지를 보낼 수 없어요.'
+          }
+          disabled={!canSendMessage}
           className="h-11 min-w-0 flex-1 rounded-pill bg-neutral-100 px-3 text-sm font-normal leading-[22px] text-neutral-900 outline-none placeholder:font-normal placeholder:text-neutral-600 focus:ring-2 focus:ring-primary-700 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
-          disabled={socketStatus !== 'connected' || !message.trim()}
+          disabled={!canSendMessage || !message.trim()}
           className="h-11 w-14 shrink-0 rounded-pill bg-primary-700 text-sm font-bold leading-5 text-white disabled:bg-neutral-200 disabled:text-neutral-700"
         >
           전송
@@ -362,6 +371,7 @@ function formatMatchStatus(status: string) {
   const labels: Record<string, string> = {
     PENDING: '대기중',
     TRADING: '거래중',
+    SHARING: '나눔중',
     RESERVED: '예약중',
     COMPLETED: '거래완료',
     REJECTED: '거절됨',

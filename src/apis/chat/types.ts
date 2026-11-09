@@ -12,6 +12,7 @@ export type ChatRoom = {
   matchStatus:
     | 'PENDING'
     | 'TRADING'
+    | 'SHARING'
     | 'RESERVED'
     | 'COMPLETED'
     | 'REJECTED'
@@ -68,6 +69,6 @@ export type SendChatMessageRequest = {
 
 export type ChatReadEvent = {
   chatRoomId: number
-  userId: number
+  readerId: number
   lastReadMessageId: number
 }

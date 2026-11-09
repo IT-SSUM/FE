@@ -53,7 +53,7 @@ export function useChatSocket(chatRoomId: number | null) {
         if (
           !event ||
           event.chatRoomId !== chatRoomId ||
-          event.userId === session.userId
+          event.readerId === session.userId
         ) {
           return
         }
@@ -86,6 +86,9 @@ export function useChatSocket(chatRoomId: number | null) {
 
       client.publish({
         destination: `/app/chat-rooms/${chatRoomId}/messages`,
+        headers: {
+          'content-type': 'application/json',
+        },
         body: JSON.stringify(request),
       })
       return true
