@@ -71,12 +71,15 @@ export function WebPushProvider({ children }: { children: ReactNode }) {
     }
     window.addEventListener('itssum:push-stop', stop)
     navigator.serviceWorker?.addEventListener('message', workerMessage)
-    if (userId && 'Notification' in window && Notification.permission === 'granted') {
-      void connect(false)
-    }
     if (userId && window.isSecureContext && 'Notification' in window) {
       void import('./webPush').then(api => api.subscribeToPushMessages(refresh))
-        .then(off => { if (disposed) off(); else unsubscribe = off })
+        .then(off => {
+          if (disposed) off()
+          else {
+            unsubscribe = off
+            if (Notification.permission === 'granted') void connect(false)
+          }
+        })
         .catch(() => { /* 지원하지 않는 환경은 연결 버튼에서 안내합니다. */ })
     }
     return () => {
