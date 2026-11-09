@@ -1,3 +1,4 @@
+import { useOpenNotification } from '@/features/notifications/useOpenNotification'
 import { Bell, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
@@ -8,6 +9,7 @@ import { cn } from '@/utils/cn'
 
 export function OrganizationNotificationPage() {
   const navigate = useNavigate()
+  const notificationAction = useOpenNotification()
   const organizationNotifications = useNotificationItems()
   const unread = useUnreadNotificationCountQuery()
 
@@ -39,8 +41,8 @@ export function OrganizationNotificationPage() {
               <button
                 key={notification.id}
                 type="button"
-                disabled={!notification.to}
-                onClick={() => notification.to && navigate(notification.to)}
+                disabled={notificationAction.isPending || (!notification.to && !notification.unread)}
+                onClick={() => void notificationAction.open(notification)}
                 className={cn(
                   'w-full rounded-card border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700',
                   notification.unread
@@ -71,6 +73,7 @@ export function OrganizationNotificationPage() {
             )
           })}
         </section>
+        {notificationAction.error && <p role="alert">읽음 처리에 실패했어요. 알림을 다시 선택해주세요.</p>}
         <NotificationFeedback />
       </main>
 
