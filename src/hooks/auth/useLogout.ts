@@ -5,6 +5,7 @@ import { logout as requestLogout } from '@/apis/auth'
 import { clearAuthSession, getAuthSession } from '@/features/auth/storage'
 import { deletePushRegistration } from '@/apis/notification'
 import { getPushRegistration, clearPushRegistration } from '@/features/notifications/pushRegistrationStorage'
+import { waitForPushRegistrations } from '@/hooks/mutations/useRegisterPushMutation'
 
 export function useLogout() {
   const navigate = useNavigate()
@@ -16,6 +17,8 @@ export function useLogout() {
 
     logoutPending.current = true
     setIsLoggingOut(true)
+    window.dispatchEvent(new Event('itssum:push-stop'))
+    await waitForPushRegistrations()
     const session = getAuthSession()
     const refreshToken = session?.refreshToken
     const registration = session ? getPushRegistration(session.userId) : null
