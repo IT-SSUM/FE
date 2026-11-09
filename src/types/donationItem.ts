@@ -10,10 +10,13 @@ export type CreateDonationItemRequest = {
   imageKeys: string[]
   pickupAddress: string
   pickupAddressDetail: string
-  regionId?: number
+  regionId: number
 }
 
-export type CreateDonationItemInput = Omit<CreateDonationItemRequest, 'imageKeys'> & {
+export type CreateDonationItemInput = Omit<
+  CreateDonationItemRequest,
+  'imageKeys'
+> & {
   images: string[]
 }
 
@@ -23,7 +26,8 @@ export type PresignedDonationImage = {
   requiredHeaders: Record<string, string>
 }
 
-// PATCH에서 생략한 필드는 유지됩니다. 품목·수량·단위·상태는 수정할 수 없습니다.
+// PATCH에서 생략한 필드는 유지됩니다.
+// 품목·수량·단위·상태는 수정할 수 없습니다.
 export type UpdateDonationItemRequest = {
   description?: string
   pickupAddress?: string
