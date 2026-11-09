@@ -1,50 +1,20 @@
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Package } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
+import {
+  conditionLabel,
+  getDonationItemFailure,
+  parseDonationItemId,
+} from '@/features/donor/donationItemApiState'
+import { useDonationItemQuery } from '@/hooks/queries/useDonationItemQuery'
 import { routePath } from '@/routes/paths'
-
-const donationDetailMap = {
-  'water-20': {
-    title: '생수 20개를 받을 수 있어요',
-    donor: '기부자 A',
-    itemName: '생수',
-    quantity: '20개',
-    condition: '상',
-    location: '경기도 부천시',
-    description:
-      '신청 가능 수량은 20개예요. 수량·일정·전달 방법은 채팅에서 협의해요. 채팅 시작은 예약·기부 확정이 아니에요.',
-    donorIntro: '이웃에게 필요한 물품을 전하고 있어요.',
-  },
-  'books-10': {
-    title: '도서 10권을 받을 수 있어요',
-    donor: '기부자 B',
-    itemName: '도서',
-    quantity: '10권',
-    condition: '중',
-    location: '경기도 부천시',
-    description:
-      '신청 가능 수량은 10권이에요. 수량·일정·전달 방법은 채팅에서 협의해요. 채팅 시작은 예약·기부 확정이 아니에요.',
-    donorIntro: '좋은 책을 이웃과 함께 나누고 있어요.',
-  },
-  'clothes-5': {
-    title: '의류 5벌을 받을 수 있어요',
-    donor: '기부자 C',
-    itemName: '의류',
-    quantity: '5벌',
-    condition: '하',
-    location: '경기도 부천시',
-    description:
-      '신청 가능 수량은 5벌이에요. 수량·일정·전달 방법은 채팅에서 협의해요. 채팅 시작은 예약·기부 확정이 아니에요.',
-    donorIntro: '사용할 수 있는 물품을 필요한 곳에 전하고 있어요.',
-  },
-} as const
 
 export function DonationDetailPage() {
   const navigate = useNavigate()
-  const { donationId } = useParams()
-  const donation =
-    donationDetailMap[donationId as keyof typeof donationDetailMap] ??
-    donationDetailMap['water-20']
+  const { donationId: donationIdParam } = useParams()
+  const donationId = parseDonationItemId(donationIdParam)
+  const donationQuery = useDonationItemQuery(donationId)
+  const donation = donationQuery.data
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -60,65 +30,106 @@ export function DonationDetailPage() {
         <h1 className="typography-title-3 text-neutral-900">기부 물품 상세</h1>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
-        <h2 className="typography-heading-3 text-neutral-900">
-          {donation.title}
-        </h2>
-        <p className="mt-2 typography-body-2 font-medium text-neutral-700">
-          {donation.donor} · {donation.location}
-        </p>
-
-        <div
-          className="mt-4 h-[188px] rounded-card bg-error-bg"
-          role="img"
-          aria-label={`${donation.itemName} 사진 영역`}
+      {donationId === null ? (
+        <DetailState message="올바른 기부 물품 번호가 필요해요." />
+      ) : donationQuery.isPending ? (
+        <DetailState message="기부 물품을 불러오는 중이에요." />
+      ) : donationQuery.isError ? (
+        <DetailState
+          message={getDonationItemFailure(donationQuery.error).message}
+          actionText="다시 시도"
+          onAction={() => void donationQuery.refetch()}
         />
+      ) : donation ? (
+        <>
+          <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
+            <h2 className="typography-heading-3 text-neutral-900">
+              {donation.itemName} {donation.availableQuantity}{donation.unit}을 받을 수 있어요
+            </h2>
+            <p className="mt-2 typography-body-2 font-medium text-neutral-700">
+              {donation.donorName} · {donation.regionName}
+            </p>
 
-        <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
-          <dl className="space-y-2 typography-label-1">
-            <InfoRow label="물품 품목" value={donation.itemName} />
-            <InfoRow label="신청 가능 수량" value={donation.quantity} />
-            <InfoRow label="물품 상태" value={donation.condition} />
-            <InfoRow label="물품 위치" value={donation.location} />
-          </dl>
-        </section>
+            {donation.imageUrls[0] ? (
+              <img
+                src={donation.imageUrls[0]}
+                alt={`${donation.itemName} 기부 물품`}
+                className="mt-4 h-[188px] w-full rounded-card object-cover"
+              />
+            ) : (
+              <div className="mt-4 flex h-[188px] items-center justify-center rounded-card bg-error-bg text-primary-700">
+                <Package aria-hidden size={42} strokeWidth={1.8} />
+              </div>
+            )}
 
-        <p className="mt-5 typography-body-1 font-medium text-neutral-900">
-          {donation.description}
-        </p>
+            <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
+              <dl className="space-y-2 typography-label-1">
+                <InfoRow label="물품 품목" value={donation.itemName} />
+                <InfoRow
+                  label="신청 가능 수량"
+                  value={`${donation.availableQuantity}${donation.unit}`}
+                />
+                <InfoRow
+                  label="물품 상태"
+                  value={conditionLabel[donation.conditionGrade]}
+                />
+                <InfoRow label="물품 위치" value={donation.regionName} />
+              </dl>
+            </section>
 
-        <section className="mt-6">
-          <h3 className="typography-title-2 text-neutral-900">기부자 소개</h3>
-          <p className="mt-5 typography-body-1 font-medium text-neutral-900">
-            {donation.donorIntro}
-          </p>
-        </section>
-      </main>
+            <p className="mt-5 whitespace-pre-wrap typography-body-1 font-medium text-neutral-900">
+              {donation.description || '등록된 물품 설명이 없어요.'}
+            </p>
 
-      <footer className="shrink-0 bg-surface-canvas px-5 pb-3 pt-2">
-        <Button
-          className="h-[46px] w-full"
-          onClick={() =>
-            navigate(
-              routePath.organizationDonationRequest(
-                donationId ?? 'water-20',
-              ),
-            )
-          }
-        >
-          요청하기
-        </Button>
-      </footer>
+            <section className="mt-6">
+              <h3 className="typography-title-2 text-neutral-900">기부자 소개</h3>
+              <p className="mt-3 whitespace-pre-wrap typography-body-1 font-medium text-neutral-900">
+                {donation.donorIntroduction || '등록된 기부자 소개가 없어요.'}
+              </p>
+            </section>
+          </main>
+
+          <footer className="shrink-0 bg-surface-canvas px-5 pb-3 pt-2">
+            <Button
+              className="h-[46px] w-full"
+              disabled={donation.status !== 'RECRUITING' || donation.availableQuantity <= 0}
+              onClick={() =>
+                navigate(
+                  routePath.organizationDonationRequest(String(donation.donationItemId)),
+                )
+              }
+            >
+              {donation.availableQuantity > 0 ? '요청하기' : '신청 가능한 수량이 없어요'}
+            </Button>
+          </footer>
+        </>
+      ) : null}
     </div>
   )
 }
 
-type InfoRowProps = {
-  label: string
-  value: string
+function DetailState({
+  message,
+  actionText,
+  onAction,
+}: {
+  message: string
+  actionText?: string
+  onAction?: () => void
+}) {
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center px-5 text-center">
+      <p className="typography-body-2 text-neutral-700">{message}</p>
+      {actionText && onAction ? (
+        <Button variant="secondary" className="mt-4" onClick={onAction}>
+          {actionText}
+        </Button>
+      ) : null}
+    </main>
+  )
 }
 
-function InfoRow({ label, value }: InfoRowProps) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[100px_1fr] gap-2">
       <dt className="whitespace-nowrap text-neutral-700">{label}</dt>

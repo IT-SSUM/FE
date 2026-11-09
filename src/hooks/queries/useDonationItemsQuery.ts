@@ -24,6 +24,7 @@ export const donationItemKeys = {
 
 export function useDonationItemsQuery(
   params: DonationItemListParams = {},
+  enabled = true,
 ) {
   return useQuery({
     queryKey:
@@ -31,6 +32,8 @@ export function useDonationItemsQuery(
 
     queryFn: () =>
       getDonationItems(params),
+
+    enabled,
 
     staleTime: 1000 * 60,
   })
