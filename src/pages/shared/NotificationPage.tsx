@@ -1,3 +1,4 @@
+import { useOpenNotification } from '@/features/notifications/useOpenNotification'
 import { Bell, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useNotificationItems } from '@/features/notifications/useNotificationItems'
@@ -6,6 +7,7 @@ import { useUnreadNotificationCountQuery } from '@/hooks/queries/useNotification
 
 export function NotificationPage() {
   const navigate = useNavigate()
+  const notificationAction = useOpenNotification()
   const notifications = useNotificationItems()
   const unread = useUnreadNotificationCountQuery()
 
@@ -35,8 +37,8 @@ export function NotificationPage() {
             <button
               key={notification.id}
               type="button"
-              disabled={!notification.to}
-              onClick={() => notification.to && navigate(notification.to)}
+              disabled={notificationAction.isPending || (!notification.to && !notification.unread)}
+              onClick={() => void notificationAction.open(notification)}
               className="flex w-full gap-3 rounded-card border border-neutral-200 bg-white p-4 text-left shadow-sm transition-colors hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-input bg-primary-100 text-primary-700">
@@ -61,6 +63,7 @@ export function NotificationPage() {
             </button>
           ))}
         </section>
+        {notificationAction.error && <p role="alert">읽음 처리에 실패했어요. 알림을 다시 선택해주세요.</p>}
         <NotificationFeedback />
       </main>
     </div>
