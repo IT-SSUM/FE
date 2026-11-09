@@ -2,9 +2,11 @@ import { useNotificationsQuery, useNotificationSettingsQuery } from '@/hooks/que
 import { getAuthSession } from '@/features/auth/storage'
 import { useReadAllNotificationsMutation, useUpdateNotificationSettingsMutation } from '@/hooks/mutations/useNotificationMutations'
 import { useRef } from 'react'
+import { useWebPush } from './WebPushContext'
 
 export function NotificationFeedback() {
   const list = useNotificationsQuery()
+  const push = useWebPush()
   const settings = useNotificationSettingsQuery()
   const update = useUpdateNotificationSettingsMutation()
   const readAll = useReadAllNotificationsMutation()
@@ -19,6 +21,8 @@ export function NotificationFeedback() {
   if (!getAuthSession()?.accessToken) return <p role="status">로그인 후 알림을 확인할 수 있어요.</p>
   return (
     <div className="mt-4 space-y-2 typography-body-2 text-neutral-700">
+      <button type="button" disabled={push.busy} onClick={() => void push.enable()}>{push.busy ? '푸시 연결 중…' : '이 브라우저에서 푸시 알림 받기'}</button>
+      {push.message && <p role="status">{push.message}</p>}
       {settings.data && <p>푸시 수신 설정 · 매칭 {settings.data.matchEnabled ? '켜짐' : '꺼짐'} · 채팅 {settings.data.chatEnabled ? '켜짐' : '꺼짐'}</p>}
       {settings.data && <div className="flex gap-4">
         <label><input type="checkbox" checked={settings.data.matchEnabled} disabled={update.isPending} onChange={() => void toggle('matchEnabled')} /> 매칭 푸시</label>
