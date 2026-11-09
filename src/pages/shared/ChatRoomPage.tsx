@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { ArrowRight, BookOpen, ChevronLeft } from 'lucide-react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import type { ChatMessage } from '@/apis/chat'
+import { ArrowRight, BookOpen, ChevronLeft, Plus } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { uploadChatImage, type ChatMessage } from '@/apis/chat'
 import { ChatBubble } from '@/components/common/ChatBubble/ChatBubble'
 import { getAuthSession } from '@/features/auth/storage'
+import { useChatSocket } from '@/hooks/chat/useChatSocket'
 import { useMarkChatReadMutation } from '@/hooks/mutations/useMarkChatReadMutation'
 import { useChatMessagesQuery } from '@/hooks/queries/useChatMessagesQuery'
 import { useChatRoomsQuery } from '@/hooks/queries/useChatRoomsQuery'
@@ -13,19 +14,22 @@ import { cn } from '@/utils/cn'
 export function ChatRoomPage() {
   const navigate = useNavigate()
   const { chatRoomId: chatRoomIdParam } = useParams()
-  const [searchParams] = useSearchParams()
-  const isOrganization = searchParams.get('audience') === 'organization'
   const parsedChatRoomId = Number(chatRoomIdParam)
   const chatRoomId = Number.isSafeInteger(parsedChatRoomId) && parsedChatRoomId > 0
     ? parsedChatRoomId
     : null
   const currentUserId = getAuthSession()?.userId ?? null
   const [message, setMessage] = useState('')
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [imageError, setImageError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const lastMarkedReadId = useRef(0)
 
   const roomsQuery = useChatRoomsQuery()
   const messagesQuery = useChatMessagesQuery(chatRoomId)
-  const markReadMutation = useMarkChatReadMutation()
+  const { mutate: markRead } = useMarkChatReadMutation()
+  const { status: socketStatus, sendMessage: publishMessage } =
+    useChatSocket(chatRoomId)
   const room = roomsQuery.data?.find((item) => item.chatRoomId === chatRoomId)
   const messages = useMemo(
     () =>
@@ -38,12 +42,14 @@ export function ChatRoomPage() {
     (latest, chat) => Math.max(latest, chat.messageId),
     0,
   )
+  const otherLastReadMessageId =
+    messagesQuery.data?.pages[0]?.otherLastReadMessageId ?? null
 
   useEffect(() => {
     if (chatRoomId === null || latestMessageId <= lastMarkedReadId.current) return
 
     lastMarkedReadId.current = latestMessageId
-    markReadMutation.mutate(
+    markRead(
       { chatRoomId, lastReadMessageId: latestMessageId },
       {
         onError: () => {
@@ -51,10 +57,38 @@ export function ChatRoomPage() {
         },
       },
     )
-  }, [chatRoomId, latestMessageId, markReadMutation.mutate])
+  }, [chatRoomId, latestMessageId, markRead])
 
   const sendMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const content = message.trim()
+    if (!content) return
+
+    if (publishMessage({ messageType: 'TEXT', content })) {
+      setMessage('')
+    }
+  }
+
+  const sendImage = async (file: File | undefined) => {
+    if (!file || chatRoomId === null) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setImageError('JPEG, PNG, WebP 이미지만 전송할 수 있어요.')
+      return
+    }
+
+    setIsUploadingImage(true)
+    setImageError('')
+    try {
+      const objectKey = await uploadChatImage(chatRoomId, file)
+      if (!publishMessage({ messageType: 'IMAGE', content: objectKey })) {
+        throw new Error('채팅 연결이 끊어졌습니다.')
+      }
+    } catch {
+      setImageError('이미지를 전송하지 못했어요. 다시 시도해 주세요.')
+    } finally {
+      setIsUploadingImage(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   if (chatRoomId === null) {
@@ -140,6 +174,11 @@ export function ChatRoomPage() {
                 <MessageRow
                   chat={chat}
                   isSelf={chat.senderId === currentUserId}
+                  isRead={
+                    chat.senderId === currentUserId &&
+                    otherLastReadMessageId !== null &&
+                    chat.messageId <= otherLastReadMessageId
+                  }
                 />
               </div>
             )
@@ -148,23 +187,47 @@ export function ChatRoomPage() {
       </main>
 
       <form
-        className="flex shrink-0 items-center gap-3 bg-white px-6 py-4"
+        className="relative flex shrink-0 items-center gap-3 bg-white px-6 py-4"
         onSubmit={sendMessage}
       >
+        {imageError ? (
+          <p
+            className="absolute bottom-full left-0 w-full bg-error-bg px-6 py-2 text-xs text-error"
+            role="alert"
+          >
+            {imageError}
+          </p>
+        ) : null}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={(event) => void sendImage(event.target.files?.[0])}
+        />
+        <button
+          type="button"
+          aria-label="이미지 보내기"
+          disabled={socketStatus !== 'connected' || isUploadingImage}
+          onClick={() => fileInputRef.current?.click()}
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-primary-700 disabled:text-neutral-500"
+        >
+          <Plus aria-hidden size={22} strokeWidth={2} />
+        </button>
         <label className="sr-only" htmlFor="chat-message">메시지 입력</label>
         <input
           id="chat-message"
           type="text"
           value={message}
-          disabled
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="실시간 연결 준비 중"
+          placeholder={socketStatus === 'connected' ? '메시지를 입력하세요' : connectionLabel(socketStatus)}
+          disabled={socketStatus !== 'connected'}
           className="h-11 min-w-0 flex-1 rounded-pill bg-neutral-100 px-3 text-sm font-normal leading-[22px] text-neutral-900 outline-none placeholder:font-normal placeholder:text-neutral-600 focus:ring-2 focus:ring-primary-700 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
-          disabled
-          className="h-11 w-14 shrink-0 rounded-pill bg-neutral-200 text-sm font-bold leading-5 text-neutral-700"
+          disabled={socketStatus !== 'connected' || !message.trim()}
+          className="h-11 w-14 shrink-0 rounded-pill bg-primary-700 text-sm font-bold leading-5 text-white disabled:bg-neutral-200 disabled:text-neutral-700"
         >
           전송
         </button>
@@ -173,7 +236,15 @@ export function ChatRoomPage() {
   )
 }
 
-function MessageRow({ chat, isSelf }: { chat: ChatMessage; isSelf: boolean }) {
+function MessageRow({
+  chat,
+  isSelf,
+  isRead,
+}: {
+  chat: ChatMessage
+  isSelf: boolean
+  isRead: boolean
+}) {
   if (chat.messageType === 'SYSTEM') {
     return (
       <div className="mt-4 rounded-card bg-primary-100 p-3 text-center">
@@ -203,7 +274,7 @@ function MessageRow({ chat, isSelf }: { chat: ChatMessage; isSelf: boolean }) {
           <BookOpen aria-hidden size={18} strokeWidth={2} />
         </span>
       ) : null}
-      {isSelf ? <MessageTime value={chat.createdAt} /> : null}
+      {isSelf ? <MessageTime value={chat.createdAt} isRead={isRead} /> : null}
       {chat.messageType === 'IMAGE' ? (
         <img
           src={chat.thumbnailUrl ?? chat.content}
@@ -232,7 +303,7 @@ function MessageDate({ value }: { value: string }) {
   return <p className="mb-4 text-center text-xs text-neutral-700">{text}</p>
 }
 
-function MessageTime({ value }: { value: string }) {
+function MessageTime({ value, isRead = false }: { value: string; isRead?: boolean }) {
   const date = new Date(value)
   const text = Number.isNaN(date.getTime())
     ? ''
@@ -242,7 +313,11 @@ function MessageTime({ value }: { value: string }) {
         hour12: true,
       }).format(date)
 
-  return <p className="shrink-0 pb-1 text-xs text-neutral-700">{text}</p>
+  return (
+    <p className="shrink-0 pb-1 text-xs text-neutral-700">
+      {isRead ? '읽음 · ' : ''}{text}
+    </p>
+  )
 }
 
 function MessageListSkeleton() {
@@ -293,4 +368,10 @@ function formatMatchStatus(status: string) {
     CANCELED: '취소됨',
   }
   return labels[status] ?? status
+}
+
+function connectionLabel(status: 'connecting' | 'connected' | 'reconnecting' | 'error') {
+  if (status === 'reconnecting') return '채팅에 다시 연결하는 중...'
+  if (status === 'error') return '채팅 연결에 실패했어요.'
+  return '채팅에 연결하는 중...'
 }

@@ -48,3 +48,20 @@ export async function presignChatImage(
   )
   return response.data.data
 }
+
+export async function uploadChatImage(chatRoomId: number, file: File) {
+  const presigned = await presignChatImage(chatRoomId, {
+    contentType: file.type,
+  })
+  const response = await fetch(presigned.uploadUrl, {
+    method: 'PUT',
+    headers: presigned.requiredHeaders,
+    body: file,
+  })
+
+  if (!response.ok) {
+    throw new Error('채팅 이미지를 업로드하지 못했습니다.')
+  }
+
+  return presigned.objectKey
+}
