@@ -33,7 +33,7 @@ export type UpdateDonationItemRequest = {
 
 export type DonationItemDetail = {
   donationItemId: number
-  status: string
+  status: 'RECRUITING' | 'FULL' | 'COMPLETED'
 
   categoryId: number
   categoryName: string
