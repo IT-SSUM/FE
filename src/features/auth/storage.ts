@@ -17,8 +17,10 @@ export function getAccessToken() {
 
 export function saveAuthSession(session: AuthSession) {
   localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session))
+  window.dispatchEvent(new Event('itssum:auth-changed'))
 }
 
 export function clearAuthSession() {
   localStorage.removeItem(AUTH_SESSION_KEY)
+  window.dispatchEvent(new Event('itssum:auth-changed'))
 }
