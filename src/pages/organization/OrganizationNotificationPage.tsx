@@ -1,63 +1,17 @@
-import {
-  CalendarDays,
-  CheckCircle2,
-  ChevronLeft,
-  MessageCircle,
-  type LucideIcon,
-} from 'lucide-react'
+import { useOpenNotification } from '@/features/notifications/useOpenNotification'
+import { Bell, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
-import { routePath } from '@/routes/paths'
+import { useNotificationItems } from '@/features/notifications/useNotificationItems'
+import { NotificationFeedback } from '@/features/notifications/NotificationFeedback'
+import { useUnreadNotificationCountQuery } from '@/hooks/queries/useNotificationsQuery'
 import { cn } from '@/utils/cn'
-
-type OrganizationNotification = {
-  id: string
-  title: string
-  description: string
-  time: string
-  unread?: boolean
-  icon: LucideIcon
-  to: string
-}
-
-const organizationNotifications: OrganizationNotification[] = [
-  {
-    id: 'new-offer',
-    title: '새로운 기부 제안',
-    description: '최윤서 님이 생수 10개를 제안했어요.',
-    time: '방금',
-    unread: true,
-    icon: MessageCircle,
-    to: routePath.organizationOfferDetail('choi-water-10'),
-  },
-  {
-    id: 'appointment',
-    title: '전달 일정이 정해졌어요',
-    description: '생수 10개 · 토요일 오후 2시 수령',
-    time: '1시간 전',
-    icon: CalendarDays,
-    to: routePath.organizationActiveTradeDetail('trade-water-hyobi'),
-  },
-  {
-    id: 'delivery-ready',
-    title: '전달 준비가 시작됐어요',
-    description: '그림책 20권이 전달을 기다려요.',
-    time: '어제',
-    icon: CheckCircle2,
-    to: routePath.organizationActiveTradeDetail('trade-books-kim'),
-  },
-  {
-    id: 'confirm-receipt',
-    title: '수령을 확인해 주세요',
-    description: '생수 10개를 받았다면 확인해 주세요.',
-    time: '어제',
-    icon: CheckCircle2,
-    to: routePath.organizationNeedDetail('water-20'),
-  },
-]
 
 export function OrganizationNotificationPage() {
   const navigate = useNavigate()
+  const notificationAction = useOpenNotification()
+  const organizationNotifications = useNotificationItems()
+  const unread = useUnreadNotificationCountQuery()
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -77,15 +31,18 @@ export function OrganizationNotificationPage() {
         <h2 className="text-xl font-bold leading-7 text-neutral-900">
           물품 지원 소식이 도착했어요
         </h2>
+        <p className="mt-2 typography-body-2 text-primary-700">읽지 않은 알림 {unread.data ? unread.data.unreadCount + '개' : '—'}</p>
+        {unread.isError && <button type="button" onClick={() => void unread.refetch()}>미읽음 수 조회 재시도</button>}
 
         <section className="mt-4 space-y-3" aria-label="기관 알림 목록">
           {organizationNotifications.map((notification) => {
-            const Icon = notification.icon
+            const Icon = Bell
             return (
               <button
                 key={notification.id}
                 type="button"
-                onClick={() => navigate(notification.to)}
+                disabled={notificationAction.isPending || (!notification.to && !notification.unread)}
+                onClick={() => void notificationAction.open(notification)}
                 className={cn(
                   'w-full rounded-card border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700',
                   notification.unread
@@ -116,6 +73,8 @@ export function OrganizationNotificationPage() {
             )
           })}
         </section>
+        {notificationAction.error && <p role="alert">읽음 처리에 실패했어요. 알림을 다시 선택해주세요.</p>}
+        <NotificationFeedback />
       </main>
 
       <BottomNavigation
