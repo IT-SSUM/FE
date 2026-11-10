@@ -26,6 +26,7 @@ type BottomNavigationItem = {
 
 type BottomNavigationProps = {
   activeItem?: BottomNavigationActiveItem
+  audience?: 'donor' | 'organization'
   className?: string
 }
 
@@ -37,19 +38,46 @@ const donorNavigationItems: BottomNavigationItem[] = [
   { key: 'my', label: '마이', to: ROUTES.donor.myPage, icon: UserRound },
 ]
 
+const organizationNavigationItems: BottomNavigationItem[] = [
+  { key: 'home', label: '홈', to: ROUTES.organization.home, icon: House },
+  {
+    key: 'explore',
+    label: '탐색',
+    to: ROUTES.organization.donationList,
+    icon: Search,
+  },
+  {
+    key: 'register',
+    label: '등록',
+    to: ROUTES.organization.needNew,
+    icon: Plus,
+  },
+  {
+    key: 'chat',
+    label: '채팅',
+    to: ROUTES.chatList,
+    icon: MessageSquare,
+  },
+  { key: 'my', label: '마이', to: ROUTES.organization.myPage, icon: UserRound },
+]
+
 export function BottomNavigation({
   activeItem,
+  audience = 'donor',
   className,
 }: BottomNavigationProps) {
+  const navigationItems =
+    audience === 'organization' ? organizationNavigationItems : donorNavigationItems
+
   return (
     <nav
-      aria-label="기부자 하단 내비게이션"
+      aria-label={`${audience === 'organization' ? '기관' : '기부자'} 하단 내비게이션`}
       className={cn(
         'grid h-20 w-full max-w-[393px] grid-cols-5 border-t border-neutral-200 bg-white px-2',
         className,
       )}
     >
-      {donorNavigationItems.map((item) => {
+      {navigationItems.map((item) => {
         const Icon = item.icon
 
         return (

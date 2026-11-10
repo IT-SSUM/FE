@@ -67,9 +67,7 @@ src/
 └─ utils/
 ```
 
-## 담당 범위 메모
+## 담당 범위
 
-- A 담당: 프로젝트 기본세팅, 기부자 서비스 화면 기반
-- B 담당: Auth/JWT/ProtectedRoute/RoleGuard, 기관 서비스, 거래/채팅/알림 상세 기능
-
-현재 라우터는 인증 없이 경로 뼈대와 placeholder 화면만 제공합니다. 실제 인증 및 권한 분기는 추후 연결합니다.
+- 김재범: 프로젝트 기본세팅, 기부자 서비스 화면 기반
+- 최효비: Auth/JWT/ProtectedRoute/RoleGuard, 기관 서비스, 거래/채팅/알림 상세 기능

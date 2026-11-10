@@ -22,7 +22,7 @@ export function ChatBubble({
     <div className={cn('flex w-full', isSelf ? 'justify-end' : 'justify-start')}>
       <div
         className={cn(
-          'max-w-[250px] rounded-control px-4 py-3 typography-body-2',
+          'max-w-[250px] rounded-control px-4 py-3 text-sm font-normal leading-[22px]',
           isSelf
             ? 'bg-primary-700 text-white'
             : 'border border-neutral-200 bg-white text-neutral-900',
@@ -32,7 +32,9 @@ export function ChatBubble({
       >
         {children}
         {state === 'failed' ? (
-          <p className="mt-1 typography-caption text-error">전송 실패</p>
+          <p className="mt-1 text-[10px] font-medium leading-[14px] text-error">
+            전송 실패
+          </p>
         ) : null}
       </div>
     </div>

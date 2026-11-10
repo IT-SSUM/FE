@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Search, X } from 'lucide-react'
+import { cn } from '@/utils/cn'
 
 type PostcodeResult = {
   zonecode: string
@@ -59,6 +60,7 @@ type AddressSearchFieldProps = {
   detailAddress: string
   onAddressChange: (value: string) => void
   onDetailAddressChange: (value: string) => void
+  labelClassName?: string
 }
 
 export function AddressSearchField({
@@ -68,6 +70,7 @@ export function AddressSearchField({
   detailAddress,
   onAddressChange,
   onDetailAddressChange,
+  labelClassName,
 }: AddressSearchFieldProps) {
   const [ready, setReady] = useState(Boolean(window.daum?.Postcode))
   const [error, setError] = useState('')
@@ -126,7 +129,15 @@ export function AddressSearchField({
 
   return (
     <div>
-      <label htmlFor={`${id}-base`} className="mb-2 block text-sm font-medium leading-5 text-neutral-900">{label}</label>
+      <label
+        htmlFor={`${id}-base`}
+        className={cn(
+          'mb-2 block text-neutral-900',
+          labelClassName ?? 'text-sm font-medium leading-5',
+        )}
+      >
+        {label}
+      </label>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
         <input
           id={`${id}-base`}
