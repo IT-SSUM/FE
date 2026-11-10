@@ -60,8 +60,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
     assert(sdk.find(e => e.action === 'register').vapidKey.startsWith('BNNpsyv1'))
     assert.equal(sdk.find(e => e.action === 'worker').options.type, 'module')
     const before = requests.filter(r => r.path.endsWith('/unread-count')).length
-    await page.evaluate(() => window.testReceive())
-    await page.waitForResponse(response => response.url().includes('/notifications/unread-count'))
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes('/notifications/unread-count')),
+      page.evaluate(() => window.testReceive()),
+    ])
     assert(requests.filter(r => r.path.endsWith('/unread-count')).length > before)
     // 같은 문서에서 인증 변경 이벤트: 계정 전환 후 허용된 권한으로 자동 재등록.
     await page.evaluate(() => {
