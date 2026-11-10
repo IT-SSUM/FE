@@ -53,6 +53,7 @@ export function WebPushProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let disposed = false
+    const subscription = new AbortController()
     let unsubscribe = () => {}
     const stop = () => {
       controller.current?.abort()
@@ -72,7 +73,7 @@ export function WebPushProvider({ children }: { children: ReactNode }) {
     window.addEventListener('itssum:push-stop', stop)
     navigator.serviceWorker?.addEventListener('message', workerMessage)
     if (userId && window.isSecureContext && 'Notification' in window) {
-      void import('./webPush').then(api => api.subscribeToPushMessages(refresh))
+      void import('./webPush').then(api => api.subscribeToPushMessages(refresh, subscription.signal))
         .then(off => {
           if (disposed) off()
           else {
@@ -84,6 +85,7 @@ export function WebPushProvider({ children }: { children: ReactNode }) {
     }
     return () => {
       disposed = true
+      subscription.abort()
       unsubscribe()
       controller.current?.abort()
       controller.current = null

@@ -8,8 +8,10 @@ async function messaging() {
   return getMessaging(getApps().find(app => app.name === 'issum-push') || initializeApp(firebaseConfig, 'issum-push'))
 }
 
-export async function subscribeToPushMessages(callback: () => void) {
-  return onMessage(await messaging(), callback)
+export async function subscribeToPushMessages(callback: () => void, signal: AbortSignal) {
+  const instance = await messaging()
+  signal.throwIfAborted()
+  return onMessage(instance, callback)
 }
 
 export async function getRegisteredFid(signal: AbortSignal): Promise<string> {
