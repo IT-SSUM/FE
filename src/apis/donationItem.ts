@@ -10,16 +10,21 @@ import type {
   DonationItemDetail,
   DonationItemListParams,
   DonationItemListResponse,
+  MyDonationItem,
+  MyDonationItemPage,
   PresignedDonationImage,
   UpdateDonationItemRequest,
 } from '@/types/donationItem'
 
 export class DonationItemApiError extends Error {
   readonly code: string
-  readonly fieldErrors: ApiFieldError[]
+
+  readonly fieldErrors:
+    ApiFieldError[]
 
   constructor(
-    response: ApiResponse<unknown>,
+    response:
+      ApiResponse<unknown>,
   ) {
     super(
       response.message ||
@@ -33,14 +38,18 @@ export class DonationItemApiError extends Error {
       response.code
 
     this.fieldErrors =
-      response.fieldErrors ?? []
+      response.fieldErrors ??
+      []
   }
 }
 
 function unwrap<T>(
-  response: ApiResponse<T>,
+  response:
+    ApiResponse<T>,
 ): T {
-  if (!response.success) {
+  if (
+    !response.success
+  ) {
     throw new DonationItemApiError(
       response,
     )
@@ -89,7 +98,8 @@ export async function getDonationItem(
 
 export async function updateDonationItem(
   donationItemId: number,
-  body: UpdateDonationItemRequest,
+  body:
+    UpdateDonationItemRequest,
 ): Promise<DonationItemDetail> {
   const {
     description,
@@ -138,7 +148,8 @@ export async function deleteDonationItem(
 }
 
 export async function createDonationItem(
-  body: CreateDonationItemRequest,
+  body:
+    CreateDonationItemRequest,
 ): Promise<DonationItemDetail> {
   const response =
     await axiosInstance.post<
@@ -156,11 +167,12 @@ export async function createDonationItem(
 export async function createDonationItemImagePresign(
   contentType: string,
 ): Promise<PresignedDonationImage> {
-  const allowedContentTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-  ]
+  const allowedContentTypes =
+    [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]
 
   if (
     !allowedContentTypes.includes(
@@ -225,12 +237,14 @@ export async function uploadDonationItemImages(
           await fetch(
             presigned.uploadUrl,
             {
-              method: 'PUT',
+              method:
+                'PUT',
 
               headers:
                 presigned.requiredHeaders,
 
-              body: image,
+              body:
+                image,
             },
           )
 
@@ -249,7 +263,8 @@ export async function uploadDonationItemImages(
 }
 
 export async function getDonationItems(
-  params: DonationItemListParams = {},
+  params:
+    DonationItemListParams = {},
 ): Promise<DonationItemListResponse> {
   const response =
     await axiosInstance.get<
@@ -264,4 +279,134 @@ export async function getDonationItems(
   return unwrap(
     response.data,
   )
+}
+
+/*
+ * 내 기부 물품 목록
+ *
+ * 백엔드가 배열을 직접 반환하는 형태와
+ * cursor page 형태를 모두 안전하게 처리합니다.
+ */
+type MyDonationItemsPayload =
+  | MyDonationItem[]
+  | MyDonationItemPage
+
+async function getMyDonationItemsPage(
+  params:
+    | {
+        beforeId?: number
+        size?: number
+      }
+    | undefined,
+  signal?: AbortSignal,
+): Promise<MyDonationItemsPayload> {
+  const response =
+    await axiosInstance.get<
+      ApiResponse<MyDonationItemsPayload>
+    >(
+      '/api/donors/me/donation-items',
+      {
+        params,
+        signal,
+      },
+    )
+
+  return unwrap(
+    response.data,
+  )
+}
+
+export async function getMyDonationItems(
+  signal?: AbortSignal,
+): Promise<MyDonationItem[]> {
+  const first =
+    await getMyDonationItemsPage(
+      {
+        size: 50,
+      },
+      signal,
+    )
+
+  if (
+    Array.isArray(first)
+  ) {
+    return first
+  }
+
+  const items =
+    new Map<
+      number,
+      MyDonationItem
+    >()
+
+  first.items.forEach(
+    (item) =>
+      items.set(
+        item.donationItemId,
+        item,
+      ),
+  )
+
+  let page =
+    first
+
+  const seenCursors =
+    new Set<number>()
+
+  while (
+    page.hasNext &&
+    page.nextCursor !==
+      null
+  ) {
+    if (
+      seenCursors.has(
+        page.nextCursor,
+      )
+    ) {
+      break
+    }
+
+    seenCursors.add(
+      page.nextCursor,
+    )
+
+    const next =
+      await getMyDonationItemsPage(
+        {
+          beforeId:
+            page.nextCursor,
+
+          size: 50,
+        },
+        signal,
+      )
+
+    if (
+      Array.isArray(next)
+    ) {
+      next.forEach(
+        (item) =>
+          items.set(
+            item.donationItemId,
+            item,
+          ),
+      )
+
+      break
+    }
+
+    next.items.forEach(
+      (item) =>
+        items.set(
+          item.donationItemId,
+          item,
+        ),
+    )
+
+    page = next
+  }
+
+  return [
+    ...items.values(),
+  ]
 }
