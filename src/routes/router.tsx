@@ -16,6 +16,7 @@ import { DonationDetailPage as DonorDonationDetailPage } from '@/pages/donor/Don
 import { DonationRegisterPage } from '@/pages/donor/DonationRegisterPage'
 import { NeedDetailPage as DonorNeedDetailPage } from '@/pages/donor/NeedDetailPage'
 import { NeedListPage } from '@/pages/donor/NeedListPage'
+import { NeedFilterPage } from '@/pages/donor/NeedFilterPage'
 import { RecommendationPage as DonorRecommendationPage } from '@/pages/donor/RecommendationPage'
 import { DonationDetailPage as OrganizationDonationDetailPage } from '@/pages/organization/DonationDetailPage'
 import { DonationListPage } from '@/pages/organization/DonationListPage'
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
   { path: ROUTES.login, element: <LoginPage /> },
   { path: ROUTES.signup, element: <SignupPage /> },
   { path: ROUTES.signupRole, element: <SignupPage /> },
+
   {
     element: <ProtectedRoute />,
     children: [
@@ -65,10 +67,17 @@ export const router = createBrowserRouter([
           { path: ROUTES.donor.donationNew, element: <DonationRegisterPage /> },
           { path: ROUTES.donor.donationDetail, element: <DonorDonationDetailPage /> },
           { path: ROUTES.donor.donationEdit, element: <DonorDonationEditPage /> },
+
           { path: ROUTES.donor.needList, element: <NeedListPage /> },
+          { path: ROUTES.donor.needFilter, element: <NeedFilterPage /> },
           { path: ROUTES.donor.needDetail, element: <DonorNeedDetailPage /> },
+
           { path: ROUTES.donor.recommendation, element: <DonorRecommendationPage /> },
-          { path: ROUTES.donor.recommendedOrganization, element: <DonorRecommendationPage /> },
+          {
+            path: ROUTES.donor.recommendedOrganization,
+            element: <DonorRecommendationPage />,
+          },
+
           { path: ROUTES.donor.myPage, element: <DonorMyPage /> },
           { path: ROUTES.donor.myItems, element: <DonorDonationManagePage /> },
           { path: ROUTES.donor.myRequests, element: <DonorRequestListPage /> },
@@ -79,6 +88,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
   {
     element: <ProtectedRoute />,
     children: [
@@ -86,29 +96,69 @@ export const router = createBrowserRouter([
         element: <OrganizationLayout />,
         children: [
           { path: ROUTES.organization.home, element: <OrganizationHomePage /> },
-          { path: ROUTES.organization.notifications, element: <OrganizationNotificationPage /> },
+          {
+            path: ROUTES.organization.notifications,
+            element: <OrganizationNotificationPage />,
+          },
           { path: ROUTES.organization.needManage, element: <NeedManagePage /> },
           { path: ROUTES.organization.needNew, element: <NeedRegisterPage /> },
           { path: ROUTES.organization.needEdit, element: <NeedEditPage /> },
-          { path: ROUTES.organization.needDetail, element: <OrganizationNeedDetailPage /> },
-          { path: ROUTES.organization.donationList, element: <DonationListPage /> },
-          { path: ROUTES.organization.donationDetail, element: <OrganizationDonationDetailPage /> },
-          { path: ROUTES.organization.donationRequest, element: <DonationRequestPage /> },
-          { path: ROUTES.organization.donationRequestComplete, element: <DonationRequestCompletePage /> },
-          { path: ROUTES.organization.recommendation, element: <OrganizationRecommendationPage /> },
+          {
+            path: ROUTES.organization.needDetail,
+            element: <OrganizationNeedDetailPage />,
+          },
+          {
+            path: ROUTES.organization.donationList,
+            element: <DonationListPage />,
+          },
+          {
+            path: ROUTES.organization.donationDetail,
+            element: <OrganizationDonationDetailPage />,
+          },
+          {
+            path: ROUTES.organization.donationRequest,
+            element: <DonationRequestPage />,
+          },
+          {
+            path: ROUTES.organization.donationRequestComplete,
+            element: <DonationRequestCompletePage />,
+          },
+          {
+            path: ROUTES.organization.recommendation,
+            element: <OrganizationRecommendationPage />,
+          },
           { path: ROUTES.organization.myPage, element: <OrganizationMyPage /> },
-          { path: ROUTES.organization.myProfile, element: <OrganizationProfileEditPage /> },
+          {
+            path: ROUTES.organization.myProfile,
+            element: <OrganizationProfileEditPage />,
+          },
           { path: ROUTES.organization.offerList, element: <OfferListPage /> },
           { path: ROUTES.organization.offerDetail, element: <OfferDetailPage /> },
-          { path: ROUTES.organization.tradeStatus, element: <OrganizationTradeStatusPage /> },
-          { path: ROUTES.organization.individualTradeStatus, element: <IndividualTradeStatusPage /> },
-          { path: ROUTES.organization.activeTradeDetail, element: <OrganizationActiveTradeDetailPage /> },
-          { path: ROUTES.organization.tradeQuantityEdit, element: <TradeQuantityEditPage /> },
-          { path: ROUTES.organization.tradeAppointment, element: <TradeAppointmentPage /> },
+          {
+            path: ROUTES.organization.tradeStatus,
+            element: <OrganizationTradeStatusPage />,
+          },
+          {
+            path: ROUTES.organization.individualTradeStatus,
+            element: <IndividualTradeStatusPage />,
+          },
+          {
+            path: ROUTES.organization.activeTradeDetail,
+            element: <OrganizationActiveTradeDetailPage />,
+          },
+          {
+            path: ROUTES.organization.tradeQuantityEdit,
+            element: <TradeQuantityEditPage />,
+          },
+          {
+            path: ROUTES.organization.tradeAppointment,
+            element: <TradeAppointmentPage />,
+          },
         ],
       },
     ],
   },
+
   {
     element: <ProtectedRoute />,
     children: [
@@ -116,7 +166,10 @@ export const router = createBrowserRouter([
         element: <SharedLayout />,
         children: [
           { path: ROUTES.tradeDetail, element: <TradeDetailPage /> },
-          { path: '/trades/:tradeId/appointment', element: <TradeAppointmentPage audience="DONOR" /> },
+          {
+            path: '/trades/:tradeId/appointment',
+            element: <TradeAppointmentPage audience="DONOR" />,
+          },
           { path: ROUTES.chatList, element: <ChatListPage /> },
           { path: ROUTES.chatRoom, element: <ChatRoomPage /> },
           { path: ROUTES.notifications, element: <NotificationPage /> },
@@ -124,5 +177,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
   { path: '*', element: <NotFoundPage /> },
 ])
