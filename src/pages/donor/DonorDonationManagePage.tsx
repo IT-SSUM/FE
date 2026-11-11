@@ -3,7 +3,6 @@ import {
 } from 'lucide-react'
 
 import {
-  Link,
   useNavigate,
   useSearchParams,
 } from 'react-router-dom'
@@ -35,43 +34,36 @@ import type {
   MyDonationItem,
 } from '@/types/donationItem'
 
-const statusFilters: Array<{
+const statusLabels:
+  Record<
+    DonationItemStatus,
+    string
+  > = {
+  RECRUITING: '모집중',
+  FULL: '예약마감',
+  COMPLETED: '전달 완료',
+}
+
+function shortCategory(
   value:
-    | ''
-    | DonationItemStatus
+    string | undefined,
+) {
+  switch (value) {
+    case '생활용품':
+      return '생활'
 
-  label: string
-}> = [
-  {
-    value: '',
-    label: '전체',
-  },
-  {
-    value: 'RECRUITING',
-    label: '모집 중',
-  },
-  {
-    value: 'FULL',
-    label: '모집 완료',
-  },
-  {
-    value: 'COMPLETED',
-    label: '기부 완료',
-  },
-]
+    case '도서·문구':
+      return '도서'
 
-const statusLabels: Record<
-  DonationItemStatus,
-  string
-> = {
-  RECRUITING:
-    '모집 중',
+    case '의류·잡화':
+      return '의류'
 
-  FULL:
-    '모집 완료',
+    case '유아·아동용품':
+      return '유아'
 
-  COMPLETED:
-    '기부 완료',
+    default:
+      return value ?? '기타'
+  }
 }
 
 export function DonorDonationManagePage() {
@@ -87,74 +79,79 @@ export function DonorDonationManagePage() {
   const query =
     useDonorDonationItemsQuery()
 
+  const items =
+    query.data ?? []
+
   const filter =
     params.get(
-      'status',
+      'category',
     ) ?? ''
 
-  const items =
-    query.data ??
-    []
+  const categories =
+    Array.from(
+      new Set(
+        items
+          .map(
+            (item) =>
+              item.categoryName,
+          )
+          .filter(
+            (
+              value,
+            ): value is string =>
+              Boolean(value),
+          ),
+      ),
+    )
 
   const filtered =
-    items.filter(
-      (item) =>
-        !filter ||
-        item.status ===
-          filter,
-    )
+    filter
+      ? items.filter(
+          (item) =>
+            item.categoryName ===
+            filter,
+        )
+      : items
 
   return (
     <DonorPage
-      title="등록한 물품 관리"
+      title="등록한 물품"
       back={
         ROUTES.donor.myPage
       }
       footer={
-        <BottomNavigation
-          activeItem="my"
-        />
+        <div className="shrink-0">
+          <div className="bg-surface-canvas px-5 pb-3 pt-2">
+            <Button
+              className="w-full"
+              onClick={() =>
+                navigate(
+                  ROUTES.donor
+                    .donationNew,
+                )
+              }
+            >
+              등록하기
+            </Button>
+          </div>
+
+          <BottomNavigation
+            activeItem="my"
+          />
+        </div>
       }
     >
-      <section className="flex items-center justify-between rounded-card bg-primary-100 p-4">
-        <div>
-          <p className="typography-label-2 text-neutral-700">
-            내가 등록한
-            기부 물품
-          </p>
-
-          <h2 className="mt-1 typography-title-2 text-neutral-900">
-            등록 물품{' '}
-            {items.length}개
-          </h2>
-        </div>
-
-        <Link
-          to={
-            ROUTES.donor
-              .donationNew
-          }
-          className="typography-label-1 text-primary-700"
-        >
-          물품 등록
-        </Link>
-      </section>
-
       {query.isPending ? (
         <p
           role="status"
           className="py-8 text-center typography-body-2 text-neutral-700"
         >
-          등록한 물품을
-          불러오고 있어요.
+          등록한 물품을 불러오고 있어요.
         </p>
       ) : null}
 
       {query.isError ? (
-        <section
-          role="alert"
-          className="rounded-card border border-error/30 bg-error-bg p-5"
-        >
+        <section className="rounded-card border border-error/30 bg-error-bg p-5">
           <p className="typography-body-2 text-error">
             {getDonationItemFailure(
               query.error,
@@ -164,9 +161,6 @@ export function DonorDonationManagePage() {
           <Button
             variant="secondary"
             className="mt-4"
-            disabled={
-              query.isFetching
-            }
             onClick={() =>
               void query.refetch()
             }
@@ -180,69 +174,48 @@ export function DonorDonationManagePage() {
       !query.isError ? (
         <>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {statusFilters.map(
-              ({
-                value,
-                label,
-              }) => {
-                const count =
-                  items.filter(
-                    (item) =>
-                      !value ||
-                      item.status ===
-                        value,
-                  ).length
-
-                return (
-                  <button
-                    key={
-                      value ||
-                      'all'
-                    }
-                    type="button"
-                    aria-pressed={
-                      filter ===
-                      value
-                    }
-                    onClick={() =>
-                      setParams(
-                        value
-                          ? {
-                              status:
-                                value,
-                            }
-                          : {},
-                        {
-                          replace:
-                            true,
-                        },
-                      )
-                    }
-                    className={`shrink-0 rounded-pill border border-neutral-200 px-3 py-2 typography-label-1 ${
-                      filter ===
-                      value
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-white text-neutral-700'
-                    }`}
-                  >
-                    {label}{' '}
-                    {count}
-                  </button>
+            <FilterChip
+              active={!filter}
+              label={`전체 ${items.length}`}
+              onClick={() =>
+                setParams(
+                  {},
+                  {
+                    replace:
+                      true,
+                  },
                 )
-              },
+              }
+            />
+
+            {categories.map(
+              (category) => (
+                <FilterChip
+                  key={category}
+                  active={
+                    filter ===
+                    category
+                  }
+                  label={shortCategory(
+                    category,
+                  )}
+                  onClick={() =>
+                    setParams(
+                      {
+                        category,
+                      },
+                      {
+                        replace:
+                          true,
+                      },
+                    )
+                  }
+                />
+              ),
             )}
           </div>
 
-          <p
-            role="status"
-            className="typography-label-2 text-neutral-700"
-          >
-            {filtered.length}
-            개 물품
-          </p>
-
-          {filtered.length >
-          0 ? (
+          {filtered.length ? (
             <section className="space-y-3">
               {filtered.map(
                 (item) => (
@@ -250,9 +223,7 @@ export function DonorDonationManagePage() {
                     key={
                       item.donationItemId
                     }
-                    item={
-                      item
-                    }
+                    item={item}
                     onClick={() =>
                       navigate(
                         routePath.donorDonationDetail(
@@ -268,11 +239,7 @@ export function DonorDonationManagePage() {
             </section>
           ) : (
             <EmptyState
-              title={
-                filter
-                  ? '해당 상태의 물품이 없어요'
-                  : '등록된 물품이 없어요'
-              }
+              title="등록된 물품이 없어요"
               to={
                 ROUTES.donor
                   .donationNew
@@ -286,6 +253,33 @@ export function DonorDonationManagePage() {
   )
 }
 
+function FilterChip({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={
+        active
+      }
+      onClick={onClick}
+      className={
+        active
+          ? 'shrink-0 rounded-pill border border-primary-700 bg-primary-700 px-3 py-2 typography-label-1 text-white'
+          : 'shrink-0 rounded-pill border border-neutral-200 bg-white px-3 py-2 typography-label-1 text-neutral-700'
+      }
+    >
+      {label}
+    </button>
+  )
+}
+
 function DonationItemRow({
   item,
   onClick,
@@ -293,19 +287,18 @@ function DonationItemRow({
   item: MyDonationItem
   onClick: () => void
 }) {
+  const reserved =
+    item.reservedQuantity ??
+    0
+
+  const completed =
+    item.completedQuantity ??
+    0
+
   const image =
     item.imageUrl ??
     item.imageUrls?.[0] ??
     undefined
-
-  const categoryText =
-    item.categoryName ??
-    '기부 물품'
-
-  const regionText =
-    item.regionName
-      ? ` · ${item.regionName}`
-      : ''
 
   return (
     <ItemRow
@@ -313,40 +306,42 @@ function DonationItemRow({
       description={
         <>
           <p>
-            {categoryText}
-            {regionText}
+            예약 수량{' '}
+            {reserved} · 전달 완료{' '}
+            {completed}
           </p>
 
           <p>
-            남은 수량{' '}
+            신청 가능 수량{' '}
             {
               item.availableQuantity
-            }
-            {item.unit} ·{' '}
-            {
-              statusLabels[
-                item.status
-              ]
-            }
+            }{' '}
+            (총 {item.quantity})
           </p>
         </>
       }
-      imageSrc={
-        image
-      }
+      imageSrc={image}
       icon={
         <Package
           aria-hidden
           size={28}
         />
       }
+      status={
+        item.status ===
+        'COMPLETED'
+          ? 'complete'
+          : item.status ===
+              'FULL'
+            ? 'reserved'
+            : 'trading'
+      }
+      statusType="transaction"
       thumbnailClassName="h-[68px] w-16 rounded-input !bg-error-bg"
       className="gap-3 p-4 shadow-none"
       titleClassName="typography-title-3"
       descriptionClassName="typography-label-2 line-clamp-none"
-      onClick={
-        onClick
-      }
+      onClick={onClick}
     />
   )
 }
