@@ -9,11 +9,21 @@ import {
   useNavigate,
 } from 'react-router-dom'
 
-import { Button } from '@/components/common/Button/Button'
-import { Dialog } from '@/components/common/Dialog/Dialog'
-import { Input } from '@/components/common/Input/Input'
-import { SelectField } from '@/components/common/SelectField/SelectField'
-import { Textarea } from '@/components/common/Textarea/Textarea'
+import {
+  AddressSearchField,
+} from '@/components/common/AddressSearchField/AddressSearchField'
+
+import {
+  Button,
+} from '@/components/common/Button/Button'
+
+import {
+  Dialog,
+} from '@/components/common/Dialog/Dialog'
+
+import {
+  Textarea,
+} from '@/components/common/Textarea/Textarea'
 
 import {
   ROUTES,
@@ -23,7 +33,6 @@ import {
 import {
   catalog,
   today,
-  validateDonation,
   type DonationInput,
 } from './model'
 
@@ -59,25 +68,37 @@ import type {
   ItemConditionCode,
 } from '@/types/item'
 
-const conditionValueByCode: Record<
-  ItemConditionCode,
-  string
-> = {
-  HIGH: '상',
-  MID: '중',
-  LOW: '하',
-}
+import type {
+  DonationItemDetail,
+} from '@/types/donationItem'
 
-const conditionCodeByValue: Record<
-  string,
-  ItemConditionCode
-> = {
-  상: 'HIGH',
-  중: 'MID',
-  하: 'LOW',
-}
+const conditionValueByCode:
+  Record<
+    ItemConditionCode,
+    string
+  > = {
+    HIGH: '상',
+    MID: '중',
+    LOW: '하',
+  }
 
-const SERVICE_REGION_ID = 1
+const conditionCodeByValue:
+  Record<
+    string,
+    ItemConditionCode
+  > = {
+    상: 'HIGH',
+    중: 'MID',
+    하: 'LOW',
+  }
+
+const SERVICE_REGION_ID =
+  1
+
+type Step =
+  | 1
+  | 2
+  | 3
 
 export function DonationForm({
   preset,
@@ -91,7 +112,8 @@ export function DonationForm({
     useNavigate()
 
   const {
-    data: itemConditions = [],
+    data:
+      itemConditions = [],
     isLoading:
       isConditionsLoading,
     isError:
@@ -102,7 +124,8 @@ export function DonationForm({
     useItemConditionsQuery()
 
   const {
-    data: itemCategories = [],
+    data:
+      itemCategories = [],
     isLoading:
       isCategoriesLoading,
     isError:
@@ -113,7 +136,8 @@ export function DonationForm({
     useItemCategoriesQuery()
 
   const {
-    data: itemUnits = [],
+    data:
+      itemUnits = [],
     isLoading:
       isUnitsLoading,
     isError:
@@ -145,57 +169,85 @@ export function DonationForm({
           today(),
         endDate:
           today(),
-        description: '',
+        description:
+          '',
         photos: [],
       }),
     )
 
   const [
+    detailAddress,
+    setDetailAddress,
+  ] =
+    useState('')
+
+  const [
     step,
     setStep,
-  ] = useState(1)
+  ] =
+    useState<Step>(1)
 
   const [
     errors,
     setErrors,
-  ] = useState<
-    Partial<
-      Record<
-        keyof DonationInput,
-        string
+  ] =
+    useState<
+      Partial<
+        Record<
+          keyof DonationInput,
+          string
+        >
       >
-    >
-  >({})
+    >({})
+
+  const [
+    categoryError,
+    setCategoryError,
+  ] =
+    useState('')
+
+  const [
+    unitError,
+    setUnitError,
+  ] =
+    useState('')
 
   const [
     failure,
     setFailure,
-  ] = useState('')
+  ] =
+    useState('')
 
   const [
     busy,
     setBusy,
-  ] = useState(false)
+  ] =
+    useState(false)
 
   const [
     dirty,
     setDirty,
-  ] = useState(false)
-
-  const [
-    savedId,
-    setSavedId,
-  ] = useState('')
+  ] =
+    useState(false)
 
   const [
     unit,
     setUnit,
-  ] = useState('개')
+  ] =
+    useState('개')
+
+  const [
+    createdItem,
+    setCreatedItem,
+  ] =
+    useState<
+      DonationItemDetail | null
+    >(null)
 
   const blocker =
     useBlocker(
       dirty &&
-        !savedId,
+        !createdItem,
     )
 
   const submitted =
@@ -208,19 +260,41 @@ export function DonationForm({
 
   useEffect(() => {
     if (
-      !dirty ||
-      savedId
+      !itemUnits.length ||
+      itemUnits.includes(
+        unit,
+      )
     ) {
       return
     }
 
-    const warn = (
-      event: BeforeUnloadEvent,
-    ) => {
-      event.preventDefault()
-      event.returnValue =
-        ''
+    setUnit(
+      itemUnits[0] ??
+        '',
+    )
+  }, [
+    itemUnits,
+    unit,
+  ])
+
+  useEffect(() => {
+    if (
+      !dirty ||
+      createdItem
+    ) {
+      return
     }
+
+    const warn =
+      (
+        event:
+          BeforeUnloadEvent,
+      ) => {
+        event.preventDefault()
+
+        event.returnValue =
+          ''
+      }
 
     window.addEventListener(
       'beforeunload',
@@ -235,14 +309,16 @@ export function DonationForm({
     }
   }, [
     dirty,
-    savedId,
+    createdItem,
   ])
 
   const change = <
-    K extends keyof DonationInput,
+    K extends
+      keyof DonationInput,
   >(
     key: K,
-    value: DonationInput[K],
+    value:
+      DonationInput[K],
   ) => {
     setDraft(
       (
@@ -258,7 +334,8 @@ export function DonationForm({
         previous,
       ) => ({
         ...previous,
-        [key]: undefined,
+        [key]:
+          undefined,
       }),
     )
 
@@ -283,6 +360,162 @@ export function DonationForm({
       ]),
     )
 
+  const selectedUnit =
+    itemUnits.includes(
+      unit,
+    )
+      ? unit
+      : (
+          itemUnits[0] ??
+          ''
+        )
+
+  function validateStep1() {
+    let invalid =
+      false
+
+    const nextErrors:
+      typeof errors = {}
+
+    if (
+      !draft.category
+    ) {
+      setCategoryError(
+        '카테고리를 선택해 주세요.',
+      )
+
+      invalid =
+        true
+    } else {
+      setCategoryError(
+        '',
+      )
+    }
+
+    if (!draft.name) {
+      nextErrors.name =
+        '기부할 품목을 선택해 주세요.'
+
+      invalid =
+        true
+    }
+
+    if (
+      !Number.isInteger(
+        draft.quantity,
+      ) ||
+      draft.quantity <
+        1
+    ) {
+      nextErrors.quantity =
+        '수량은 1 이상으로 입력해 주세요.'
+
+      invalid =
+        true
+    }
+
+    if (
+      !selectedUnit
+    ) {
+      setUnitError(
+        '단위를 선택해 주세요.',
+      )
+
+      invalid =
+        true
+    } else {
+      setUnitError(
+        '',
+      )
+    }
+
+    setErrors(
+      (
+        previous,
+      ) => ({
+        ...previous,
+        ...nextErrors,
+      }),
+    )
+
+    return !invalid
+  }
+
+  function validateStep2() {
+    let invalid =
+      false
+
+    const nextErrors:
+      typeof errors = {}
+
+    if (
+      !conditionCodeByValue[
+        draft.condition
+      ]
+    ) {
+      nextErrors.condition =
+        '물품 상태를 선택해 주세요.'
+
+      invalid =
+        true
+    }
+
+    if (
+      draft.description.length >
+      1000
+    ) {
+      nextErrors.description =
+        '설명은 1000자 이하로 입력해 주세요.'
+
+      invalid =
+        true
+    }
+
+    if (
+      draft.photos.length <
+        1 ||
+      draft.photos.length >
+        5
+    ) {
+      nextErrors.photos =
+        '사진을 최소 1장 선택해 주세요.'
+
+      invalid =
+        true
+    }
+
+    setErrors(
+      (
+        previous,
+      ) => ({
+        ...previous,
+        ...nextErrors,
+      }),
+    )
+
+    return !invalid
+  }
+
+  function validateStep3() {
+    if (
+      !draft.location.trim()
+    ) {
+      setErrors(
+        (
+          previous,
+        ) => ({
+          ...previous,
+          location:
+            '물품 위치를 입력해 주세요.',
+        }),
+      )
+
+      return false
+    }
+
+    return true
+  }
+
   async function submit() {
     if (
       busy ||
@@ -292,50 +525,47 @@ export function DonationForm({
       return
     }
 
-    const checked =
-      validateDonation(
-        draft,
-      )
+    if (step === 1) {
+      if (
+        !validateStep1()
+      ) {
+        setFailure(
+          '필수 입력과 표시된 오류를 확인해 주세요.',
+        )
 
-    delete checked.startDate
-    delete checked.endDate
+        return
+      }
 
-    const visibleErrors =
-      step === 1
-        ? Object.fromEntries(
-            Object.entries(
-              checked,
-            ).filter(
-              ([key]) =>
-                ![
-                  'photos',
-                  'condition',
-                  'description',
-                ].includes(
-                  key,
-                ),
-            ),
-          )
-        : checked
+      setFailure('')
+      setStep(2)
 
-    setErrors(
-      visibleErrors,
-    )
+      return
+    }
+
+    if (step === 2) {
+      if (
+        !validateStep2()
+      ) {
+        setFailure(
+          '필수 입력과 표시된 오류를 확인해 주세요.',
+        )
+
+        return
+      }
+
+      setFailure('')
+      setStep(3)
+
+      return
+    }
 
     if (
-      Object.keys(
-        visibleErrors,
-      ).length
+      !validateStep3()
     ) {
       setFailure(
         '필수 입력과 표시된 오류를 확인해 주세요.',
       )
-      return
-    }
 
-    if (step === 1) {
-      setStep(2)
-      setFailure('')
       return
     }
 
@@ -354,13 +584,6 @@ export function DonationForm({
         conditionCodeByValue[
           draft.condition
         ]
-
-      const selectedUnit =
-        itemUnits.includes(
-          unit,
-        )
-          ? unit
-          : itemUnits[0]
 
       if (
         !category ||
@@ -399,21 +622,21 @@ export function DonationForm({
               draft.location.trim(),
 
             pickupAddressDetail:
-              '',
+              detailAddress.trim(),
 
             regionId:
               SERVICE_REGION_ID,
           },
         )
 
-      setSavedId(
-        String(
-          created.donationItemId,
-        ),
+      setCreatedItem(
+        created,
       )
 
       setDirty(false)
-    } catch (cause) {
+    } catch (
+      cause
+    ) {
       setFailure(
         getDonationItemFailure(
           cause,
@@ -425,47 +648,152 @@ export function DonationForm({
     }
   }
 
-  const selectClass =
-    'h-[54px] w-full rounded-input border border-neutral-500 bg-white px-4'
+  const moveToPreviousStep =
+    () => {
+      if (step === 3) {
+        setStep(2)
+        return
+      }
+
+      if (step === 2) {
+        setStep(1)
+      }
+    }
+
+  if (createdItem) {
+    const donationId =
+      String(
+        createdItem.donationItemId,
+      )
+
+    const openRecommendation =
+      () =>
+        navigate(
+          routePath.donorRecommendation(
+            donationId,
+          ),
+          {
+            replace:
+              true,
+
+            state: {
+              recalculate:
+                true,
+            },
+          },
+        )
+
+    const openMyItem =
+      () =>
+        navigate(
+          routePath.donorDonationDetail(
+            donationId,
+          ),
+          {
+            replace:
+              true,
+          },
+        )
+
+    return (
+      <DonorPage
+        title="등록 완료"
+        back={
+          ROUTES.donor
+            .myItems
+        }
+        footer={
+          <footer className="shrink-0 bg-surface-canvas p-5">
+            <Button
+              className="w-full"
+              onClick={
+                openRecommendation
+              }
+            >
+              추천 기관 보기
+            </Button>
+          </footer>
+        }
+      >
+        <section>
+          <h2 className="typography-title-2 text-neutral-900">
+            {
+              createdItem.itemName
+            }
+          </h2>
+
+          <div className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
+            <dl className="space-y-2">
+              <SummaryRow
+                label="품목 · 수량"
+                value={`${createdItem.categoryName} · ${createdItem.quantity}${createdItem.unit}`}
+              />
+
+              <SummaryRow
+                label="물품 상태"
+                value={conditionDescription(
+                  createdItem.conditionGrade,
+                )}
+              />
+
+              <SummaryRow
+                label="물품 위치"
+                value={
+                  createdItem.regionName ||
+                  createdItem.pickupAddress ||
+                  '-'
+                }
+              />
+            </dl>
+          </div>
+        </section>
+
+        <Dialog
+          open
+          title="물품이 등록됐어요!"
+          confirmText="추천 기관 보기"
+          cancelText="내 물품 보기"
+          onConfirm={
+            openRecommendation
+          }
+          onCancel={
+            openMyItem
+          }
+        />
+      </DonorPage>
+    )
+  }
 
   return (
     <DonorPage
-      title="기부 물품 등록"
+      title={
+        step === 3
+          ? '전달 정보'
+          : '기부 물품 등록'
+      }
       back={
-        ROUTES.donor
-          .myItems
+        step === 1
+          ? ROUTES.donor
+              .myItems
+          : undefined
+      }
+      onBack={
+        step > 1
+          ? moveToPreviousStep
+          : undefined
       }
       footer={
-        <footer className="flex gap-2 border-t border-neutral-200 px-5 py-4">
-          {step === 2 ? (
-            <Button
-              variant="secondary"
-              disabled={
-                busy ||
-                createMutation.isPending ||
-                Boolean(
-                  savedId,
-                )
-              }
-              onClick={() =>
-                setStep(1)
-              }
-            >
-              이전
-            </Button>
-          ) : null}
-
+        <footer className="shrink-0 bg-surface-canvas p-5">
           <Button
-            className="flex-1"
+            className="w-full"
             disabled={
               busy ||
               createMutation.isPending ||
-              Boolean(
-                savedId,
-              ) ||
               (
                 step === 1 &&
                 (
+                  isCategoriesLoading ||
+                  isCategoriesError ||
                   isUnitsLoading ||
                   isUnitsError
                 )
@@ -475,7 +803,7 @@ export function DonationForm({
               form.current?.requestSubmit()
             }
           >
-            {step === 1
+            {step < 3
               ? '다음'
               : createMutation.isPending
                 ? '등록 중...'
@@ -485,10 +813,12 @@ export function DonationForm({
       }
     >
       <p className="typography-label-1 text-primary-700">
-        {step} / 2{' '}
+        {step} / 3{' '}
         {step === 1
-          ? '물품·수령 정보'
-          : '상태·사진'}
+          ? '물품·지역'
+          : step === 2
+            ? '상태·사진'
+            : '위치'}
       </p>
 
       <form
@@ -499,24 +829,34 @@ export function DonationForm({
           event,
         ) => {
           event.preventDefault()
+
           void submit()
         }}
       >
         {step === 1 ? (
           <>
+            <h2 className="typography-heading-2 text-neutral-900">
+              기부할 물품을 알려주세요
+            </h2>
+
             <label className="block space-y-2">
-              <span>
-                카테고리 *
+              <span className="typography-label-1 text-neutral-900">
+                카테고리
               </span>
 
               <select
                 aria-label="카테고리"
+                aria-invalid={Boolean(
+                  categoryError,
+                )}
                 value={
                   draft.category
                 }
-                className={
-                  selectClass
-                }
+                className={`h-[54px] w-full rounded-input border bg-white px-4 typography-body-1 text-neutral-900 outline-none ${
+                  categoryError
+                    ? 'border-error'
+                    : 'border-neutral-500'
+                }`}
                 disabled={
                   isCategoriesLoading ||
                   isCategoriesError
@@ -524,14 +864,21 @@ export function DonationForm({
                 onChange={(
                   event,
                 ) => {
+                  const value =
+                    event.target
+                      .value
+
                   change(
                     'category',
-                    event.target
-                      .value,
+                    value,
                   )
 
                   change(
                     'name',
+                    '',
+                  )
+
+                  setCategoryError(
                     '',
                   )
                 }}
@@ -539,9 +886,7 @@ export function DonationForm({
                 <option value="">
                   {isCategoriesLoading
                     ? '카테고리를 불러오는 중...'
-                    : isCategoriesError
-                      ? '카테고리를 불러오지 못했어요'
-                      : '선택해 주세요'}
+                    : '카테고리를 선택해 주세요'}
                 </option>
 
                 {itemCategories.map(
@@ -564,34 +909,30 @@ export function DonationForm({
                 )}
               </select>
 
-              {isCategoriesError ? (
-                <div>
-                  <p
-                    role="alert"
-                    className="typography-label-2 text-error"
-                  >
-                    물품
-                    카테고리를
-                    불러오지
-                    못했어요.
-                  </p>
+              {categoryError ? (
+                <p className="typography-label-2 text-error">
+                  {
+                    categoryError
+                  }
+                </p>
+              ) : null}
 
-                  <button
-                    type="button"
-                    className="mt-1 typography-label-1 text-primary-700 underline"
-                    onClick={() =>
-                      void refetchCategories()
-                    }
-                  >
-                    다시 시도
-                  </button>
-                </div>
+              {isCategoriesError ? (
+                <button
+                  type="button"
+                  className="typography-label-1 text-primary-700 underline"
+                  onClick={() =>
+                    void refetchCategories()
+                  }
+                >
+                  카테고리 다시 불러오기
+                </button>
               ) : null}
             </label>
 
             <label className="block space-y-2">
-              <span>
-                품목 *
+              <span className="typography-label-1 text-neutral-900">
+                품목
               </span>
 
               <select
@@ -602,12 +943,14 @@ export function DonationForm({
                 value={
                   draft.name
                 }
-                className={
-                  selectClass
-                }
                 disabled={
                   !draft.category
                 }
+                className={`h-[54px] w-full rounded-input border bg-white px-4 typography-body-1 text-neutral-900 outline-none ${
+                  errors.name
+                    ? 'border-error'
+                    : 'border-neutral-500'
+                }`}
                 onChange={(
                   event,
                 ) =>
@@ -620,7 +963,7 @@ export function DonationForm({
               >
                 <option value="">
                   {draft.category
-                    ? '선택해 주세요'
+                    ? '품목을 선택해 주세요'
                     : '카테고리를 먼저 선택해 주세요'}
                 </option>
 
@@ -643,229 +986,222 @@ export function DonationForm({
               </select>
 
               {errors.name ? (
-                <span className="text-error">
+                <p className="typography-label-2 text-error">
                   {
                     errors.name
                   }
-                </span>
+                </p>
               ) : null}
             </label>
 
-            <div className="grid grid-cols-[minmax(0,1fr)_112px] items-end gap-2">
-              <Input
-                label="수량"
-                type="number"
-                min={1}
-                max={9999}
-                step={1}
-                required
-                value={
-                  Number.isNaN(
-                    draft.quantity,
-                  )
-                    ? ''
-                    : draft.quantity
-                }
-                error={
-                  errors.quantity
-                }
-                onChange={(
-                  event,
-                ) =>
-                  change(
-                    'quantity',
-                    event.target
-                      .value ===
-                      ''
-                      ? NaN
-                      : Number(
-                          event
-                            .target
-                            .value,
-                        ),
-                  )
-                }
-              />
+            <div className="space-y-2">
+              <span className="block typography-label-1 text-neutral-900">
+                수량
+              </span>
 
-              <div className="flex flex-col gap-2">
-                <span className="typography-label-1 text-neutral-900">
-                  단위 *
-                </span>
-
-                <SelectField
-                  label="물품 단위"
+              <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={9999}
+                  step={1}
+                  aria-label="수량"
                   value={
-                    itemUnits.includes(
-                      unit,
+                    Number.isNaN(
+                      draft.quantity,
                     )
-                      ? unit
-                      : (
-                          itemUnits[0] ??
-                          ''
-                        )
+                      ? ''
+                      : draft.quantity
                   }
-                  options={
-                    itemUnits
+                  className={`h-[54px] w-full rounded-input border bg-white px-4 typography-body-1 text-neutral-900 outline-none ${
+                    errors.quantity
+                      ? 'border-error'
+                      : 'border-neutral-500'
+                  }`}
+                  onChange={(
+                    event,
+                  ) =>
+                    change(
+                      'quantity',
+                      event.target
+                        .value ===
+                        ''
+                        ? NaN
+                        : Number(
+                            event.target
+                              .value,
+                          ),
+                    )
+                  }
+                />
+
+                <select
+                  aria-label="단위"
+                  value={
+                    selectedUnit
                   }
                   disabled={
                     isUnitsLoading ||
                     isUnitsError
                   }
+                  className={`h-[54px] rounded-input border bg-white px-3 typography-body-1 text-neutral-900 outline-none ${
+                    unitError
+                      ? 'border-error'
+                      : 'border-neutral-500'
+                  }`}
                   onChange={(
-                    value,
+                    event,
                   ) => {
                     setUnit(
-                      value,
+                      event.target
+                        .value,
+                    )
+
+                    setUnitError(
+                      '',
                     )
 
                     setDirty(
                       true,
                     )
-
-                    setFailure(
-                      '',
-                    )
                   }}
-                />
+                >
+                  {itemUnits.map(
+                    (
+                      itemUnit,
+                    ) => (
+                      <option
+                        key={
+                          itemUnit
+                        }
+                        value={
+                          itemUnit
+                        }
+                      >
+                        {
+                          itemUnit
+                        }
+                      </option>
+                    ),
+                  )}
+                </select>
               </div>
-            </div>
 
-            {isUnitsError ? (
-              <p
-                role="alert"
-                className="typography-label-2 text-error"
-              >
-                단위 목록을
-                불러오지
-                못했어요.{' '}
+              <p className="typography-label-2 text-neutral-600">
+                예) 개, 권, 장, 벌,
+                세트, 병, 박스, 켤레
+              </p>
+
+              {errors.quantity ? (
+                <p className="typography-label-2 text-error">
+                  {
+                    errors.quantity
+                  }
+                </p>
+              ) : null}
+
+              {unitError ? (
+                <p className="typography-label-2 text-error">
+                  {
+                    unitError
+                  }
+                </p>
+              ) : null}
+
+              {isUnitsError ? (
                 <button
                   type="button"
-                  className="font-semibold underline"
+                  className="typography-label-1 text-primary-700 underline"
                   onClick={() =>
                     void refetchUnits()
                   }
                 >
-                  다시 시도
+                  단위 다시 불러오기
                 </button>
-              </p>
-            ) : null}
-
-            <Input
-              label="물품 위치"
-              required
-              maxLength={
-                100
-              }
-              value={
-                draft.location
-              }
-              error={
-                errors.location
-              }
-              onChange={(
-                event,
-              ) =>
-                change(
-                  'location',
-                  event.target
-                    .value,
-                )
-              }
-              placeholder="도로명 주소를 입력해 주세요."
-            />
+              ) : null}
+            </div>
           </>
-        ) : (
+        ) : null}
+
+        {step === 2 ? (
           <>
+            <h2 className="typography-heading-2 text-neutral-900">
+              물품 상태와 사진
+            </h2>
+
             <fieldset>
-              <legend className="mb-2 typography-label-1">
-                물품 상태 *
+              <legend className="mb-2 typography-label-1 text-neutral-900">
+                물품 상태
               </legend>
 
               {isConditionsLoading ? (
-                <p
-                  role="status"
-                  className="rounded-input border border-neutral-200 bg-white p-4 typography-body-2 text-neutral-700"
-                >
-                  물품 상태
-                  기준을
-                  불러오고
-                  있어요.
+                <p className="typography-body-2 text-neutral-700">
+                  물품 상태 기준을
+                  불러오고 있어요.
                 </p>
               ) : null}
 
               {isConditionsError ? (
-                <div className="rounded-input border border-error bg-error-bg p-4">
-                  <p
-                    role="alert"
-                    className="typography-body-2 text-error"
-                  >
-                    물품 상태
-                    기준을
-                    불러오지
-                    못했어요.
-                  </p>
-
-                  <button
-                    type="button"
-                    className="mt-2 typography-label-1 text-primary-700 underline"
-                    onClick={() =>
-                      void refetchConditions()
-                    }
-                  >
-                    다시 시도
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="typography-label-1 text-primary-700 underline"
+                  onClick={() =>
+                    void refetchConditions()
+                  }
+                >
+                  상태 기준 다시 불러오기
+                </button>
               ) : null}
 
               {!isConditionsLoading &&
-                !isConditionsError &&
-                itemConditions.map(
-                  (
-                    condition,
-                  ) => {
-                    const value =
-                      conditionValueByCode[
-                        condition
-                          .code
-                      ]
-
-                    return (
-                      <label
-                        key={
+                !isConditionsError ? (
+                <div className="flex flex-wrap gap-2">
+                  {itemConditions.map(
+                    (
+                      condition,
+                    ) => {
+                      const value =
+                        conditionValueByCode[
                           condition.code
-                        }
-                        className="mb-2 flex items-center gap-2 rounded-input border border-neutral-200 bg-white p-3"
-                      >
-                        <input
-                          type="radio"
-                          name="condition"
-                          value={
-                            value
+                        ]
+
+                      const selected =
+                        draft.condition ===
+                        value
+
+                      return (
+                        <button
+                          key={
+                            condition.code
                           }
-                          checked={
-                            draft.condition ===
-                            value
+                          type="button"
+                          aria-pressed={
+                            selected
                           }
-                          onChange={() =>
+                          className={
+                            selected
+                              ? 'rounded-pill border border-primary-700 bg-primary-700 px-3 py-2 typography-label-1 text-white'
+                              : 'rounded-pill border border-neutral-200 bg-white px-3 py-2 typography-label-1 text-neutral-700'
+                          }
+                          onClick={() =>
                             change(
                               'condition',
                               value,
                             )
                           }
-                        />
-
-                        <span>
+                        >
                           {
                             condition.description
                           }
-                        </span>
-                      </label>
-                    )
-                  },
-                )}
+                        </button>
+                      )
+                    },
+                  )}
+                </div>
+              ) : null}
 
               {errors.condition ? (
-                <p className="mt-2 text-error">
+                <p className="mt-2 typography-label-2 text-error">
                   {
                     errors.condition
                   }
@@ -874,10 +1210,8 @@ export function DonationForm({
             </fieldset>
 
             <Textarea
-              label="상세 설명 (선택)"
-              maxLength={
-                1000
-              }
+              label="설명 (선택)"
+              maxLength={1000}
               value={
                 draft.description
               }
@@ -893,9 +1227,12 @@ export function DonationForm({
                     .value,
                 )
               }
+              placeholder="물품 상태나 전달할 내용을 적어 주세요."
             />
 
             <PhotoInput
+              label="사진"
+              flowStyle
               maxPhotos={5}
               photos={
                 draft.photos
@@ -916,54 +1253,75 @@ export function DonationForm({
               }
             />
           </>
-        )}
+        ) : null}
+
+        {step === 3 ? (
+          <>
+            <h2 className="typography-heading-2 text-neutral-900">
+              어디에서 전달할 수
+              있나요?
+            </h2>
+
+            <p className="typography-body-2 text-neutral-700">
+              기관과 정확한
+              위치를 함께
+              확인해요.
+            </p>
+
+            <AddressSearchField
+              id="donation-pickup"
+              label="물품 위치 *"
+              stacked
+              address={
+                draft.location
+              }
+              detailAddress={
+                detailAddress
+              }
+              onAddressChange={(
+                value,
+              ) =>
+                change(
+                  'location',
+                  value,
+                )
+              }
+              onDetailAddressChange={(
+                value,
+              ) => {
+                setDetailAddress(
+                  value,
+                )
+
+                setDirty(
+                  true,
+                )
+
+                setFailure(
+                  '',
+                )
+              }}
+            />
+
+            {errors.location ? (
+              <p className="typography-label-2 text-error">
+                {
+                  errors.location
+                }
+              </p>
+            ) : null}
+          </>
+        ) : null}
 
         {failure ? (
           <p
             role="alert"
-            className="text-error"
+            className="typography-label-2 text-error"
           >
             {failure}
           </p>
         ) : null}
       </form>
-
-      <Dialog
-        open={Boolean(
-          savedId,
-        )}
-        title="물품을 등록했어요"
-        description="기부 물품이 등록되어 기관에 공개됐어요."
-        confirmText="내 물품 보기"
-        cancelText="추천 기관 보기"
-        onConfirm={() =>
-          navigate(
-            routePath.donorDonationDetail(
-              savedId,
-            ),
-            {
-              replace:
-                true,
-            },
-          )
-        }
-        onCancel={() =>
-          navigate(
-            routePath.donorRecommendation(
-              savedId,
-            ),
-            {
-              replace:
-                true,
-
-              state: {
-                recalculate:
-                  true,
-              },
-            },
-          )
-        }
-      />
 
       <Dialog
         open={
@@ -987,4 +1345,40 @@ export function DonationForm({
       />
     </DonorPage>
   )
+}
+
+function SummaryRow({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="grid grid-cols-[96px_1fr] gap-3">
+      <dt className="typography-body-2 text-neutral-700">
+        {label}
+      </dt>
+
+      <dd className="typography-body-2 text-neutral-900">
+        {value}
+      </dd>
+    </div>
+  )
+}
+
+function conditionDescription(
+  condition:
+    ItemConditionCode,
+) {
+  switch (condition) {
+    case 'HIGH':
+      return '상 · 미개봉'
+
+    case 'MID':
+      return '중 · 사용감 적음'
+
+    case 'LOW':
+      return '하 · 다회 사용'
+  }
 }

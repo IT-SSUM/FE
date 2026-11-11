@@ -13,15 +13,12 @@ import {
 
 import {
   useNavigate,
+  useSearchParams,
 } from 'react-router-dom'
 
 import {
   BottomNavigation,
 } from '@/components/common/BottomNavigation/BottomNavigation'
-
-import {
-  FilterSelect,
-} from '@/components/common/FilterSelect/FilterSelect'
 
 import {
   DonorPage,
@@ -30,10 +27,6 @@ import {
 import {
   useItemCategoriesQuery,
 } from '@/hooks/queries/useItemCategoriesQuery'
-
-import {
-  useItemConditionsQuery,
-} from '@/hooks/queries/useItemConditionsQuery'
 
 import {
   useInfiniteNeededItemsQuery,
@@ -61,6 +54,48 @@ const PILOT_REGION = {
   name: '경기 부천시',
 } as const
 
+const CONDITION_LABELS: Record<
+  ItemConditionCode,
+  string
+> = {
+  HIGH: '상 · 미개봉',
+  MID: '중 · 사용감 적음',
+  LOW: '하 · 다회 사용',
+}
+
+function parsePositiveId(
+  value: string | null,
+) {
+  if (
+    !value ||
+    !/^[1-9]\d*$/.test(value)
+  ) {
+    return undefined
+  }
+
+  const id = Number(value)
+
+  return Number.isSafeInteger(id)
+    ? id
+    : undefined
+}
+
+function parseCondition(
+  value: string | null,
+):
+  | ItemConditionCode
+  | undefined {
+  if (
+    value === 'HIGH' ||
+    value === 'MID' ||
+    value === 'LOW'
+  ) {
+    return value
+  }
+
+  return undefined
+}
+
 function desiredConditionLabel(
   condition: ItemConditionCode,
 ) {
@@ -81,40 +116,23 @@ export function NeedListPage() {
     useNavigate()
 
   const [
+    searchParams,
+    setSearchParams,
+  ] =
+    useSearchParams()
+
+  const keywordParam =
+    searchParams.get(
+      'keyword',
+    ) ?? ''
+
+  const [
     keyword,
     setKeyword,
   ] =
-    useState('')
-
-  const [
-    debouncedKeyword,
-    setDebouncedKeyword,
-  ] =
-    useState('')
-
-  const [
-    categoryId,
-    setCategoryId,
-  ] =
-    useState<
-      number | undefined
-    >()
-
-  const [
-    regionId,
-    setRegionId,
-  ] =
-    useState<
-      number | undefined
-    >()
-
-  const [
-    condition,
-    setCondition,
-  ] =
-    useState<
-      ItemConditionCode | undefined
-    >()
+    useState(
+      keywordParam,
+    )
 
   const loadMoreRef =
     useRef<HTMLDivElement>(
@@ -124,75 +142,103 @@ export function NeedListPage() {
   const categoryQuery =
     useItemCategoriesQuery()
 
-  const conditionQuery =
-    useItemConditionsQuery()
+  const categoryId =
+    parsePositiveId(
+      searchParams.get(
+        'categoryId',
+      ),
+    )
+
+  const regionId =
+    parsePositiveId(
+      searchParams.get(
+        'regionId',
+      ),
+    )
+
+  const condition =
+    parseCondition(
+      searchParams.get(
+        'condition',
+      ),
+    )
+
+  useEffect(() => {
+    setKeyword(
+      keywordParam,
+    )
+  }, [
+    keywordParam,
+  ])
 
   useEffect(() => {
     const timer =
       window.setTimeout(
         () => {
-          setDebouncedKeyword(
-            keyword.trim(),
+          const nextKeyword =
+            keyword.trim()
+
+          const currentKeyword =
+            searchParams.get(
+              'keyword',
+            ) ?? ''
+
+          if (
+            nextKeyword ===
+            currentKeyword
+          ) {
+            return
+          }
+
+          const next =
+            new URLSearchParams(
+              searchParams,
+            )
+
+          if (nextKeyword) {
+            next.set(
+              'keyword',
+              nextKeyword,
+            )
+          } else {
+            next.delete(
+              'keyword',
+            )
+          }
+
+          setSearchParams(
+            next,
+            {
+              replace: true,
+            },
           )
         },
         300,
       )
 
-    return () =>
+    return () => {
       window.clearTimeout(
         timer,
       )
-  }, [keyword])
-
-  const categoryOptions =
-    useMemo(
-      () =>
-        categoryQuery.data?.map(
-          (category) =>
-            category.name,
-        ) ?? [],
-      [
-        categoryQuery.data,
-      ],
-    )
-
-  const conditionOptions =
-    useMemo(
-      () =>
-        conditionQuery.data?.map(
-          (item) =>
-            item.description,
-        ) ?? [],
-      [
-        conditionQuery.data,
-      ],
-    )
+    }
+  }, [
+    keyword,
+    searchParams,
+    setSearchParams,
+  ])
 
   const selectedCategoryName =
     categoryQuery.data?.find(
       (category) =>
         category.categoryId ===
         categoryId,
-    )?.name ?? ''
-
-  const selectedConditionName =
-    conditionQuery.data?.find(
-      (item) =>
-        item.code ===
-        condition,
-    )?.description ?? ''
-
-  const selectedRegionName =
-    regionId ===
-    PILOT_REGION.id
-      ? PILOT_REGION.name
-      : ''
+    )?.name
 
   const browseParams =
     useMemo(
       () => ({
         keyword:
-          debouncedKeyword ||
+          keywordParam ||
           undefined,
 
         categoryId,
@@ -202,7 +248,7 @@ export function NeedListPage() {
         condition,
       }),
       [
-        debouncedKeyword,
+        keywordParam,
         categoryId,
         regionId,
         condition,
@@ -235,11 +281,12 @@ export function NeedListPage() {
         return
       }
 
-      query
+      void query
         .fetchNextPage()
-        .catch(() => {
-          // 에러 상태는 TanStack Query가 관리합니다.
-        })
+        .catch(
+          () =>
+            undefined,
+        )
     }, [
       query.hasNextPage,
       query.isFetchingNextPage,
@@ -289,65 +336,17 @@ export function NeedListPage() {
     fetchNextPage,
   ])
 
-  const handleCategoryChange =
-    (
-      value:
-        string,
-    ) => {
-      if (!value) {
-        setCategoryId(
-          undefined,
-        )
+  const openFilterPage =
+    () => {
+      const queryString =
+        searchParams.toString()
 
-        return
-      }
-
-      const category =
-        categoryQuery.data?.find(
-          (item) =>
-            item.name ===
-            value,
-        )
-
-      setCategoryId(
-        category?.categoryId,
-      )
-    }
-
-  const handleConditionChange =
-    (
-      value:
-        string,
-    ) => {
-      if (!value) {
-        setCondition(
-          undefined,
-        )
-
-        return
-      }
-
-      const nextCondition =
-        conditionQuery.data?.find(
-          (item) =>
-            item.description ===
-            value,
-        )
-
-      setCondition(
-        nextCondition?.code,
-      )
-    }
-
-  const handleRegionChange =
-    (
-      value:
-        string,
-    ) => {
-      setRegionId(
-        value
-          ? PILOT_REGION.id
-          : undefined,
+      navigate(
+        `${ROUTES.donor.needFilter}${
+          queryString
+            ? `?${queryString}`
+            : ''
+        }`,
       )
     }
 
@@ -393,64 +392,51 @@ export function NeedListPage() {
         />
       </label>
 
-      <div
-        data-filter-boundary
-        className="flex w-full gap-2 overflow-x-auto"
-      >
-        <FilterSelect
-          label="카테고리"
-          value={
-            selectedCategoryName
+      <div className="flex w-full gap-2 overflow-x-auto">
+        <FilterChip
+          label={
+            selectedCategoryName ??
+            '카테고리'
           }
-          options={
-            categoryOptions
+          active={
+            categoryId !==
+            undefined
           }
-          showMenuLabel={
-            false
-          }
-          showChevron={
-            false
-          }
-          onChange={
-            handleCategoryChange
+          onClick={
+            openFilterPage
           }
         />
 
-        <FilterSelect
-          label="지역"
-          value={
-            selectedRegionName
+        <FilterChip
+          label={
+            regionId ===
+            PILOT_REGION.id
+              ? PILOT_REGION.name
+              : '지역'
           }
-          options={[
-            PILOT_REGION.name,
-          ]}
-          showMenuLabel={
-            false
+          active={
+            regionId !==
+            undefined
           }
-          showChevron={
-            false
-          }
-          onChange={
-            handleRegionChange
+          onClick={
+            openFilterPage
           }
         />
 
-        <FilterSelect
-          label="희망 상태"
-          value={
-            selectedConditionName
+        <FilterChip
+          label={
+            condition
+              ? CONDITION_LABELS[
+                  condition
+                ]
+              : '희망 상태'
           }
-          options={
-            conditionOptions
+          active={
+            condition !==
+            undefined
           }
-          showMenuLabel={
-            false
-          }
-          showChevron={
-            false
-          }
-          onChange={
-            handleConditionChange
+          onClick={
+            openFilterPage
           }
         />
       </div>
@@ -562,6 +548,32 @@ export function NeedListPage() {
         </div>
       )}
     </DonorPage>
+  )
+}
+
+function FilterChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className={
+        active
+          ? 'h-7 shrink-0 rounded-pill border border-primary-300 bg-primary-100 px-3 typography-label-1 text-primary-700'
+          : 'h-7 shrink-0 rounded-pill border border-neutral-200 bg-white px-3 typography-label-1 text-neutral-700'
+      }
+      onClick={
+        onClick
+      }
+    >
+      {label}
+    </button>
   )
 }
 
