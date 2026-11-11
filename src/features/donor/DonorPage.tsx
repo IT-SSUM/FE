@@ -1,6 +1,14 @@
-import type { ReactNode } from 'react'
-import { ChevronLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import type {
+  ReactNode,
+} from 'react'
+
+import {
+  ChevronLeft,
+} from 'lucide-react'
+
+import {
+  Link,
+} from 'react-router-dom'
 
 type DonorPageProps = {
   title: string
@@ -8,9 +16,9 @@ type DonorPageProps = {
   children: ReactNode
   footer?: ReactNode
 
-  // 기존 호출부 호환용입니다.
-  // 더 이상 demo UI를 표시하지 않습니다.
-  mode?: 'demo' | 'server'
+  mode?:
+    | 'demo'
+    | 'server'
 }
 
 export function DonorPage({
@@ -21,19 +29,20 @@ export function DonorPage({
 }: DonorPageProps) {
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex min-h-14 items-center gap-2 px-5">
+      <header className="flex h-14 shrink-0 items-center gap-2 bg-surface-canvas px-5">
         <Link
           to={back}
           aria-label="뒤로가기"
-          className="p-2 text-primary-700"
+          className="-ml-2 flex size-10 shrink-0 items-center justify-center text-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
         >
           <ChevronLeft
             aria-hidden
             size={24}
+            strokeWidth={2}
           />
         </Link>
 
-        <h1 className="typography-title-3">
+        <h1 className="min-w-0 flex-1 typography-title-3 text-neutral-900">
           {title}
         </h1>
       </header>
@@ -58,7 +67,7 @@ export function EmptyState({
 }) {
   return (
     <section className="rounded-card border border-neutral-200 bg-white p-6 text-center">
-      <h2 className="typography-title-3">
+      <h2 className="typography-title-3 text-neutral-900">
         {title}
       </h2>
 
