@@ -4,9 +4,15 @@ import {
 } from 'react'
 
 import {
-  ImagePlus,
+  BookOpen,
+  Camera,
+  Images,
   X,
 } from 'lucide-react'
+
+import {
+  Button,
+} from '@/components/common/Button/Button'
 
 type PhotoInputProps = {
   photos: string[]
@@ -26,8 +32,6 @@ type PhotoInputProps = {
   optional?: boolean
 
   maxPhotos?: number
-
-  flowStyle?: boolean
 }
 
 export function PhotoInput({
@@ -38,7 +42,6 @@ export function PhotoInput({
   label = '사진',
   optional = false,
   maxPhotos = 3,
-  flowStyle = false,
 }: PhotoInputProps) {
   const [
     message,
@@ -52,8 +55,24 @@ export function PhotoInput({
   ] =
     useState(false)
 
+  const [
+    pickerOpen,
+    setPickerOpen,
+  ] =
+    useState(false)
+
   const reading =
     useRef(false)
+
+  const galleryInputRef =
+    useRef<HTMLInputElement>(
+      null,
+    )
+
+  const cameraInputRef =
+    useRef<HTMLInputElement>(
+      null,
+    )
 
   async function readFiles(
     files: File[],
@@ -64,6 +83,10 @@ export function PhotoInput({
     ) {
       return
     }
+
+    setPickerOpen(
+      false,
+    )
 
     setMessage('')
 
@@ -192,14 +215,17 @@ export function PhotoInput({
     }
   }
 
-  if (flowStyle) {
-    return (
+  return (
+    <>
       <fieldset
-        className="space-y-2"
-        disabled={busy}
+        className="space-y-3"
+        disabled={
+          busy
+        }
       >
         <legend className="typography-label-1 text-neutral-900">
           {label}
+
           {optional
             ? ' (선택)'
             : ' (최소 1장)'}
@@ -212,8 +238,8 @@ export function PhotoInput({
               index,
             ) => (
               <div
-                key={`${index}-${photo.slice(-20)}`}
                 className="relative size-[120px] shrink-0"
+                key={`${index}-${photo.slice(-20)}`}
               >
                 <img
                   src={
@@ -225,8 +251,6 @@ export function PhotoInput({
 
                 <button
                   type="button"
-                  aria-label={`${label} ${index + 1} 삭제`}
-                  className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-neutral-900/70 text-white"
                   onClick={() =>
                     onChange(
                       photos.filter(
@@ -239,6 +263,8 @@ export function PhotoInput({
                       ),
                     )
                   }
+                  aria-label={`${label} ${index + 1} 삭제`}
+                  className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-neutral-900/70 text-white"
                 >
                   <X
                     aria-hidden
@@ -251,52 +277,24 @@ export function PhotoInput({
 
           {photos.length <
           maxPhotos ? (
-            <label className="flex size-[120px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-input border border-dashed border-neutral-400 bg-white text-primary-700 transition-colors hover:border-primary-700 hover:bg-primary-100">
-              <ImagePlus
+            <button
+              type="button"
+              aria-label="물품 사진 추가"
+              className="flex size-[120px] shrink-0 items-center justify-center rounded-input bg-error-bg text-primary-700 transition-colors hover:bg-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
+              onClick={() =>
+                setPickerOpen(
+                  true,
+                )
+              }
+            >
+              <BookOpen
                 aria-hidden
-                size={28}
+                size={44}
                 strokeWidth={2}
               />
-
-              <span className="mt-2 typography-label-1">
-                사진 추가
-              </span>
-
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                disabled={
-                  busy
-                }
-                className="sr-only"
-                onChange={(
-                  event,
-                ) => {
-                  const files =
-                    Array.from(
-                      event.target
-                        .files ??
-                        [],
-                    )
-
-                  event.target.value =
-                    ''
-
-                  void readFiles(
-                    files,
-                  )
-                }}
-              />
-            </label>
+            </button>
           ) : null}
         </div>
-
-        <p className="typography-label-2 text-neutral-600">
-          전체 모습이
-          보이도록 밝은 곳에서
-          촬영해 주세요.
-        </p>
 
         {busy ? (
           <p
@@ -319,69 +317,140 @@ export function PhotoInput({
           </p>
         ) : null}
       </fieldset>
-    )
-  }
 
-  return (
-    <fieldset
-      className="space-y-2"
-      disabled={busy}
-    >
-      <legend className="typography-label-1 text-neutral-900">
-        {label}
-        {optional
-          ? ' (선택)'
-          : ` (1~${maxPhotos}장)`}
-      </legend>
+      <input
+        ref={
+          galleryInputRef
+        }
+        aria-label="사진 보관함에서 선택"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        className="sr-only"
+        disabled={
+          busy ||
+          photos.length >=
+            maxPhotos
+        }
+        onChange={(
+          event,
+        ) => {
+          const files =
+            Array.from(
+              event.target
+                .files ??
+                [],
+            )
 
-      <label className="flex min-h-[72px] cursor-pointer items-center gap-3 rounded-input border border-dashed border-neutral-400 bg-white px-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
-          <ImagePlus
-            aria-hidden
-            size={21}
-          />
-        </span>
+          event.target.value =
+            ''
 
-        <span>
-          <strong className="block typography-body-2 text-neutral-900">
-            사진 추가하기
-          </strong>
+          void readFiles(
+            files,
+          )
+        }}
+      />
 
-          <span className="mt-1 block typography-label-2 text-neutral-600">
-            JPG·PNG·WebP
-          </span>
-        </span>
+      <input
+        ref={
+          cameraInputRef
+        }
+        aria-label="사진 촬영"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="sr-only"
+        disabled={
+          busy ||
+          photos.length >=
+            maxPhotos
+        }
+        onChange={(
+          event,
+        ) => {
+          const files =
+            Array.from(
+              event.target
+                .files ??
+                [],
+            )
 
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          className="sr-only"
-          onChange={(
+          event.target.value =
+            ''
+
+          void readFiles(
+            files,
+          )
+        }}
+      />
+
+      {pickerOpen ? (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/30 px-5"
+          role="presentation"
+          onMouseDown={(
             event,
           ) => {
-            const files =
-              Array.from(
-                event.target
-                  .files ??
-                  [],
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              setPickerOpen(
+                false,
               )
-
-            event.target.value =
-              ''
-
-            void readFiles(
-              files,
-            )
+            }
           }}
-        />
-      </label>
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="photo-picker-title"
+            className="w-full max-w-[332px] rounded-card bg-white p-6 shadow-xl"
+          >
+            <h2
+              id="photo-picker-title"
+              className="typography-title-1 text-neutral-900"
+            >
+              물품 사진을 추가해요
+            </h2>
 
-      {error ? (
-        <p className="typography-label-2 text-error">
-          {error}
-        </p>
+            <p className="mt-2 typography-body-2 text-neutral-700">
+              전체 모습이 보이도록 밝은 곳에서 촬영해 주세요.
+            </p>
+
+            <div className="mt-5 space-y-2">
+              <Button
+                className="w-full gap-2"
+                onClick={() =>
+                  galleryInputRef.current?.click()
+                }
+              >
+                <Images
+                  aria-hidden
+                  size={18}
+                />
+
+                사진 보관함에서 선택
+              </Button>
+
+              <Button
+                variant="secondary"
+                className="w-full gap-2"
+                onClick={() =>
+                  cameraInputRef.current?.click()
+                }
+              >
+                <Camera
+                  aria-hidden
+                  size={18}
+                />
+
+                사진 촬영
+              </Button>
+            </div>
+          </section>
+        </div>
       ) : null}
-    </fieldset>
+    </>
   )
 }

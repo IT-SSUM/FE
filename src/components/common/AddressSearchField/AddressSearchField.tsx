@@ -26,7 +26,8 @@ type PostcodeResult = {
 
 type DaumPostcode = {
   embed: (
-    container: HTMLElement,
+    container:
+      HTMLElement,
   ) => void
 }
 
@@ -34,7 +35,8 @@ type DaumPostcodeConstructor =
   new (
     options: {
       oncomplete: (
-        data: PostcodeResult,
+        data:
+          PostcodeResult,
       ) => void
     },
   ) => DaumPostcode
@@ -65,6 +67,7 @@ function loadPostcodeScript() {
           ?.Postcode
       ) {
         resolve()
+
         return
       }
 
@@ -114,7 +117,8 @@ function loadPostcodeScript() {
       script.src =
         POSTCODE_SCRIPT_URL
 
-      script.async = true
+      script.async =
+        true
 
       script.addEventListener(
         'load',
@@ -250,7 +254,8 @@ export function AddressSearchField({
       postcodeContainerRef.current
 
     const previousOverflow =
-      document.body.style
+      document.body
+        .style
         .overflow
 
     document.body.style.overflow =
@@ -347,6 +352,7 @@ export function AddressSearchField({
         htmlFor={`${id}-base`}
         className={cn(
           'mb-2 block text-neutral-900',
+
           labelClassName ??
             'typography-label-1',
         )}
@@ -421,7 +427,7 @@ export function AddressSearchField({
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <input
               id={`${id}-base`}
-              className="h-[52px] w-full cursor-pointer rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none"
+              className="h-[52px] w-full cursor-pointer rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
               value={
                 address
               }
@@ -434,7 +440,7 @@ export function AddressSearchField({
 
             <button
               type="button"
-              className="inline-flex h-[52px] min-w-24 items-center justify-center gap-1.5 rounded-input border border-neutral-500 bg-white px-3 text-[13px] font-semibold text-primary-700"
+              className="inline-flex h-[52px] min-w-24 items-center justify-center gap-1.5 whitespace-nowrap rounded-input border border-neutral-500 bg-white px-3 text-[13px] font-semibold text-primary-700 hover:border-primary-700 hover:bg-primary-100 disabled:cursor-wait disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-500"
               onClick={
                 openAddressSearch
               }
@@ -460,7 +466,7 @@ export function AddressSearchField({
               detailInputRef
             }
             id={`${id}-detail`}
-            className="mt-2 h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none"
+            className="mt-2 h-[52px] w-full rounded-input border border-neutral-500 bg-white px-4 text-sm text-neutral-900 outline-none transition-shadow placeholder:text-neutral-600 focus:border-primary-700 focus:ring-3 focus:ring-primary-700/10"
             value={
               detailAddress
             }
@@ -478,7 +484,7 @@ export function AddressSearchField({
       )}
 
       {error ? (
-        <p className="mt-2 typography-label-2 text-error">
+        <p className="mt-2 text-xs leading-[18px] text-error">
           {error}
         </p>
       ) : null}
@@ -502,7 +508,7 @@ export function AddressSearchField({
               }}
             >
               <section
-                className="flex h-[min(620px,calc(100dvh-32px))] min-h-[420px] w-full max-w-[393px] flex-col overflow-hidden rounded-card border border-neutral-300 bg-white shadow-[0_24px_64px_rgb(18_61_49/24%)]"
+                className="flex h-[min(620px,calc(100dvh-32px))] min-h-[420px] w-full max-w-[393px] flex-col overflow-hidden rounded-card border border-neutral-300 bg-white shadow-[0_24px_64px_rgb(18_61_49/24%)] [@media(max-height:480px)]:min-h-0"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={`${id}-address-modal-title`}
@@ -510,27 +516,26 @@ export function AddressSearchField({
                 <header className="flex shrink-0 items-start justify-between gap-4 border-b border-neutral-200 px-[18px] py-4">
                   <div>
                     <h2
+                      className="m-0 text-lg font-bold leading-[26px] text-neutral-900"
                       id={`${id}-address-modal-title`}
-                      className="typography-title-2 text-neutral-900"
                     >
                       주소 찾기
                     </h2>
 
-                    <p className="mt-1 typography-label-2 text-neutral-600">
-                      도로명, 건물명 또는
-                      지번을 검색해 주세요.
+                    <p className="mt-[3px] text-xs leading-[18px] text-neutral-600">
+                      도로명, 건물명 또는 지번을 검색해 주세요.
                     </p>
                   </div>
 
                   <button
+                    className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border-0 bg-neutral-100 text-neutral-800 hover:bg-primary-100 hover:text-primary-700"
                     type="button"
-                    aria-label="주소 검색 닫기"
-                    className="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-800"
                     onClick={() =>
                       setOpen(
                         false,
                       )
                     }
+                    aria-label="주소 검색 닫기"
                   >
                     <X
                       aria-hidden

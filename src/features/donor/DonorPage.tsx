@@ -17,6 +17,8 @@ type DonorPageProps = {
   children: ReactNode
   footer?: ReactNode
 
+  // 기존 호출부 호환용입니다.
+  // 더 이상 demo UI를 표시하지 않습니다.
   mode?:
     | 'demo'
     | 'server'
@@ -29,47 +31,42 @@ export function DonorPage({
   children,
   footer,
 }: DonorPageProps) {
-  const backControl =
-    onBack ? (
-      <button
-        type="button"
-        aria-label="뒤로가기"
-        className="-ml-2 flex size-10 shrink-0 items-center justify-center text-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
-        onClick={
-          onBack
-        }
-      >
-        <ChevronLeft
-          aria-hidden
-          size={24}
-          strokeWidth={2}
-        />
-      </button>
-    ) : back ? (
-      <Link
-        to={back}
-        aria-label="뒤로가기"
-        className="-ml-2 flex size-10 shrink-0 items-center justify-center text-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
-      >
-        <ChevronLeft
-          aria-hidden
-          size={24}
-          strokeWidth={2}
-        />
-      </Link>
-    ) : null
-
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 shrink-0 items-center gap-2 bg-surface-canvas px-5">
-        {backControl}
+      <header className="flex min-h-14 items-center gap-2 px-5">
+        {onBack ? (
+          <button
+            type="button"
+            aria-label="뒤로가기"
+            className="p-2 text-primary-700"
+            onClick={
+              onBack
+            }
+          >
+            <ChevronLeft
+              aria-hidden
+              size={24}
+            />
+          </button>
+        ) : back ? (
+          <Link
+            to={back}
+            aria-label="뒤로가기"
+            className="p-2 text-primary-700"
+          >
+            <ChevronLeft
+              aria-hidden
+              size={24}
+            />
+          </Link>
+        ) : null}
 
-        <h1 className="min-w-0 flex-1 typography-title-3 text-neutral-900">
+        <h1 className="typography-title-3">
           {title}
         </h1>
       </header>
 
-      <main className="flex-1 space-y-4 overflow-y-auto px-5 pb-6 pt-2">
+      <main className="flex-1 space-y-4 px-5 pb-6 pt-2">
         {children}
       </main>
 
@@ -89,7 +86,7 @@ export function EmptyState({
 }) {
   return (
     <section className="rounded-card border border-neutral-200 bg-white p-6 text-center">
-      <h2 className="typography-title-3 text-neutral-900">
+      <h2 className="typography-title-3">
         {title}
       </h2>
 
