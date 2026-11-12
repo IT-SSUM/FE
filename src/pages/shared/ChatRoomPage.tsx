@@ -710,6 +710,9 @@ function MessageRow({
           isRead={
             isRead
           }
+          showUnread={
+            !isRead
+          }
         />
       ) : null}
 
@@ -787,9 +790,11 @@ function MessageDate({
 function MessageTime({
   value,
   isRead = false,
+  showUnread = false,
 }: {
   value: string
   isRead?: boolean
+  showUnread?: boolean
 }) {
   const date =
     new Date(value)
@@ -814,11 +819,13 @@ function MessageTime({
         )
 
   return (
-    <p className="shrink-0 whitespace-nowrap pb-1 text-xs text-neutral-700">
-      {isRead
-        ? '읽음 · '
-        : ''}
-      {text}
+    <p className="flex shrink-0 flex-col items-end whitespace-nowrap pb-1 text-xs text-neutral-700">
+      {showUnread ? (
+        <span className="font-bold text-primary-700">1</span>
+      ) : isRead ? (
+        <span className="text-neutral-600">읽음</span>
+      ) : null}
+      <span>{text}</span>
     </p>
   )
 }
