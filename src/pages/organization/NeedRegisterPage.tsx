@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { CheckCircle2, ChevronLeft, Search } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { Input } from '@/components/common/Input/Input'
@@ -10,7 +10,12 @@ import { Textarea } from '@/components/common/Textarea/Textarea'
 import { Toast } from '@/components/common/Toast/Toast'
 import { PhotoInput } from '@/features/donor/PhotoInput'
 import { getNeededItemErrorMessage } from '@/apis/neededItem'
+import {
+  getDonationItemFailure,
+  parseDonationItemId,
+} from '@/features/donor/donationItemApiState'
 import { useCreateNeededItemMutation } from '@/hooks/mutations/useCreateNeededItemMutation'
+import { useDonationItemQuery } from '@/hooks/queries/useDonationItemQuery'
 import { useItemCategoriesQuery } from '@/hooks/queries/useItemCategoriesQuery'
 import { useItemConditionsQuery } from '@/hooks/queries/useItemConditionsQuery'
 import { useItemUnitsQuery } from '@/hooks/queries/useItemUnitsQuery'
@@ -19,6 +24,13 @@ import type { ItemConditionCode } from '@/types/item'
 
 export function NeedRegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const sourceDonationId = parseDonationItemId(
+    searchParams.get('sourceDonationId') ?? undefined,
+  )
+  const sourceDonationQuery = useDonationItemQuery(sourceDonationId)
+  const sourceDonation = sourceDonationQuery.data
+  const isDonationFixed = sourceDonationId !== null
   const [step, setStep] = useState<1 | 2>(1)
   const [categoryPanelOpen, setCategoryPanelOpen] = useState(false)
   const [regionPanelOpen, setRegionPanelOpen] = useState(false)
@@ -60,10 +72,14 @@ export function NeedRegisterPage() {
   const { mutateAsync: createNeededItem, isPending: isCreating } =
     useCreateNeededItemMutation()
 
-  const selectedCategory =
-    itemCategories.find((item) => item.categoryId === categoryId) ?? itemCategories[0]
+  const selectedCategory = isDonationFixed
+    ? itemCategories.find((item) => item.categoryId === sourceDonation?.categoryId)
+    : itemCategories.find((item) => item.categoryId === categoryId) ?? itemCategories[0]
   const selectedCondition = itemConditions.find((item) => item.code === condition)
-  const selectedUnit = itemUnits.includes(unit) ? unit : (itemUnits[0] ?? '')
+  const selectedUnit = isDonationFixed
+    ? sourceDonation?.unit ?? ''
+    : itemUnits.includes(unit) ? unit : (itemUnits[0] ?? '')
+  const selectedItemName = isDonationFixed ? sourceDonation?.itemName ?? '' : itemName
 
   useEffect(() => {
     if (!failure) return
@@ -91,8 +107,8 @@ export function NeedRegisterPage() {
     if (step === 1) {
       const nextErrors: FormErrors = {}
       if (!selectedCategory) nextErrors.category = '카테고리를 선택해 주세요.'
-      if (!itemName.trim()) nextErrors.itemName = '품목을 입력해 주세요.'
-      else if (itemName.trim().length > 50) nextErrors.itemName = '품목은 50자 이하로 입력해 주세요.'
+      if (!selectedItemName.trim()) nextErrors.itemName = '품목을 입력해 주세요.'
+      else if (selectedItemName.trim().length > 50) nextErrors.itemName = '품목은 50자 이하로 입력해 주세요.'
       if (!/^[1-9]\d*$/.test(quantity)) nextErrors.quantity = '필요 수량을 1 이상의 숫자로 입력해 주세요.'
       if (!selectedUnit) nextErrors.unit = '단위를 선택해 주세요.'
       setErrors(nextErrors)
@@ -118,7 +134,7 @@ export function NeedRegisterPage() {
     try {
       const created = await createNeededItem({
         categoryId: selectedCategory.categoryId,
-        itemName: itemName.trim(),
+        itemName: selectedItemName.trim(),
         requiredQuantity: Number(quantity),
         unit: selectedUnit,
         desiredCondition: selectedCondition.code,
@@ -292,10 +308,13 @@ export function NeedRegisterPage() {
               <button
                 type="button"
                 onClick={openCategoryPanel}
+                disabled={isDonationFixed}
                 style={{ height: 54 }}
-                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none"
+                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-700"
               >
-                {isCategoriesLoading
+                {isDonationFixed && sourceDonationQuery.isPending
+                  ? '기부 물품 정보를 불러오는 중...'
+                  : isCategoriesLoading
                   ? '카테고리를 불러오는 중...'
                   : selectedCategory?.name ?? '카테고리를 선택해 주세요.'}
               </button>
@@ -303,7 +322,8 @@ export function NeedRegisterPage() {
             </div>
             <Input
               label="품목"
-              value={itemName}
+              value={selectedItemName}
+              disabled={isDonationFixed}
               onChange={(event) => {
                 setItemName(event.target.value)
                 setErrors((previous) => ({ ...previous, itemName: undefined }))
@@ -332,7 +352,7 @@ export function NeedRegisterPage() {
                 <SelectField
                   label="필요 수량 단위"
                   value={selectedUnit}
-                  disabled={isUnitsLoading || isUnitsError}
+                  disabled={isDonationFixed || isUnitsLoading || isUnitsError}
                   error={Boolean(errors.unit)}
                   options={itemUnits}
                   onChange={(value) => {
@@ -347,6 +367,18 @@ export function NeedRegisterPage() {
                 <p role="alert" className="typography-label-2 text-error">단위 목록을 불러오지 못했어요. <button type="button" className="font-semibold underline underline-offset-2" onClick={() => void refetchUnits()}>다시 시도</button></p>
               ) : null}
             </div>
+            {isDonationFixed && sourceDonationQuery.isError ? (
+              <div role="alert" className="rounded-control border border-error/30 bg-error-bg p-4 typography-body-2 text-error">
+                {getDonationItemFailure(sourceDonationQuery.error).message}
+                <button
+                  type="button"
+                  className="ml-2 font-semibold underline underline-offset-2"
+                  onClick={() => void sourceDonationQuery.refetch()}
+                >
+                  다시 시도
+                </button>
+              </div>
+            ) : null}
             <div className="flex w-full flex-col gap-2">
               <span className="text-xs font-bold leading-[18px] text-neutral-900">
                 수령 지역
@@ -418,7 +450,15 @@ export function NeedRegisterPage() {
       </main>
 
       <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
-        <Button type="submit" className="h-[46px] w-full" disabled={photoBusy || isCreating}>
+        <Button
+          type="submit"
+          className="h-[46px] w-full"
+          disabled={
+            photoBusy ||
+            isCreating ||
+            (isDonationFixed && (sourceDonationQuery.isPending || sourceDonationQuery.isError))
+          }
+        >
           {step === 1 ? '다음' : isCreating ? '등록 중...' : '등록하기'}
         </Button>
       </footer>
@@ -427,10 +467,17 @@ export function NeedRegisterPage() {
         open={completeOpen}
         title="필요 물품이 등록됐어요!"
         description="가까운 기부자가 확인할 수 있도록 공개됐어요."
-        confirmText="추천 기부자 보기"
+        confirmText={isDonationFixed ? '기부 요청 계속하기' : '추천 기부자 보기'}
         cancelText="홈으로 가기"
         onConfirm={() => {
-          if (createdNeedId) navigate(routePath.organizationRecommendation(String(createdNeedId)))
+          if (!createdNeedId) return
+          if (sourceDonationId) {
+            navigate(
+              `${routePath.organizationDonationRequest(String(sourceDonationId))}?needId=${createdNeedId}`,
+            )
+            return
+          }
+          navigate(routePath.organizationRecommendation(String(createdNeedId)))
         }}
         onCancel={() => navigate(ROUTES.organization.home)}
       />

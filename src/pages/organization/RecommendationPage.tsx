@@ -131,7 +131,7 @@ export function RecommendationPage() {
                     navigate(
                       routePath.organizationDonationDetail(
                         String(item.donationItemId),
-                      ),
+                      ) + `?needId=${neededItem?.neededItemId ?? ''}`,
                     )
                   }
                 >
