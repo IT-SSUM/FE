@@ -900,7 +900,7 @@ function formatAppointmentDate(
     return value
   }
 
-  return new Intl.DateTimeFormat(
+  const parts = new Intl.DateTimeFormat(
     'ko-KR',
     {
       timeZone:
@@ -921,12 +921,13 @@ function formatAppointmentDate(
       hour12:
         true,
     },
-  )
-    .format(date)
-    .replace(
-      ':00',
-      '',
-    )
+  ).formatToParts(date)
+
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? ''
+  const minute = part('minute')
+
+  return `${part('month')} ${part('day')}일 ${part('dayPeriod')} ${part('hour')}시${minute === '00' ? '' : ` ${minute}분`}`
 }
 
 function formatDeliveryMethod(
