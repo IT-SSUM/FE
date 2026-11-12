@@ -28,6 +28,10 @@ import {
 } from '@/components/common/ChatBubble/ChatBubble'
 
 import {
+  Dialog,
+} from '@/components/common/Dialog/Dialog'
+
+import {
   getAuthSession,
 } from '@/features/auth/storage'
 
@@ -48,6 +52,7 @@ import {
 } from '@/hooks/queries/useChatRoomsQuery'
 
 import {
+  ROUTES,
   routePath,
 } from '@/routes/paths'
 
@@ -100,6 +105,12 @@ export function ChatRoomPage() {
   ] =
     useState('')
 
+  const [
+    dismissedTerminalNotice,
+    setDismissedTerminalNotice,
+  ] =
+    useState<string | null>(null)
+
   const fileInputRef =
     useRef<HTMLInputElement>(
       null,
@@ -151,6 +162,16 @@ export function ChatRoomPage() {
       room?.matchStatus ===
         'TRADING'
     )
+
+  const terminalNotice =
+    getTerminalChatNotice(
+      room?.matchStatus,
+    )
+
+  const terminalNoticeKey =
+    terminalNotice && room
+      ? `${room.chatRoomId}:${room.matchStatus}`
+      : null
 
   const messages =
     useMemo(
@@ -593,7 +614,9 @@ export function ChatRoomPage() {
             )
           }
           placeholder={
-            socketStatus !==
+            terminalNotice
+              ? terminalNotice.inputMessage
+              : socketStatus !==
             'connected'
               ? connectionLabel(
                   socketStatus,
@@ -619,6 +642,19 @@ export function ChatRoomPage() {
           전송
         </button>
       </form>
+
+      <Dialog
+        open={
+          terminalNotice !== null &&
+          terminalNoticeKey !== dismissedTerminalNotice
+        }
+        title={terminalNotice?.title ?? ''}
+        description={terminalNotice?.description}
+        confirmText="확인"
+        cancelText="채팅 목록으로"
+        onConfirm={() => setDismissedTerminalNotice(terminalNoticeKey)}
+        onCancel={() => navigate(ROUTES.chatList)}
+      />
     </div>
   )
 }
@@ -983,6 +1019,31 @@ function formatMatchStatus(
     ] ??
     status
   )
+}
+
+function getTerminalChatNotice(status: string | undefined) {
+  switch (status) {
+    case 'COMPLETED':
+      return {
+        title: '완료된 거래의 채팅이에요',
+        description: '거래가 완료되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
+        inputMessage: '완료된 거래에서는 메시지를 보낼 수 없어요.',
+      }
+    case 'CANCELED':
+      return {
+        title: '취소된 거래의 채팅이에요',
+        description: '거래가 취소되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
+        inputMessage: '취소된 거래에서는 메시지를 보낼 수 없어요.',
+      }
+    case 'REJECTED':
+      return {
+        title: '종료된 제안·요청의 채팅이에요',
+        description: '제안 또는 요청이 거절되어 더 이상 메시지를 보낼 수 없어요.',
+        inputMessage: '종료된 거래에서는 메시지를 보낼 수 없어요.',
+      }
+    default:
+      return null
+  }
 }
 
 function connectionLabel(
