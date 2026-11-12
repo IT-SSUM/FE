@@ -1,60 +1,41 @@
-import {
-  ChevronLeft,
-} from 'lucide-react'
-
+import { ChevronLeft } from 'lucide-react'
+import { useState } from 'react'
 import {
   useNavigate,
   useParams,
 } from 'react-router-dom'
 
+import { matchErrorMessage, parseMatchId } from '@/apis/match'
 import { Button } from '@/components/common/Button/Button'
+import { Dialog } from '@/components/common/Dialog/Dialog'
 import { TransactionStatus } from '@/components/common/TransactionStatus/TransactionStatus'
-
-import {
-  ROUTES,
-  routePath,
-} from '@/routes/paths'
-
-import {
-  useMatchQuery,
-} from '@/hooks/queries/useMatchQuery'
-
-import {
-  matchErrorMessage,
-  parseMatchId,
-} from '@/apis/match'
-
+import { getAuthSession } from '@/features/auth/storage'
+import { conditionLabel } from '@/features/donor/donationItemApiState'
 import {
   MatchActions,
+  matchDirection,
   matchStatusLabel,
 } from '@/features/matches/MatchActions'
-
-import {
-  getAuthSession,
-} from '@/features/auth/storage'
+import { useAcceptMatchMutation } from '@/hooks/mutations/useAcceptMatchMutation'
+import { useRejectMatchMutation } from '@/hooks/mutations/useRejectMatchMutation'
+import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
+import { ROUTES, routePath } from '@/routes/paths'
 
 export function DonorRequestDetailPage() {
-  const navigate =
-    useNavigate()
+  const navigate = useNavigate()
+  const { requestId } = useParams()
+  const authenticatedRole = getAuthSession()?.role ?? null
+  const id = parseMatchId(requestId)
+  const query = useMatchQuery(id)
 
-  const {
-    requestId,
-  } = useParams()
+  const accept = useAcceptMatchMutation()
+  const reject = useRejectMatchMutation()
 
-  const authenticatedRole =
-    getAuthSession()?.role ??
-    null
+  const [rejectOpen, setRejectOpen] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
 
-  const id =
-    parseMatchId(
-      requestId,
-    )
-
-  const query =
-    useMatchQuery(id)
-
-  const request =
-    query.data
+  const request = query.data
 
   if (
     id === null ||
@@ -65,23 +46,17 @@ export function DonorRequestDetailPage() {
     return (
       <div className="min-h-dvh bg-surface-canvas p-5">
         <h1 className="typography-title-3">
-          요청 상세
+          기부 요청 · 응답
         </h1>
 
         <p
-          role={
-            query.isError
-              ? 'alert'
-              : 'status'
-          }
+          role={query.isError ? 'alert' : 'status'}
           className="mt-4"
         >
           {id === null
             ? '올바른 매칭 번호가 필요해요.'
             : query.isError
-              ? matchErrorMessage(
-                  query.error,
-                )
+              ? matchErrorMessage(query.error)
               : query.isPending
                 ? '불러오는 중이에요.'
                 : '매칭 정보를 찾을 수 없어요.'}
@@ -90,9 +65,7 @@ export function DonorRequestDetailPage() {
         {query.isError ? (
           <Button
             className="mt-4"
-            onClick={() =>
-              void query.refetch()
-            }
+            onClick={() => void query.refetch()}
           >
             다시 시도
           </Button>
@@ -101,12 +74,7 @@ export function DonorRequestDetailPage() {
         <Button
           variant="secondary"
           className="mt-2"
-          onClick={() =>
-            navigate(
-              ROUTES.donor
-                .myRequests,
-            )
-          }
+          onClick={() => navigate(ROUTES.donor.myRequests)}
         >
           목록으로
         </Button>
@@ -114,201 +82,274 @@ export function DonorRequestDetailPage() {
     )
   }
 
+  const direction = matchDirection(
+    request.requestedBy,
+    authenticatedRole === 'DONOR'
+      ? 'DONOR'
+      : null,
+  )
+
+  const receivedPending =
+    request.status === 'PENDING' &&
+    direction === 'received'
+
+  if (receivedPending) {
+    const message = splitRequestMessage(
+      request.message,
+      request.organizationName,
+    )
+
+    const pending =
+      accept.isPending ||
+      reject.isPending
+
+    const handleAccept = async () => {
+      if (pending) return
+
+      setError('')
+      setNotice('')
+
+      try {
+        await accept.mutateAsync(request.matchId)
+        setNotice('요청을 수락했어요.')
+      } catch (cause) {
+        setError(matchErrorMessage(cause))
+      }
+    }
+
+    const handleReject = async () => {
+      if (pending) return
+
+      setError('')
+      setNotice('')
+
+      try {
+        await reject.mutateAsync(request.matchId)
+
+        setRejectOpen(false)
+        setNotice('요청을 거절했어요.')
+      } catch (cause) {
+        setError(matchErrorMessage(cause))
+      }
+    }
+
+    return (
+      <div className="flex min-h-dvh flex-col bg-surface-canvas">
+        <header className="flex h-14 shrink-0 items-center gap-2 px-5">
+          <button
+            type="button"
+            aria-label="뒤로가기"
+            onClick={() => navigate(-1)}
+            className="flex size-6 shrink-0 items-center justify-center text-primary-700"
+          >
+            <ChevronLeft aria-hidden size={24} strokeWidth={2} />
+          </button>
+
+          <h1 className="typography-title-3 text-neutral-900">
+            기부 요청 · 응답
+          </h1>
+        </header>
+
+        <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-3">
+          <h2 className="typography-heading-2 text-neutral-900">
+            {request.organizationName}
+          </h2>
+
+          <section className="mt-5 rounded-card border border-neutral-200 bg-white p-4">
+            <h3 className="typography-title-2 text-neutral-900">
+              {request.donationItemName} {request.quantity}{request.unit}
+              {' · '}신청 가능 수량{' '}
+              {request.donationItemRemainingQuantity}{request.unit}
+            </h3>
+
+            <dl className="mt-4 space-y-3">
+              <InfoRow
+                label="물품 상태"
+                value={conditionText(request.conditionGrade)}
+              />
+              <InfoRow
+                label="수령 기관"
+                value={request.organizationName}
+              />
+              <InfoRow
+                label="기관 지역"
+                value={request.neededItemRegion}
+              />
+            </dl>
+          </section>
+
+          <section className="mt-4 rounded-card bg-primary-100 p-4">
+            <h3 className="typography-title-3 text-primary-700">
+              {message.title}
+            </h3>
+
+            <p className="mt-3 whitespace-pre-wrap typography-body-1 text-neutral-900">
+              {message.body}
+            </p>
+          </section>
+
+          <Button
+            variant="secondary"
+            className="mt-4 w-full border-primary-700"
+            disabled={pending}
+            onClick={() => {
+              setError('')
+              setRejectOpen(true)
+            }}
+          >
+            거절
+          </Button>
+
+          <section className="mt-4 typography-label-2 leading-5 text-neutral-700">
+            <p>기관이 물품을 받고 싶다는 요청이에요.</p>
+            <p>
+              수락·채팅 시작만으로 예약·기부가 확정되지 않아요.
+            </p>
+          </section>
+
+          {notice ? (
+            <p
+              role="status"
+              className="mt-4 typography-body-2 text-primary-700"
+            >
+              {notice}
+            </p>
+          ) : null}
+
+          {error ? (
+            <p
+              role="alert"
+              className="mt-4 typography-body-2 text-error"
+            >
+              {error}
+            </p>
+          ) : null}
+        </main>
+
+        <footer className="shrink-0 bg-surface-canvas px-5 pb-5 pt-3">
+          <Button
+            className="w-full"
+            disabled={pending}
+            onClick={() => void handleAccept()}
+          >
+            {accept.isPending ? '수락 중...' : '수락하기'}
+          </Button>
+        </footer>
+
+        <Dialog
+          open={rejectOpen}
+          title="이 요청을 거절할까요?"
+          description={`${request.organizationName}의\n${request.donationItemName} ${request.quantity}${request.unit} 기부 요청을 거절해요.`}
+          confirmText={reject.isPending ? '처리 중...' : '거절'}
+          cancelText="취소"
+          confirmVariant="danger"
+          confirmDisabled={reject.isPending}
+          cancelDisabled={reject.isPending}
+          className="text-center [&>p]:whitespace-pre-line"
+          onConfirm={() => void handleReject()}
+          onCancel={() => {
+            if (!reject.isPending) {
+              setRejectOpen(false)
+              setError('')
+            }
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
+      <header className="flex h-14 shrink-0 items-center gap-2 px-5">
         <button
           type="button"
           aria-label="뒤로가기"
-          onClick={() =>
-            navigate(-1)
-          }
+          onClick={() => navigate(-1)}
           className="flex size-6 shrink-0 items-center justify-center text-primary-700"
         >
-          <ChevronLeft
-            aria-hidden
-            size={24}
-            strokeWidth={2}
-          />
+          <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
 
         <h1 className="typography-title-3 text-neutral-900">
-          요청 상세
+          {direction === 'sent'
+            ? '제안 상세'
+            : '기부 요청 · 응답'}
         </h1>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
+      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-3">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="typography-heading-2 text-neutral-900">
-              {
-                request.donationItemName
-              }
-            </h2>
-
-            <p className="mt-2 typography-body-2 text-neutral-700">
-              {
-                request.neededItemName
-              }
-            </p>
-          </div>
+          <h2 className="typography-heading-2 text-neutral-900">
+            {request.organizationName}
+          </h2>
 
           <TransactionStatus
             variant={
-              request.status ===
-              'RESERVED'
+              request.status === 'RESERVED'
                 ? 'reserved'
-                : 'trading'
+                : request.status === 'COMPLETED'
+                  ? 'complete'
+                  : 'trading'
             }
             className="shrink-0"
           >
-            {matchStatusLabel(
-              request.status,
-            )}
+            {request.status === 'COMPLETED'
+              ? '전달 완료'
+              : matchStatusLabel(request.status)}
           </TransactionStatus>
         </div>
 
         <section className="mt-5 rounded-card border border-neutral-200 bg-white p-4">
-          <dl className="space-y-2 typography-body-2">
-            <InfoRow
-              label="연결 물품"
-              value={
-                request.donationItemName
-              }
-            />
+          <h3 className="typography-title-2 text-neutral-900">
+            {request.donationItemName} {request.quantity}{request.unit}
+          </h3>
 
+          <dl className="mt-4 space-y-3">
+            <InfoRow
+              label="물품 상태"
+              value={conditionText(request.conditionGrade)}
+            />
+            <InfoRow
+              label="수령 기관"
+              value={request.organizationName}
+            />
+            <InfoRow
+              label="기관 지역"
+              value={request.neededItemRegion}
+            />
             <InfoRow
               label="신청 수량"
               value={`${request.quantity}${request.unit}`}
             />
-
-            <InfoRow
-              label="최초 신청 수량"
-              value={`${request.initialQuantity}${request.unit}`}
-            />
-
-            <InfoRow
-              label="남은 수량"
-              value={`${request.donationItemRemainingQuantity}${request.unit}`}
-            />
-
-            <InfoRow
-              label="추가 필요 수량"
-              value={`${request.neededItemAdditionalQuantity}${request.unit}`}
-            />
-
-            <InfoRow
-              label="기부자"
-              value={
-                request.donorName
-              }
-            />
-
-            <InfoRow
-              label="기관"
-              value={
-                request.organizationName
-              }
-            />
-
-            <InfoRow
-              label="기관 주소"
-              value={
-                request.organizationAddress
-              }
-            />
-
-            <InfoRow
-              label="수령 주소"
-              value={
-                request.neededItemReceiveAddress
-              }
-            />
-
-            <InfoRow
-              label="물품 분류"
-              value={
-                request.itemCategoryName
-              }
-            />
-
-            <InfoRow
-              label="물품 상태"
-              value={
-                request.conditionGrade
-              }
-            />
-
-            <InfoRow
-              label="물품 지역"
-              value={
-                request.donationItemRegion
-              }
-            />
-
-            <InfoRow
-              label="기관 지역"
-              value={
-                request.neededItemRegion
-              }
-            />
-
-            {request.chatRoomId !==
-            null ? (
-              <InfoRow
-                label="채팅방 번호"
-                value={String(
-                  request.chatRoomId,
-                )}
-              />
-            ) : null}
           </dl>
         </section>
 
-        <section className="mt-5">
-          <h3 className="typography-title-2 text-neutral-900">
-            요청 내용
-          </h3>
+        {request.message ? (
+          <section className="mt-4 rounded-card bg-primary-100 p-4">
+            <p className="whitespace-pre-wrap typography-body-1 text-neutral-900">
+              {request.message}
+            </p>
+          </section>
+        ) : null}
 
-          <p className="mt-3 whitespace-pre-wrap typography-body-1 text-neutral-900">
-            {request.message}
-          </p>
-        </section>
-      </main>
+        <div className="mt-5">
+          <MatchActions
+            key={request.matchId}
+            match={request}
+            audience="DONOR"
+            authenticatedRole={authenticatedRole}
+          />
+        </div>
 
-      <footer className="grid shrink-0 grid-cols-2 gap-2 border-t border-neutral-200 bg-surface-canvas px-5 py-4">
-        <Button
-          variant="secondary"
-          onClick={() =>
-            navigate(-1)
-          }
-        >
-          닫기
-        </Button>
-
-        <MatchActions
-          key={
-            request.matchId
-          }
-          match={request}
-          audience="DONOR"
-          authenticatedRole={
-            authenticatedRole
-          }
-        />
-
-        {request.status ===
-          'TRADING' ||
-        request.status ===
-          'RESERVED' ? (
+        {request.status === 'TRADING' ||
+        request.status === 'RESERVED' ? (
           <Button
             variant="secondary"
+            className="mt-3 w-full"
             onClick={() =>
               navigate(
                 routePath.tradeDetail(
-                  String(
-                    request.matchId,
-                  ),
+                  String(request.matchId),
                 ),
               )
             }
@@ -316,29 +357,63 @@ export function DonorRequestDetailPage() {
             거래 상세
           </Button>
         ) : null}
-      </footer>
+      </main>
     </div>
   )
-}
-
-type InfoRowProps = {
-  label: string
-  value: string
 }
 
 function InfoRow({
   label,
   value,
-}: InfoRowProps) {
+}: {
+  label: string
+  value: string
+}) {
   return (
-    <div className="grid grid-cols-[88px_1fr] gap-2">
-      <dt className="text-neutral-700">
-        {label}
-      </dt>
-
-      <dd className="break-words text-neutral-900">
+    <div className="grid grid-cols-[88px_1fr] gap-3 typography-body-2">
+      <dt className="text-neutral-700">{label}</dt>
+      <dd className="min-w-0 break-words text-neutral-900">
         {value}
       </dd>
     </div>
   )
+}
+
+function conditionText(value: string) {
+  return (
+    conditionLabel[
+      value as keyof typeof conditionLabel
+    ] ?? value
+  )
+}
+
+function splitRequestMessage(
+  value: string,
+  organizationName: string,
+) {
+  const text = value.trim()
+
+  if (!text) {
+    return {
+      title: `${organizationName}의 요청`,
+      body: '기관에서 물품을 요청했어요.',
+    }
+  }
+
+  const lines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  if (lines.length > 1) {
+    return {
+      title: lines[0],
+      body: lines.slice(1).join('\n'),
+    }
+  }
+
+  return {
+    title: `${organizationName}의 요청`,
+    body: text,
+  }
 }
