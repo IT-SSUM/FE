@@ -19,7 +19,14 @@ export function matchDirection(requestedBy: string, audience: 'DONOR' | 'ORGANIZ
   return requestedBy === audience ? 'sent' : 'received'
 }
 export function matchStatusLabel(status: string) {
-  return ({ PENDING: '응답 대기', TRADING: '거래중', RESERVED: '예약중' } as Record<string, string>)[status] ?? status
+  return ({
+    PENDING: '응답 대기',
+    TRADING: '거래중',
+    RESERVED: '예약중',
+    COMPLETED: '거래 완료',
+    REJECTED: '거절됨',
+    CANCELED: '취소됨',
+  } as Record<string, string>)[status] ?? status
 }
 export function MatchActions({ match, audience, authenticatedRole = null }: {
   match: { matchId: number; status: string; requestedBy: string; quantity: number }
@@ -96,7 +103,7 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
     </form> : null}
     {editing === 'cancel' && (match.status === 'TRADING' || match.status === 'RESERVED') ? <form className="space-y-2" onSubmit={event => { event.preventDefault(); void run('cancel') }}>
       <Input label="취소 사유" required value={reason} disabled={pending} onChange={event => setReason(event.target.value)} />
-      <Button type="submit" disabled={pending || !reason.trim()}>취소 확정</Button>
+      <Button type="submit" className="w-full" disabled={pending || !reason.trim()}>취소 확정</Button>
     </form> : null}
     <Dialog open={confirm !== null} title={confirm === 'complete' ? '실제 물품을 수령했나요?' : '제안·요청을 거절할까요?'}
       description={error || (confirm === 'complete' ? '수령을 확인한 뒤 완료 처리해 주세요.' : '거절한 제안·요청은 수락할 수 없어요.')}
