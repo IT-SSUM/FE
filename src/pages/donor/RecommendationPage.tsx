@@ -744,10 +744,6 @@ export function RecommendationPage() {
         <StateCard
           title="현재 추천 가능한 기관이 없어요."
           description="모집 중인 필요 물품이나 거래 상태가 변경되면 다시 계산해 보세요."
-          action="추천 다시 계산"
-          onAction={
-            runRecalculation
-          }
         />
       ) : null}
 
