@@ -1,4 +1,4 @@
-import { Package } from 'lucide-react'
+import { CheckCircle2, ChevronDown, Info, Package } from 'lucide-react'
 import {
   useRef,
   useState,
@@ -161,33 +161,22 @@ export function DonationDetailPage() {
 
       <section className="rounded-card border border-neutral-200 bg-white p-4">
         <h2 className="typography-title-2 text-neutral-900">
-          {item.itemName} · 총 등록 수량 {item.quantity}{item.unit}
+          {item.itemName}
         </h2>
 
-        <dl className="mt-4 space-y-3">
-          <InfoRow
-            label="품목"
-            value={item.itemName}
+        <p className="mt-4 typography-label-1 text-neutral-700">수량 현황</p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <QuantityStat label="총 등록" value={`${item.quantity}${item.unit}`} />
+          <QuantityStat label="예약" value={`${item.reservedQuantity}${item.unit}`} />
+          <QuantityStat label="전달 완료" value={`${item.completedQuantity}${item.unit}`} />
+          <QuantityStat
+            label="신청 가능"
+            value={`${item.availableQuantity}${item.unit}`}
+            emphasized
           />
+        </div>
 
-          <InfoRow
-            label="수량"
-            value={
-              <div className="space-y-1">
-                <p>
-                  총 등록 수량 {item.quantity}{item.unit}
-                </p>
-                <p>
-                  예약 수량 {item.reservedQuantity}{item.unit}
-                  {' · '}전달 완료 수량 {item.completedQuantity}{item.unit}
-                </p>
-                <p>
-                  신청 가능 수량 {item.availableQuantity}{item.unit}
-                </p>
-              </div>
-            }
-          />
-
+        <dl className="mt-4 space-y-3 border-t border-neutral-200 pt-4">
           <InfoRow
             label="물품 상태"
             value={
@@ -231,12 +220,35 @@ export function DonationDetailPage() {
       ) : null}
 
       {item.mine ? (
-        <section className="typography-label-2 leading-5 text-neutral-700">
-          <p>신청 가능 = 총 등록 − 예약 − 전달 완료</p>
-          <p>거래중 수량은 차감하지 않아요.</p>
-          <p>물품 하나를 여러 기관에 나눌 수 있어요.</p>
-          <p>예약 취소로 잔여 수량이 생기면 모집이 재개돼요.</p>
-        </section>
+        <details className="group rounded-card border border-primary-200 bg-primary-100">
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-3 text-primary-700 [&::-webkit-details-marker]:hidden">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white">
+              <Info aria-hidden size={16} strokeWidth={2.25} />
+            </span>
+            <h3 className="min-w-0 flex-1 typography-label-1">신청 가능 수량 안내</h3>
+            <ChevronDown
+              aria-hidden
+              size={18}
+              strokeWidth={2}
+              className="shrink-0 transition-transform group-open:rotate-180"
+            />
+          </summary>
+
+          <div className="px-3 pb-3">
+            <div className="rounded-control bg-white/80 px-4 py-3">
+              <p className="typography-label-2 text-neutral-600">계산 기준</p>
+              <p className="mt-1 typography-body-2 font-semibold text-neutral-900">
+                총 등록 수량 − 예약 수량 − 전달 완료 수량
+              </p>
+            </div>
+
+            <ul className="mt-3 space-y-2 typography-label-2 leading-5 text-neutral-700">
+              <GuidanceItem>거래 중인 수량은 신청 가능 수량에서 차감되지 않아요.</GuidanceItem>
+              <GuidanceItem>하나의 물품을 여러 기관에 나눠 기부할 수 있어요.</GuidanceItem>
+              <GuidanceItem>예약이 취소돼 잔여 수량이 생기면 모집이 자동으로 재개돼요.</GuidanceItem>
+            </ul>
+          </div>
+        </details>
       ) : null}
 
       {item.description ? (
@@ -331,6 +343,51 @@ function InfoRow({
       <dd className="min-w-0 break-words text-neutral-900">
         {value}
       </dd>
+    </div>
+  )
+}
+
+function GuidanceItem({ children }: { children: ReactNode }) {
+  return (
+    <li className="flex items-start gap-2">
+      <CheckCircle2
+        aria-hidden
+        size={16}
+        strokeWidth={2.25}
+        className="mt-0.5 shrink-0 text-primary-700"
+      />
+      <span>{children}</span>
+    </li>
+  )
+}
+
+function QuantityStat({
+  label,
+  value,
+  emphasized = false,
+}: {
+  label: string
+  value: string
+  emphasized?: boolean
+}) {
+  return (
+    <div
+      className={
+        emphasized
+          ? 'rounded-control bg-primary-100 px-3 py-3'
+          : 'rounded-control bg-neutral-100 px-3 py-3'
+      }
+    >
+      <p className="typography-label-2 text-neutral-600">{label}</p>
+      <p
+        className={
+          emphasized
+            ? 'mt-1 typography-title-3 text-primary-700'
+            : 'mt-1 typography-title-3 text-neutral-900'
+        }
+      >
+        {value}
+      </p>
     </div>
   )
 }

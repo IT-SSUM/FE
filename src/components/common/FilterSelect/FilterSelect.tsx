@@ -36,6 +36,10 @@ type FilterSelectProps = {
   showMenuLabel?: boolean
 
   showChevron?: boolean
+
+  disabled?: boolean
+
+  includeAllOption?: boolean
 }
 
 const MENU_WIDTH =
@@ -55,6 +59,8 @@ export function FilterSelect({
   className,
   showMenuLabel = true,
   showChevron = true,
+  disabled = false,
+  includeAllOption = true,
 }: FilterSelectProps) {
   const [
     open,
@@ -301,7 +307,7 @@ export function FilterSelect({
 
         <div className="max-h-56 space-y-1 overflow-y-auto">
           {[
-            '',
+            ...(includeAllOption ? [''] : []),
             ...options,
           ].map(
             (option) => {
@@ -372,6 +378,7 @@ export function FilterSelect({
             ? menuId
             : undefined
         }
+        disabled={disabled}
         className={cn(
           'flex h-7 shrink-0 items-center gap-1 rounded-pill border px-3 typography-label-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700',
 
@@ -380,6 +387,7 @@ export function FilterSelect({
             : 'border-neutral-200 bg-white text-neutral-700',
 
           className,
+          'disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-700',
         )}
         onClick={() =>
           setOpen(

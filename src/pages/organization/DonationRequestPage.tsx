@@ -275,7 +275,7 @@ export function DonationRequestCompletePage() {
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
       <PageHeader
         title="기부 요청 전송 완료"
-        onBack={() => navigate(routePath.organizationDonationDetail(donationIdParam ?? ''))}
+        onBack={() => navigate(-1)}
       />
 
       <main className="flex-1 overflow-y-auto px-5 pb-6 pt-5">

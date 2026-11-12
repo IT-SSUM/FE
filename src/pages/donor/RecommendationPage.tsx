@@ -626,12 +626,11 @@ export function RecommendationPage() {
           </p>
         </section>
 
-        <section>
-          <h3 className="typography-title-2 text-neutral-900">
+        <section className="rounded-control bg-primary-100 p-4">
+          <h3 className="typography-title-3 text-primary-700">
             추천 이유
           </h3>
-
-          <p className="mt-3 whitespace-pre-wrap typography-body-2 text-neutral-700">
+          <p className="mt-2 whitespace-pre-wrap typography-body-2 leading-6 text-neutral-800">
             {selectedRecommendation.reason ||
               '등록한 물품과 기관의 필요 조건이 잘 맞아 추천됐어요.'}
           </p>
@@ -744,10 +743,6 @@ export function RecommendationPage() {
         <StateCard
           title="현재 추천 가능한 기관이 없어요."
           description="모집 중인 필요 물품이나 거래 상태가 변경되면 다시 계산해 보세요."
-          action="추천 다시 계산"
-          onAction={
-            runRecalculation
-          }
         />
       ) : null}
 
@@ -797,13 +792,17 @@ export function RecommendationPage() {
                   )}
                 </p>
 
-                <p className="mt-2 typography-body-2 text-neutral-700">
-                  추천 이유 ·{' '}
-                  {recommendation.reason ||
-                    '등록한 물품과 기관의 필요 조건이 잘 맞아요.'}
-                </p>
+                <div className="mt-3 rounded-control bg-primary-100 px-3 py-3">
+                  <p className="typography-label-1 text-primary-700">
+                    추천 이유
+                  </p>
+                  <p className="mt-1.5 typography-body-2 leading-6 text-neutral-800">
+                    {recommendation.reason ||
+                      '등록한 물품과 기관의 필요 조건이 잘 맞아요.'}
+                  </p>
+                </div>
 
-                <div className="mt-2 text-right">
+                <div className="mt-3 text-right">
                   <Link
                     to={routePath.donorRecommendedOrganization(
                       String(

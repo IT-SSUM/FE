@@ -28,6 +28,10 @@ import {
 } from '@/components/common/ChatBubble/ChatBubble'
 
 import {
+  Dialog,
+} from '@/components/common/Dialog/Dialog'
+
+import {
   getAuthSession,
 } from '@/features/auth/storage'
 
@@ -48,6 +52,7 @@ import {
 } from '@/hooks/queries/useChatRoomsQuery'
 
 import {
+  ROUTES,
   routePath,
 } from '@/routes/paths'
 
@@ -100,6 +105,12 @@ export function ChatRoomPage() {
   ] =
     useState('')
 
+  const [
+    dismissedTerminalNotice,
+    setDismissedTerminalNotice,
+  ] =
+    useState<string | null>(null)
+
   const fileInputRef =
     useRef<HTMLInputElement>(
       null,
@@ -151,6 +162,16 @@ export function ChatRoomPage() {
       room?.matchStatus ===
         'TRADING'
     )
+
+  const terminalNotice =
+    getTerminalChatNotice(
+      room?.matchStatus,
+    )
+
+  const terminalNoticeKey =
+    terminalNotice && room
+      ? `${room.chatRoomId}:${room.matchStatus}`
+      : null
 
   const messages =
     useMemo(
@@ -553,24 +574,26 @@ export function ChatRoomPage() {
           }
         />
 
-        <button
-          type="button"
-          aria-label="이미지 보내기"
-          disabled={
-            !canSendMessage ||
-            isUploadingImage
-          }
-          onClick={() =>
-            fileInputRef.current?.click()
-          }
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-primary-700"
-        >
-          <Plus
-            aria-hidden
-            size={22}
-            strokeWidth={2}
-          />
-        </button>
+        {!terminalNotice ? (
+          <button
+            type="button"
+            aria-label="이미지 보내기"
+            disabled={
+              !canSendMessage ||
+              isUploadingImage
+            }
+            onClick={() =>
+              fileInputRef.current?.click()
+            }
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-primary-700"
+          >
+            <Plus
+              aria-hidden
+              size={22}
+              strokeWidth={2}
+            />
+          </button>
+        ) : null}
 
         <label
           className="sr-only"
@@ -593,7 +616,9 @@ export function ChatRoomPage() {
             )
           }
           placeholder={
-            socketStatus !==
+            terminalNotice
+              ? terminalNotice.inputMessage
+              : socketStatus !==
             'connected'
               ? connectionLabel(
                   socketStatus,
@@ -605,20 +630,38 @@ export function ChatRoomPage() {
           disabled={
             !canSendMessage
           }
-          className="h-11 min-w-0 flex-1 rounded-pill bg-neutral-100 px-3 text-sm text-neutral-900 outline-none"
+          className={cn(
+            'h-11 min-w-0 flex-1 rounded-pill bg-neutral-100 text-neutral-900 outline-none',
+            terminalNotice ? 'px-4 text-center text-xs' : 'px-3 text-sm',
+          )}
         />
 
-        <button
-          type="submit"
-          disabled={
-            !canSendMessage ||
-            !message.trim()
-          }
-          className="h-11 w-14 shrink-0 rounded-pill bg-primary-700 text-sm font-bold text-white disabled:bg-neutral-200 disabled:text-neutral-700"
-        >
-          전송
-        </button>
+        {!terminalNotice ? (
+          <button
+            type="submit"
+            disabled={
+              !canSendMessage ||
+              !message.trim()
+            }
+            className="h-11 w-14 shrink-0 rounded-pill bg-primary-700 text-sm font-bold text-white disabled:bg-neutral-200 disabled:text-neutral-700"
+          >
+            전송
+          </button>
+        ) : null}
       </form>
+
+      <Dialog
+        open={
+          terminalNotice !== null &&
+          terminalNoticeKey !== dismissedTerminalNotice
+        }
+        title={terminalNotice?.title ?? ''}
+        description={terminalNotice?.description}
+        confirmText="확인"
+        cancelText="채팅 목록으로"
+        onConfirm={() => setDismissedTerminalNotice(terminalNoticeKey)}
+        onCancel={() => navigate(ROUTES.chatList)}
+      />
     </div>
   )
 }
@@ -710,6 +753,9 @@ function MessageRow({
           isRead={
             isRead
           }
+          showUnread={
+            !isRead
+          }
         />
       ) : null}
 
@@ -787,9 +833,11 @@ function MessageDate({
 function MessageTime({
   value,
   isRead = false,
+  showUnread = false,
 }: {
   value: string
   isRead?: boolean
+  showUnread?: boolean
 }) {
   const date =
     new Date(value)
@@ -814,11 +862,13 @@ function MessageTime({
         )
 
   return (
-    <p className="shrink-0 whitespace-nowrap pb-1 text-xs text-neutral-700">
-      {isRead
-        ? '읽음 · '
-        : ''}
-      {text}
+    <p className="flex shrink-0 flex-col items-end whitespace-nowrap pb-1 text-xs text-neutral-700">
+      {showUnread ? (
+        <span className="font-bold text-primary-700">1</span>
+      ) : isRead ? (
+        <span className="text-neutral-600">읽음</span>
+      ) : null}
+      <span>{text}</span>
     </p>
   )
 }
@@ -893,7 +943,7 @@ function formatAppointmentDate(
     return value
   }
 
-  return new Intl.DateTimeFormat(
+  const parts = new Intl.DateTimeFormat(
     'ko-KR',
     {
       timeZone:
@@ -914,12 +964,13 @@ function formatAppointmentDate(
       hour12:
         true,
     },
-  )
-    .format(date)
-    .replace(
-      ':00',
-      '',
-    )
+  ).formatToParts(date)
+
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? ''
+  const minute = part('minute')
+
+  return `${part('month')} ${part('day')}일 ${part('dayPeriod')} ${part('hour')}시${minute === '00' ? '' : ` ${minute}분`}`
 }
 
 function formatDeliveryMethod(
@@ -975,6 +1026,31 @@ function formatMatchStatus(
     ] ??
     status
   )
+}
+
+function getTerminalChatNotice(status: string | undefined) {
+  switch (status) {
+    case 'COMPLETED':
+      return {
+        title: '완료된 거래의 채팅이에요',
+        description: '거래가 완료되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
+        inputMessage: '완료된 거래에서는 메시지를 보낼 수 없어요.',
+      }
+    case 'CANCELED':
+      return {
+        title: '취소된 거래의 채팅이에요',
+        description: '거래가 취소되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
+        inputMessage: '취소된 거래에서는 메시지를 보낼 수 없어요.',
+      }
+    case 'REJECTED':
+      return {
+        title: '종료된 제안·요청의 채팅이에요',
+        description: '제안 또는 요청이 거절되어 더 이상 메시지를 보낼 수 없어요.',
+        inputMessage: '종료된 거래에서는 메시지를 보낼 수 없어요.',
+      }
+    default:
+      return null
+  }
 }
 
 function connectionLabel(

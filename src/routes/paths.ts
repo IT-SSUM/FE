@@ -26,6 +26,12 @@ export const ROUTES = {
     needDetail:
       '/donor/needs/:needId',
 
+    donationProposal:
+      '/donor/needs/:needId/propose',
+
+    donationProposalComplete:
+      '/donor/needs/:needId/propose/complete',
+
     recommendation:
       '/donor/recommendations/:donationId',
 
@@ -161,6 +167,20 @@ export const routePath = {
         string,
     ) =>
       `/donor/needs/${needId}`,
+
+  donorDonationProposal:
+    (
+      needId:
+        string,
+    ) =>
+      `/donor/needs/${needId}/propose`,
+
+  donorDonationProposalComplete:
+    (
+      needId:
+        string,
+    ) =>
+      `/donor/needs/${needId}/propose/complete`,
 
   donorRecommendation:
     (

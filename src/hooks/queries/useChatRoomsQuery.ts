@@ -12,5 +12,7 @@ export function useChatRoomsQuery() {
   return useQuery({
     queryKey: chatKeys.rooms(),
     queryFn: ({ signal }) => getChatRooms(signal),
+    refetchInterval: 5_000,
+    refetchOnWindowFocus: true,
   })
 }

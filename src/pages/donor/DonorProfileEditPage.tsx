@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom'
 
 import { Button } from '@/components/common/Button/Button'
+import { DateField } from '@/components/common/DateField/DateField'
 import { Dialog } from '@/components/common/Dialog/Dialog'
 import { Input } from '@/components/common/Input/Input'
 import { DonorPage } from '@/features/donor/DonorPage'
@@ -244,27 +245,33 @@ export function DonorProfileEditPage() {
           }}
         />
 
-        <Input
-          required
-          label="생년월일"
-          type="date"
-          max={today()}
-          value={draft.birthDate}
-          error={errors.birthDate}
-          onChange={(event) => {
-            setDraft({
-              ...draft,
-              birthDate: event.target.value,
-            })
+        <div>
+          <DateField
+            id="donor-profile-birth-date"
+            label="생년월일"
+            min="1900-01-01"
+            max={today()}
+            value={draft.birthDate}
+            onChange={(value) => {
+              setDraft({
+                ...draft,
+                birthDate: value,
+              })
 
-            setErrors((previous) => ({
-              ...previous,
-              birthDate: undefined,
-            }))
+              setErrors((previous) => ({
+                ...previous,
+                birthDate: undefined,
+              }))
 
-            setFailure('')
-          }}
-        />
+              setFailure('')
+            }}
+          />
+          {errors.birthDate ? (
+            <p className="mt-2 typography-label-2 text-error">
+              {errors.birthDate}
+            </p>
+          ) : null}
+        </div>
 
         <Input
           label="이메일"

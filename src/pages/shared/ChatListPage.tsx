@@ -82,6 +82,8 @@ function ChatRoomButton({
   room: ChatRoom
   onClick: () => void
 }) {
+  const blockedStatus = getBlockedChatStatus(room.matchStatus)
+
   return (
     <button
       type="button"
@@ -103,7 +105,11 @@ function ChatRoomButton({
         <span className="whitespace-nowrap text-right text-xs font-normal leading-[18px] text-neutral-700">
           {room.lastMessageAt ? formatChatListTime(room.lastMessageAt) : ''}
         </span>
-        {room.unreadCount > 0 ? (
+        {blockedStatus ? (
+          <span className="whitespace-nowrap rounded-pill bg-neutral-200 px-2 py-0.5 text-xs font-semibold leading-5 text-neutral-700">
+            {blockedStatus}
+          </span>
+        ) : room.unreadCount > 0 ? (
           <span className="flex min-w-5 items-center justify-center rounded-pill bg-primary-700 px-1 text-xs font-bold leading-5 text-white">
             {room.unreadCount > 99 ? '99+' : room.unreadCount}
           </span>
@@ -111,6 +117,19 @@ function ChatRoomButton({
       </span>
     </button>
   )
+}
+
+function getBlockedChatStatus(status: ChatRoom['matchStatus']) {
+  switch (status) {
+    case 'COMPLETED':
+      return '거래 완료'
+    case 'CANCELED':
+      return '취소됨'
+    case 'REJECTED':
+      return '거절됨'
+    default:
+      return null
+  }
 }
 
 function ChatListSkeleton() {

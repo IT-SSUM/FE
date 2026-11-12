@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { CheckCircle2, ChevronLeft, Search } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
+import { FilterSelect } from '@/components/common/FilterSelect/FilterSelect'
 import { Input } from '@/components/common/Input/Input'
 import { OptionCardGroup } from '@/components/common/OptionCardGroup/OptionCardGroup'
 import { SelectField } from '@/components/common/SelectField/SelectField'
@@ -32,15 +33,11 @@ export function NeedRegisterPage() {
   const sourceDonation = sourceDonationQuery.data
   const isDonationFixed = sourceDonationId !== null
   const [step, setStep] = useState<1 | 2>(1)
-  const [categoryPanelOpen, setCategoryPanelOpen] = useState(false)
-  const [regionPanelOpen, setRegionPanelOpen] = useState(false)
-  const [regionQuery, setRegionQuery] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
-  const [draftCategoryId, setDraftCategoryId] = useState<number | null>(null)
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState('')
   const [unit, setUnit] = useState('개')
-  const [region, setRegion] = useState('경기도 부천시')
+  const region = '경기도 부천시'
   const [condition, setCondition] = useState<ItemConditionCode>('MID')
   const [reason, setReason] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
@@ -86,11 +83,6 @@ export function NeedRegisterPage() {
     const timer = window.setTimeout(() => setFailure(''), 4500)
     return () => window.clearTimeout(timer)
   }, [failure])
-
-  const openCategoryPanel = () => {
-    setDraftCategoryId(selectedCategory?.categoryId ?? null)
-    setCategoryPanelOpen(true)
-  }
 
   const handleBack = () => {
     if (step === 2) {
@@ -153,135 +145,6 @@ export function NeedRegisterPage() {
     }
   }
 
-  if (categoryPanelOpen) {
-    return (
-      <div className="flex min-h-dvh flex-col bg-surface-canvas">
-        <PageHeader
-          title="카테고리 선택"
-          onBack={() => setCategoryPanelOpen(false)}
-        />
-
-        <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
-          <h2 className="typography-heading-3 text-neutral-900">
-            어떤 물품인가요?
-          </h2>
-          <p className="mt-2 typography-label-2 text-neutral-600">
-            정확히 카테고리에서 가장 가까운 항목을 골라주세요.
-          </p>
-
-          {isCategoriesLoading ? (
-            <p role="status" className="mt-4 typography-body-2 text-neutral-600">카테고리를 불러오는 중이에요.</p>
-          ) : isCategoriesError ? (
-            <div role="alert" className="mt-4 rounded-control border border-error/30 bg-error-bg p-4 typography-body-2 text-error">
-              카테고리를 불러오지 못했어요.
-              <button type="button" className="ml-2 font-semibold underline underline-offset-2" onClick={() => void refetchCategories()}>다시 시도</button>
-            </div>
-          ) : (
-            <OptionCardGroup
-              label="카테고리"
-              hideLabel
-              className="mt-4"
-              options={itemCategories.map((item) => item.name)}
-              value={itemCategories.find((item) => item.categoryId === draftCategoryId)?.name ?? ''}
-              onChange={(value) => {
-                setDraftCategoryId(itemCategories.find((item) => item.name === value)?.categoryId ?? null)
-              }}
-            />
-          )}
-        </main>
-
-        <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
-          <Button
-            className="h-[46px] w-full"
-            disabled={!draftCategoryId || isCategoriesLoading || isCategoriesError}
-            onClick={() => {
-              setCategoryId(draftCategoryId)
-              setErrors((previous) => ({ ...previous, category: undefined }))
-              setCategoryPanelOpen(false)
-            }}
-          >
-            적용
-          </Button>
-        </footer>
-      </div>
-    )
-  }
-
-  if (regionPanelOpen) {
-    const showBucheon =
-      !regionQuery.trim() || '경기도 부천시'.includes(regionQuery.trim())
-
-    return (
-      <div className="flex min-h-dvh flex-col bg-surface-canvas">
-        <PageHeader
-          title="지역 선택"
-          onBack={() => setRegionPanelOpen(false)}
-        />
-
-        <main className="flex-1 overflow-y-auto px-5 pb-6 pt-4">
-          <label
-            htmlFor="region-search"
-            className="text-xs font-bold leading-[18px] text-neutral-900"
-          >
-            지역 검색
-          </label>
-          <div className="mt-3 flex gap-2">
-            <input
-              id="region-search"
-              type="search"
-              value={regionQuery}
-              onChange={(event) => setRegionQuery(event.target.value)}
-              placeholder="시·군·구 검색"
-              className="h-[52px] min-w-0 flex-1 rounded-input border border-neutral-500 bg-white px-4 typography-body-2 text-neutral-900 outline-none placeholder:text-neutral-500 focus:border-primary-700"
-            />
-            <button
-              type="button"
-              className="flex h-[52px] shrink-0 items-center gap-2 rounded-control bg-primary-700 px-4 typography-title-3 text-white transition-colors hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
-            >
-              <Search aria-hidden size={18} strokeWidth={2} />
-              검색
-            </button>
-          </div>
-
-          <section className="mt-4" aria-label="선택 가능한 지역">
-            {showBucheon ? (
-              <button
-                type="button"
-                aria-pressed="true"
-                onClick={() => setRegion('경기도 부천시')}
-                style={{ minHeight: 52 }}
-                className="flex w-full items-center gap-3 rounded-control border border-primary-300 bg-primary-100 px-4 text-left typography-body-2 text-primary-700"
-              >
-                <CheckCircle2 aria-hidden size={20} strokeWidth={2} />
-                경기도 부천시
-              </button>
-            ) : (
-              <div className="rounded-control border border-neutral-200 bg-white px-4 py-8 text-center typography-body-2 text-neutral-600">
-                선택할 수 있는 지역은 경기도 부천시예요.
-              </div>
-            )}
-          </section>
-
-          <p className="mt-4 typography-label-2 text-neutral-600">
-            시·군·구 단위로 공개돼요. 상세 위치는 채팅에서 협의해요.
-          </p>
-        </main>
-
-        <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
-          <Button
-            className="h-[46px] w-full"
-            onClick={() => {
-              setRegion('경기도 부천시')
-              setRegionPanelOpen(false)
-            }}
-          >
-            적용
-          </Button>
-        </footer>
-      </div>
-    )
-  }
-
   return (
     <form
       className="flex min-h-dvh flex-col bg-surface-canvas"
@@ -305,20 +168,36 @@ export function NeedRegisterPage() {
               <span className="text-xs font-bold leading-[18px] text-neutral-900">
                 카테고리
               </span>
-              <button
-                type="button"
-                onClick={openCategoryPanel}
-                disabled={isDonationFixed}
-                style={{ height: 54 }}
-                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-700"
-              >
-                {isDonationFixed && sourceDonationQuery.isPending
-                  ? '기부 물품 정보를 불러오는 중...'
-                  : isCategoriesLoading
-                  ? '카테고리를 불러오는 중...'
-                  : selectedCategory?.name ?? '카테고리를 선택해 주세요.'}
-              </button>
+              <FilterSelect
+                label="카테고리"
+                showMenuLabel={false}
+                includeAllOption={false}
+                value={selectedCategory?.name ?? ''}
+                options={itemCategories.map((item) => item.name)}
+                disabled={
+                  isDonationFixed || isCategoriesLoading || isCategoriesError
+                }
+                className="h-[54px] w-full justify-between rounded-input border-neutral-500 bg-white px-4 typography-body-2 text-neutral-900"
+                onChange={(value) => {
+                  setCategoryId(
+                    itemCategories.find((item) => item.name === value)?.categoryId ?? null,
+                  )
+                  setErrors((previous) => ({ ...previous, category: undefined }))
+                }}
+              />
               {errors.category ? <p className="typography-label-2 text-error">{errors.category}</p> : null}
+              {isCategoriesError ? (
+                <p role="alert" className="typography-label-2 text-error">
+                  카테고리를 불러오지 못했어요.{' '}
+                  <button
+                    type="button"
+                    className="font-semibold underline underline-offset-2"
+                    onClick={() => void refetchCategories()}
+                  >
+                    다시 시도
+                  </button>
+                </p>
+              ) : null}
             </div>
             <Input
               label="품목"
@@ -385,12 +264,9 @@ export function NeedRegisterPage() {
               </span>
               <button
                 type="button"
-                onClick={() => {
-                  setRegionQuery('')
-                  setRegionPanelOpen(true)
-                }}
+                disabled
                 style={{ height: 54 }}
-                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none"
+                className="w-full cursor-not-allowed rounded-input border border-neutral-300 bg-neutral-100 px-4 text-left typography-body-2 text-neutral-700"
               >
                 {region}
               </button>
