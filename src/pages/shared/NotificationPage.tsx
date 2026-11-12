@@ -1,15 +1,15 @@
 import {
-  CalendarDays,
-  CheckCircle2,
   ChevronLeft,
-  MessageSquare,
   RefreshCw,
-  type LucideIcon,
 } from 'lucide-react'
 
 import {
   useNavigate,
 } from 'react-router-dom'
+
+import chatIcon from '@/assets/logo/chat.svg'
+import checkIcon from '@/assets/logo/check.svg'
+import plannerIcon from '@/assets/logo/planner.svg'
 
 import {
   BottomNavigation,
@@ -40,59 +40,43 @@ type NotificationViewItem = {
 function notificationIcon(
   notification:
     NotificationViewItem,
-): LucideIcon {
-  const text =
-    `${notification.type} ${notification.title}`.toLowerCase()
-
-  if (
-    text.includes(
-      'request',
-    ) ||
-    text.includes(
-      '요청',
-    ) ||
-    text.includes(
-      'proposal',
-    ) ||
-    text.includes(
-      '제안',
-    )
+) {
+  switch (
+    notification.type
   ) {
-    if (
-      text.includes(
-        '수락',
-      ) ||
-      text.includes(
-        'accept',
-      )
-    ) {
-      return CalendarDays
-    }
+    /*
+     * 새로운 기부 요청 / 제안
+     * 새 채팅 메시지
+     */
+    case 'MATCH_REQUESTED':
+    case 'CHAT':
+      return chatIcon
 
-    return MessageSquare
+    /*
+     * 요청·제안 수락
+     * 예약
+     * 전달 약속 확정/변경
+     */
+    case 'MATCH_ACCEPTED':
+    case 'MATCH_RESERVED':
+    case 'MATCH_SCHEDULED':
+      return plannerIcon
+
+    /*
+     * 전달 완료
+     * 수령 확인
+     * 거래 취소
+     * 요청 거절
+     */
+    case 'MATCH_COMPLETED':
+    case 'MATCH_RECEIVE_REQUIRED':
+    case 'MATCH_CANCELED':
+    case 'MATCH_REJECTED':
+      return checkIcon
+
+    default:
+      return chatIcon
   }
-
-  if (
-    text.includes(
-      '완료',
-    ) ||
-    text.includes(
-      '수령',
-    ) ||
-    text.includes(
-      '취소',
-    ) ||
-    text.includes(
-      'complete',
-    ) ||
-    text.includes(
-      'cancel',
-    )
-  ) {
-    return CheckCircle2
-  }
-
-  return MessageSquare
 }
 
 export function NotificationPage() {
@@ -283,7 +267,7 @@ function NotificationCard({
   onClick:
     () => void
 }) {
-  const Icon =
+  const icon =
     notificationIcon(
       notification,
     )
@@ -304,11 +288,13 @@ function NotificationCard({
       }
     >
       <div className="flex items-start gap-3">
-        <Icon
+        <img
+          src={
+            icon
+          }
+          alt=""
           aria-hidden
-          size={24}
-          strokeWidth={2}
-          className="mt-0.5 shrink-0 text-primary-700"
+          className="mt-0.5 size-6 shrink-0 object-contain"
         />
 
         <div className="min-w-0 flex-1">

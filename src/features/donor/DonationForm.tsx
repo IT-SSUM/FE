@@ -1,4 +1,9 @@
 import {
+  CheckCircle2,
+  ChevronDown,
+} from 'lucide-react'
+
+import {
   useEffect,
   useRef,
   useState,
@@ -214,6 +219,12 @@ export function DonationForm({
     )
 
   const [
+    categoryOpen,
+    setCategoryOpen,
+  ] =
+    useState(false)
+
+  const [
     errors,
     setErrors,
   ] =
@@ -272,6 +283,11 @@ export function DonationForm({
       null,
     )
 
+  const categoryRef =
+    useRef<HTMLDivElement>(
+      null,
+    )
+
   const selectedUnit =
     itemUnits.includes(
       unit,
@@ -281,6 +297,13 @@ export function DonationForm({
           itemUnits[0] ??
           ''
         )
+
+  const visibleItemCategories =
+    itemCategories.filter(
+      (category) =>
+        category.name !==
+        '미사용 소모품',
+    )
 
   useEffect(() => {
     if (
@@ -317,6 +340,73 @@ export function DonationForm({
     savedItem,
   ])
 
+  useEffect(() => {
+    if (
+      !categoryOpen
+    ) {
+      return
+    }
+
+    const handlePointerDown =
+      (
+        event:
+          PointerEvent,
+      ) => {
+        const target =
+          event.target as Node
+
+        if (
+          !categoryRef.current
+            ?.contains(
+              target,
+            )
+        ) {
+          setCategoryOpen(
+            false,
+          )
+        }
+      }
+
+    const handleKeyDown =
+      (
+        event:
+          KeyboardEvent,
+      ) => {
+        if (
+          event.key ===
+          'Escape'
+        ) {
+          setCategoryOpen(
+            false,
+          )
+        }
+      }
+
+    document.addEventListener(
+      'pointerdown',
+      handlePointerDown,
+    )
+
+    document.addEventListener(
+      'keydown',
+      handleKeyDown,
+    )
+
+    return () => {
+      document.removeEventListener(
+        'pointerdown',
+        handlePointerDown,
+      )
+
+      document.removeEventListener(
+        'keydown',
+        handleKeyDown,
+      )
+    }
+  }, [
+    categoryOpen,
+  ])
+
   const change = <
     K extends
       keyof DonationInput,
@@ -330,6 +420,7 @@ export function DonationForm({
         previous,
       ) => ({
         ...previous,
+
         [key]:
           value,
       }),
@@ -340,13 +431,19 @@ export function DonationForm({
         previous,
       ) => ({
         ...previous,
+
         [key]:
           undefined,
       }),
     )
 
-    setFailure('')
-    setDirty(true)
+    setFailure(
+      '',
+    )
+
+    setDirty(
+      true,
+    )
   }
 
   async function submit() {
@@ -433,9 +530,17 @@ export function DonationForm({
     if (
       step === 1
     ) {
-      setStep(2)
+      setCategoryOpen(
+        false,
+      )
 
-      setFailure('')
+      setStep(
+        2,
+      )
+
+      setFailure(
+        '',
+      )
 
       return
     }
@@ -443,9 +548,13 @@ export function DonationForm({
     if (
       step === 2
     ) {
-      setStep(3)
+      setStep(
+        3,
+      )
 
-      setFailure('')
+      setFailure(
+        '',
+      )
 
       return
     }
@@ -514,7 +623,9 @@ export function DonationForm({
         created,
       )
 
-      setDirty(false)
+      setDirty(
+        false,
+      )
     } catch (
       cause
     ) {
@@ -531,12 +642,20 @@ export function DonationForm({
 
   const moveBack =
     () => {
-      setFailure('')
+      setFailure(
+        '',
+      )
+
+      setCategoryOpen(
+        false,
+      )
 
       if (
         step === 3
       ) {
-        setStep(2)
+        setStep(
+          2,
+        )
 
         return
       }
@@ -544,11 +663,15 @@ export function DonationForm({
       if (
         step === 2
       ) {
-        setStep(1)
+        setStep(
+          1,
+        )
       }
     }
 
-  if (savedItem) {
+  if (
+    savedItem
+  ) {
     const savedId =
       String(
         savedItem.donationItemId,
@@ -702,7 +825,9 @@ export function DonationForm({
       </p>
 
       <form
-        ref={form}
+        ref={
+          form
+        }
         noValidate
         className="space-y-4"
         onSubmit={(
@@ -719,65 +844,144 @@ export function DonationForm({
               기부할 물품을 알려주세요
             </h2>
 
-            <label className="block space-y-2">
-              <span className="typography-label-1 text-neutral-900">
+            <div
+              ref={
+                categoryRef
+              }
+              className="relative flex w-full flex-col gap-2"
+            >
+              <span className="text-[14px] font-medium leading-5 text-neutral-900">
                 카테고리
               </span>
 
-              <select
-                aria-label="카테고리"
-                aria-invalid={Boolean(
-                  errors.category,
-                )}
-                value={
-                  draft.category
+              <button
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={
+                  categoryOpen
                 }
-                className={`h-[54px] w-full rounded-input border bg-white px-4 typography-body-1 text-neutral-900 outline-none transition-colors ${
-                  errors.category
-                    ? 'border-error'
-                    : 'border-neutral-500'
-                }`}
+                aria-invalid={
+                  Boolean(
+                    errors.category,
+                  )
+                }
                 disabled={
                   isCategoriesLoading ||
                   isCategoriesError
                 }
-                onChange={(
-                  event,
-                ) =>
-                  change(
-                    'category',
-                    event.target
-                      .value,
+                onClick={() =>
+                  setCategoryOpen(
+                    (
+                      current,
+                    ) =>
+                      !current,
                   )
                 }
+                className={`flex h-[54px] w-full items-center justify-between overflow-hidden rounded-input border bg-white px-4 text-left text-[15px] font-normal leading-[22.5px] text-neutral-900 outline-none ${
+                  errors.category
+                    ? 'border-error'
+                    : 'border-neutral-500'
+                }`}
               >
-                <option value="">
+                <span
+                  className={
+                    draft.category
+                      ? 'truncate text-neutral-900'
+                      : 'truncate text-neutral-500'
+                  }
+                >
                   {isCategoriesLoading
                     ? '카테고리를 불러오는 중...'
                     : isCategoriesError
                       ? '카테고리를 불러오지 못했어요'
-                      : '카테고리를 선택해 주세요'}
-                </option>
+                      : draft.category ||
+                        '카테고리를 선택해 주세요'}
+                </span>
 
-                {itemCategories.map(
-                  (
-                    category,
-                  ) => (
-                    <option
-                      key={
-                        category.categoryId
-                      }
-                      value={
-                        category.name
-                      }
-                    >
-                      {
-                        category.name
-                      }
-                    </option>
-                  ),
-                )}
-              </select>
+                <ChevronDown
+                  aria-hidden
+                  size={
+                    18
+                  }
+                  strokeWidth={
+                    2
+                  }
+                  className={`shrink-0 text-primary-700 transition-transform ${
+                    categoryOpen
+                      ? 'rotate-180'
+                      : ''
+                  }`}
+                />
+              </button>
+
+              {categoryOpen &&
+              !isCategoriesLoading &&
+              !isCategoriesError ? (
+                <div
+                  role="listbox"
+                  aria-label="카테고리 선택"
+                  className="absolute left-0 right-0 top-[90px] z-50 max-h-[428px] overflow-y-auto rounded-input border border-neutral-500 bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  <div className="flex w-full flex-col gap-1">
+                    {visibleItemCategories.map(
+                      (
+                        category,
+                      ) => {
+                        const selected =
+                          draft.category ===
+                          category.name
+
+                        return (
+                          <button
+                            key={
+                              category.categoryId
+                            }
+                            type="button"
+                            role="option"
+                            aria-selected={
+                              selected
+                            }
+                            onClick={() => {
+                              change(
+                                'category',
+                                category.name,
+                              )
+
+                              setCategoryOpen(
+                                false,
+                              )
+                            }}
+                            className={
+                              selected
+                                ? 'flex h-14 w-full shrink-0 items-center gap-3 rounded-card bg-primary-100 px-4 text-left typography-title-3 text-primary-700'
+                                : 'flex h-[58px] w-full shrink-0 items-center rounded-card border border-neutral-200 bg-white px-4 text-left typography-title-3 text-neutral-900'
+                            }
+                          >
+                            {selected ? (
+                              <CheckCircle2
+                                aria-hidden
+                                size={
+                                  24
+                                }
+                                strokeWidth={
+                                  2
+                                }
+                                className="shrink-0 text-primary-700"
+                              />
+                            ) : null}
+
+                            <span className="min-w-0 flex-1 truncate">
+                              {
+                                category.name
+                              }
+                            </span>
+                          </button>
+                        )
+                      },
+                    )}
+                  </div>
+                </div>
+              ) : null}
 
               {errors.category ? (
                 <p className="typography-label-2 text-error">
@@ -790,7 +994,7 @@ export function DonationForm({
               {isCategoriesError ? (
                 <button
                   type="button"
-                  className="typography-label-1 text-primary-700 underline"
+                  className="self-start typography-label-1 text-primary-700 underline"
                   onClick={() =>
                     void refetchCategories()
                   }
@@ -798,7 +1002,7 @@ export function DonationForm({
                   카테고리 다시 불러오기
                 </button>
               ) : null}
-            </label>
+            </div>
 
             <Input
               label="품목"
@@ -827,9 +1031,15 @@ export function DonationForm({
               <Input
                 label="수량"
                 type="number"
-                min={1}
-                max={9999}
-                step={1}
+                min={
+                  1
+                }
+                max={
+                  9999
+                }
+                step={
+                  1
+                }
                 value={
                   Number.isNaN(
                     draft.quantity,
@@ -894,10 +1104,6 @@ export function DonationForm({
                 />
               </div>
             </div>
-
-            <p className="typography-label-2 text-neutral-600">
-              예) 개, 권, 장, 벌, 세트, 병, 박스, 켤레
-            </p>
 
             {isUnitsError ? (
               <p
@@ -1027,7 +1233,9 @@ export function DonationForm({
 
               <textarea
                 id="donation-description"
-                maxLength={1000}
+                maxLength={
+                  1000
+                }
                 value={
                   draft.description
                 }
@@ -1058,7 +1266,9 @@ export function DonationForm({
             </div>
 
             <PhotoInput
-              maxPhotos={5}
+              maxPhotos={
+                5
+              }
               photos={
                 draft.photos
               }
@@ -1140,7 +1350,9 @@ export function DonationForm({
             role="alert"
             className="typography-label-2 text-error"
           >
-            {failure}
+            {
+              failure
+            }
           </p>
         ) : null}
       </form>

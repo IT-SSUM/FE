@@ -19,18 +19,26 @@ export function ChatBubble({
   const isSelf = side === 'self'
 
   return (
-    <div className={cn('flex w-full', isSelf ? 'justify-end' : 'justify-start')}>
+    <div
+      className={cn(
+        'flex min-w-0',
+        isSelf ? 'justify-end' : 'justify-start',
+      )}
+    >
       <div
         className={cn(
           'max-w-[250px] rounded-control px-4 py-3 text-sm font-normal leading-[22px]',
           isSelf
             ? 'bg-primary-700 text-white'
             : 'border border-neutral-200 bg-white text-neutral-900',
-          state === 'failed' ? 'border-error text-error' : '',
+          state === 'failed'
+            ? 'border-error text-error'
+            : '',
           className,
         )}
       >
         {children}
+
         {state === 'failed' ? (
           <p className="mt-1 text-[10px] font-medium leading-[14px] text-error">
             전송 실패
