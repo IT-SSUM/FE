@@ -1,78 +1,175 @@
-import { forwardRef, type TextareaHTMLAttributes, useId } from 'react'
-import { cn } from '@/utils/cn'
+import {
+  forwardRef,
+  type TextareaHTMLAttributes,
+  useId,
+} from 'react'
 
-type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> & {
-  id?: string
-  label: string
-  error?: string
-  labelClassName?: string
-}
+import {
+  cn,
+} from '@/utils/cn'
 
-export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  (
-    {
-      id,
-      label,
-      error,
-      required,
-      disabled,
-      className,
-      labelClassName,
-      maxLength,
-      ...props
-    },
-    ref,
-  ) => {
-    const generatedId = useId()
-    const textareaId = id ?? generatedId
-    const messageId = error ? `${textareaId}-error` : undefined
+type TextareaProps =
+  Omit<
+    TextareaHTMLAttributes<HTMLTextAreaElement>,
+    'id'
+  > & {
+    id?: string
 
-    return (
-      <div className="flex w-full flex-col gap-2">
-        <label
-          htmlFor={textareaId}
-          className={cn(
-            'text-neutral-900',
-            labelClassName ?? 'typography-label-1',
-          )}
-        >
-          {label}
-          {required ? <span className="text-error"> *</span> : null}
-        </label>
-        <textarea
-          id={textareaId}
-          ref={ref}
-          required={required}
-          disabled={disabled}
-          maxLength={maxLength}
-          aria-invalid={Boolean(error)}
-          aria-describedby={messageId}
-          className={cn(
-            'min-h-[128px] w-full resize-y rounded-input border bg-white px-4 py-3 typography-body-2 text-neutral-900 outline-none transition-colors',
-            'placeholder:text-neutral-500 focus:border-primary-700',
-            'disabled:bg-neutral-100 disabled:text-neutral-700 disabled:placeholder:text-neutral-500',
-            error ? 'border-error focus:border-error' : 'border-neutral-500',
-            className,
-          )}
-          {...props}
-        />
-        <div className="flex items-start justify-between gap-3">
-          {error ? (
-            <p id={messageId} className="typography-label-2 text-error">
-              {error}
-            </p>
-          ) : (
-            <span />
-          )}
-          {maxLength ? (
-            <span className="typography-label-2 text-neutral-500">
-              최대 {maxLength}자
-            </span>
+    label: string
+
+    error?: string
+
+    labelClassName?: string
+
+    showMaxLength?: boolean
+  }
+
+export const Textarea =
+  forwardRef<
+    HTMLTextAreaElement,
+    TextareaProps
+  >(
+    (
+      {
+        id,
+
+        label,
+
+        error,
+
+        required,
+
+        disabled,
+
+        className,
+
+        labelClassName,
+
+        maxLength,
+
+        showMaxLength =
+          true,
+
+        ...props
+      },
+
+      ref,
+    ) => {
+      const generatedId =
+        useId()
+
+      const textareaId =
+        id ??
+        generatedId
+
+      const messageId =
+        error
+          ? `${textareaId}-error`
+          : undefined
+
+      const showFooter =
+        Boolean(
+          error,
+        ) ||
+        Boolean(
+          maxLength &&
+          showMaxLength,
+        )
+
+      return (
+        <div className="flex w-full flex-col gap-2">
+          <label
+            htmlFor={
+              textareaId
+            }
+            className={cn(
+              'text-neutral-900',
+
+              labelClassName ??
+                'typography-label-1',
+            )}
+          >
+            {label}
+
+            {required ? (
+              <span className="text-error">
+                {' '}
+                *
+              </span>
+            ) : null}
+          </label>
+
+          <textarea
+            id={
+              textareaId
+            }
+            ref={
+              ref
+            }
+            required={
+              required
+            }
+            disabled={
+              disabled
+            }
+            maxLength={
+              maxLength
+            }
+            aria-invalid={
+              Boolean(
+                error,
+              )
+            }
+            aria-describedby={
+              messageId
+            }
+            className={cn(
+              'min-h-[128px] w-full resize-y rounded-input border bg-white px-4 py-3 typography-body-2 text-neutral-900 outline-none transition-colors',
+
+              'placeholder:text-neutral-500 focus:border-primary-700',
+
+              'disabled:bg-neutral-100 disabled:text-neutral-700 disabled:placeholder:text-neutral-500',
+
+              error
+                ? 'border-error focus:border-error'
+                : 'border-neutral-500',
+
+              className,
+            )}
+            {...props}
+          />
+
+          {showFooter ? (
+            <div className="flex items-start justify-between gap-3">
+              {error ? (
+                <p
+                  id={
+                    messageId
+                  }
+                  className="typography-label-2 text-error"
+                >
+                  {error}
+                </p>
+              ) : (
+                <span />
+              )}
+
+              {maxLength &&
+              showMaxLength ? (
+                <span className="typography-label-2 text-neutral-500">
+                  최대{' '}
+                  {
+                    maxLength
+                  }
+                  자
+                </span>
+              ) : null}
+            </div>
           ) : null}
         </div>
-      </div>
-    )
-  },
-)
+      )
+    },
+  )
 
-Textarea.displayName = 'Textarea'
+Textarea.displayName =
+  'Textarea'

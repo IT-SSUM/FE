@@ -7,14 +7,15 @@ import {
   useBlocker,
   useNavigate,
 } from 'react-router-dom'
-import { Input } from '@/components/common/Input/Input'
+
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
-import { ROUTES } from '@/routes/paths'
-import { today } from '@/features/donor/model'
+import { Input } from '@/components/common/Input/Input'
 import { DonorPage } from '@/features/donor/DonorPage'
-import { useDonorProfileQuery } from '@/hooks/queries/useDonorProfileQuery'
+import { today } from '@/features/donor/model'
 import { useUpdateDonorProfileMutation } from '@/hooks/mutations/useUpdateDonorProfileMutation'
+import { useDonorProfileQuery } from '@/hooks/queries/useDonorProfileQuery'
+import { ROUTES } from '@/routes/paths'
 
 type ProfileDraft = {
   name: string
@@ -40,12 +41,8 @@ function validateProfile(
   }
 
   if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(
-      profile.birthDate,
-    ) ||
-    Number.isNaN(
-      Date.parse(profile.birthDate),
-    ) ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(profile.birthDate) ||
+    Number.isNaN(Date.parse(profile.birthDate)) ||
     profile.birthDate > today()
   ) {
     errors.birthDate =
@@ -74,8 +71,7 @@ export function DonorProfileEditPage() {
     refetch,
   } = useDonorProfileQuery()
 
-  const updateProfile =
-    useUpdateDonorProfileMutation()
+  const updateProfile = useUpdateDonorProfileMutation()
 
   const [draft, setDraft] =
     useState<ProfileDraft | null>(null)
@@ -83,15 +79,11 @@ export function DonorProfileEditPage() {
   const [errors, setErrors] =
     useState<ProfileErrors>({})
 
-  const [failure, setFailure] =
-    useState('')
-
+  const [failure, setFailure] = useState('')
   const saved = useRef(false)
 
   useEffect(() => {
-    if (!profile) {
-      return
-    }
+    if (!profile) return
 
     setDraft({
       name: profile.name,
@@ -114,36 +106,19 @@ export function DonorProfileEditPage() {
   )
 
   useEffect(() => {
-    if (!dirty) {
-      return
-    }
+    if (!dirty) return
 
-    const warn = (
-      event: BeforeUnloadEvent,
-    ) => {
+    const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault()
       event.returnValue = ''
     }
 
-    window.addEventListener(
-      'beforeunload',
-      warn,
-    )
+    window.addEventListener('beforeunload', warn)
 
     return () => {
-      window.removeEventListener(
-        'beforeunload',
-        warn,
-      )
+      window.removeEventListener('beforeunload', warn)
     }
   }, [dirty])
-
-  /*
-   * 중요:
-   * 에러 / 로딩 / 데이터 없음 상태를
-   * 각각 return해서 아래 JSX에서는
-   * profile과 draft가 반드시 존재하도록 만듭니다.
-   */
 
   if (isError) {
     return (
@@ -152,16 +127,14 @@ export function DonorProfileEditPage() {
         back={ROUTES.donor.myPage}
       >
         <section className="rounded-card border border-neutral-200 bg-white p-6 text-center">
-          <p className="typography-title-3">
+          <p className="typography-title-3 text-neutral-900">
             회원정보를 불러오지 못했어요.
           </p>
 
           <button
             type="button"
-            className="mt-3 text-primary-700"
-            onClick={() => {
-              void refetch()
-            }}
+            className="mt-3 typography-label-1 text-primary-700"
+            onClick={() => void refetch()}
           >
             다시 시도
           </button>
@@ -180,60 +153,65 @@ export function DonorProfileEditPage() {
         title="회원정보 수정"
         back={ROUTES.donor.myPage}
       >
-        <p role="status">
+        <p
+          role="status"
+          className="typography-body-2 text-neutral-700"
+        >
           회원정보를 불러오고 있어요.
         </p>
       </DonorPage>
     )
   }
 
-  /*
-   * 여기부터는 TypeScript가
-   *
-   * profile: DonorProfile
-   * draft: ProfileDraft
-   *
-   * 로 확정해서 인식합니다.
-   */
-
   return (
     <DonorPage
       title="회원정보 수정"
       back={ROUTES.donor.myPage}
+      footer={
+        <footer className="shrink-0 border-t border-neutral-100 bg-surface-canvas px-5 pb-5 pt-4">
+          <Button
+            type="submit"
+            form="donor-profile-edit"
+            className="w-full"
+            disabled={
+              updateProfile.isPending ||
+              !dirty
+            }
+          >
+            {updateProfile.isPending
+              ? '저장 중...'
+              : '저장'}
+          </Button>
+        </footer>
+      }
     >
       <form
+        id="donor-profile-edit"
         noValidate
-        className="space-y-4"
+        className="space-y-5 pt-2"
         onSubmit={async (event) => {
           event.preventDefault()
 
-          const checked =
-            validateProfile(draft)
+          const checked = validateProfile(draft)
 
           setErrors(checked)
 
-          if (
-            Object.keys(checked).length
-          ) {
-            return
-          }
+          if (Object.keys(checked).length) return
 
           setFailure('')
 
           try {
             await updateProfile.mutateAsync({
-              name: draft.name,
+              name: draft.name.trim(),
               birthDate: draft.birthDate,
-              phone: draft.phone,
+              phone: draft.phone.trim(),
             })
 
             saved.current = true
 
             navigate(
               ROUTES.donor.myPage,
-              {
-                replace: true,
-              },
+              { replace: true },
             )
           } catch (cause) {
             setFailure(
@@ -276,8 +254,7 @@ export function DonorProfileEditPage() {
           onChange={(event) => {
             setDraft({
               ...draft,
-              birthDate:
-                event.target.value,
+              birthDate: event.target.value,
             })
 
             setErrors((previous) => ({
@@ -287,6 +264,13 @@ export function DonorProfileEditPage() {
 
             setFailure('')
           }}
+        />
+
+        <Input
+          label="이메일"
+          type="email"
+          value={profile.email}
+          disabled
         />
 
         <Input
@@ -311,67 +295,29 @@ export function DonorProfileEditPage() {
           }}
         />
 
-        <Input
-          label="이메일"
-          type="email"
-          value={profile.email}
-          disabled
-        />
-
-        <Input
-          label="활동 지역"
-          type="text"
-          value={profile.regionName}
-          disabled
-        />
-
-        <p className="typography-label-2 text-neutral-700">
-          이메일과 활동 지역은
-          회원정보 수정 화면에서 변경할 수
-          없습니다.
-        </p>
-
         {failure ? (
           <p
             role="alert"
-            className="text-error"
+            className="typography-label-2 text-error"
           >
             {failure}
           </p>
         ) : null}
-
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={
-            updateProfile.isPending ||
-            !dirty
-          }
-        >
-          {updateProfile.isPending
-            ? '저장 중...'
-            : '저장하기'}
-        </Button>
       </form>
 
       <Dialog
-        open={
-          blocker.state === 'blocked'
-        }
+        open={blocker.state === 'blocked'}
         title="수정 중인 내용을 버릴까요?"
+        description="저장하지 않은 변경 내용은 사라집니다."
         confirmText="나가기"
         cancelText="계속 수정하기"
         onConfirm={() => {
-          if (
-            blocker.state === 'blocked'
-          ) {
+          if (blocker.state === 'blocked') {
             blocker.proceed()
           }
         }}
         onCancel={() => {
-          if (
-            blocker.state === 'blocked'
-          ) {
+          if (blocker.state === 'blocked') {
             blocker.reset()
           }
         }}
