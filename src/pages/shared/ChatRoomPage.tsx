@@ -574,24 +574,26 @@ export function ChatRoomPage() {
           }
         />
 
-        <button
-          type="button"
-          aria-label="이미지 보내기"
-          disabled={
-            !canSendMessage ||
-            isUploadingImage
-          }
-          onClick={() =>
-            fileInputRef.current?.click()
-          }
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-primary-700"
-        >
-          <Plus
-            aria-hidden
-            size={22}
-            strokeWidth={2}
-          />
-        </button>
+        {!terminalNotice ? (
+          <button
+            type="button"
+            aria-label="이미지 보내기"
+            disabled={
+              !canSendMessage ||
+              isUploadingImage
+            }
+            onClick={() =>
+              fileInputRef.current?.click()
+            }
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-primary-700"
+          >
+            <Plus
+              aria-hidden
+              size={22}
+              strokeWidth={2}
+            />
+          </button>
+        ) : null}
 
         <label
           className="sr-only"
@@ -628,19 +630,24 @@ export function ChatRoomPage() {
           disabled={
             !canSendMessage
           }
-          className="h-11 min-w-0 flex-1 rounded-pill bg-neutral-100 px-3 text-sm text-neutral-900 outline-none"
+          className={cn(
+            'h-11 min-w-0 flex-1 rounded-pill bg-neutral-100 text-neutral-900 outline-none',
+            terminalNotice ? 'px-4 text-center text-xs' : 'px-3 text-sm',
+          )}
         />
 
-        <button
-          type="submit"
-          disabled={
-            !canSendMessage ||
-            !message.trim()
-          }
-          className="h-11 w-14 shrink-0 rounded-pill bg-primary-700 text-sm font-bold text-white disabled:bg-neutral-200 disabled:text-neutral-700"
-        >
-          전송
-        </button>
+        {!terminalNotice ? (
+          <button
+            type="submit"
+            disabled={
+              !canSendMessage ||
+              !message.trim()
+            }
+            className="h-11 w-14 shrink-0 rounded-pill bg-primary-700 text-sm font-bold text-white disabled:bg-neutral-200 disabled:text-neutral-700"
+          >
+            전송
+          </button>
+        ) : null}
       </form>
 
       <Dialog

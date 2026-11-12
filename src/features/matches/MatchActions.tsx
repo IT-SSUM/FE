@@ -66,8 +66,11 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
     try {
       if (action === 'accept') {
         const result = await accept.mutateAsync(match.matchId)
-        // 기존 채팅 화면은 고정 데모 대화이므로 서버 채팅방으로 오인시키지 않습니다.
-        setNotice(result.chatRoomId ? '수락되었습니다. 채팅방이 생성되었으며 채팅 화면 연동은 준비 중이에요.' : '수락되었습니다.')
+        setNotice(
+          result.chatRoomId
+            ? '수락되었습니다. 채팅방에서 대화를 시작할 수 있어요.'
+            : '수락되었습니다.',
+        )
       } else if (action === 'withdraw') {
         await withdraw.mutateAsync(match.matchId)
       } else if (action === 'reserve') {
