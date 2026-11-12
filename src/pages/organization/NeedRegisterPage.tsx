@@ -3,6 +3,7 @@ import { CheckCircle2, ChevronLeft, Search } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
+import { FilterSelect } from '@/components/common/FilterSelect/FilterSelect'
 import { Input } from '@/components/common/Input/Input'
 import { OptionCardGroup } from '@/components/common/OptionCardGroup/OptionCardGroup'
 import { SelectField } from '@/components/common/SelectField/SelectField'
@@ -32,11 +33,9 @@ export function NeedRegisterPage() {
   const sourceDonation = sourceDonationQuery.data
   const isDonationFixed = sourceDonationId !== null
   const [step, setStep] = useState<1 | 2>(1)
-  const [categoryPanelOpen, setCategoryPanelOpen] = useState(false)
   const [regionPanelOpen, setRegionPanelOpen] = useState(false)
   const [regionQuery, setRegionQuery] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
-  const [draftCategoryId, setDraftCategoryId] = useState<number | null>(null)
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState('')
   const [unit, setUnit] = useState('개')
@@ -86,11 +85,6 @@ export function NeedRegisterPage() {
     const timer = window.setTimeout(() => setFailure(''), 4500)
     return () => window.clearTimeout(timer)
   }, [failure])
-
-  const openCategoryPanel = () => {
-    setDraftCategoryId(selectedCategory?.categoryId ?? null)
-    setCategoryPanelOpen(true)
-  }
 
   const handleBack = () => {
     if (step === 2) {
@@ -151,60 +145,6 @@ export function NeedRegisterPage() {
     } finally {
       submitting.current = false
     }
-  }
-
-  if (categoryPanelOpen) {
-    return (
-      <div className="flex min-h-dvh flex-col bg-surface-canvas">
-        <PageHeader
-          title="카테고리 선택"
-          onBack={() => setCategoryPanelOpen(false)}
-        />
-
-        <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
-          <h2 className="typography-heading-3 text-neutral-900">
-            어떤 물품인가요?
-          </h2>
-          <p className="mt-2 typography-label-2 text-neutral-600">
-            정확히 카테고리에서 가장 가까운 항목을 골라주세요.
-          </p>
-
-          {isCategoriesLoading ? (
-            <p role="status" className="mt-4 typography-body-2 text-neutral-600">카테고리를 불러오는 중이에요.</p>
-          ) : isCategoriesError ? (
-            <div role="alert" className="mt-4 rounded-control border border-error/30 bg-error-bg p-4 typography-body-2 text-error">
-              카테고리를 불러오지 못했어요.
-              <button type="button" className="ml-2 font-semibold underline underline-offset-2" onClick={() => void refetchCategories()}>다시 시도</button>
-            </div>
-          ) : (
-            <OptionCardGroup
-              label="카테고리"
-              hideLabel
-              className="mt-4"
-              options={itemCategories.map((item) => item.name)}
-              value={itemCategories.find((item) => item.categoryId === draftCategoryId)?.name ?? ''}
-              onChange={(value) => {
-                setDraftCategoryId(itemCategories.find((item) => item.name === value)?.categoryId ?? null)
-              }}
-            />
-          )}
-        </main>
-
-        <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
-          <Button
-            className="h-[46px] w-full"
-            disabled={!draftCategoryId || isCategoriesLoading || isCategoriesError}
-            onClick={() => {
-              setCategoryId(draftCategoryId)
-              setErrors((previous) => ({ ...previous, category: undefined }))
-              setCategoryPanelOpen(false)
-            }}
-          >
-            적용
-          </Button>
-        </footer>
-      </div>
-    )
   }
 
   if (regionPanelOpen) {
@@ -305,20 +245,36 @@ export function NeedRegisterPage() {
               <span className="text-xs font-bold leading-[18px] text-neutral-900">
                 카테고리
               </span>
-              <button
-                type="button"
-                onClick={openCategoryPanel}
-                disabled={isDonationFixed}
-                style={{ height: 54 }}
-                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:text-neutral-700"
-              >
-                {isDonationFixed && sourceDonationQuery.isPending
-                  ? '기부 물품 정보를 불러오는 중...'
-                  : isCategoriesLoading
-                  ? '카테고리를 불러오는 중...'
-                  : selectedCategory?.name ?? '카테고리를 선택해 주세요.'}
-              </button>
+              <FilterSelect
+                label="카테고리"
+                showMenuLabel={false}
+                includeAllOption={false}
+                value={selectedCategory?.name ?? ''}
+                options={itemCategories.map((item) => item.name)}
+                disabled={
+                  isDonationFixed || isCategoriesLoading || isCategoriesError
+                }
+                className="h-[54px] w-full justify-between rounded-input border-neutral-500 bg-white px-4 typography-body-2 text-neutral-900"
+                onChange={(value) => {
+                  setCategoryId(
+                    itemCategories.find((item) => item.name === value)?.categoryId ?? null,
+                  )
+                  setErrors((previous) => ({ ...previous, category: undefined }))
+                }}
+              />
               {errors.category ? <p className="typography-label-2 text-error">{errors.category}</p> : null}
+              {isCategoriesError ? (
+                <p role="alert" className="typography-label-2 text-error">
+                  카테고리를 불러오지 못했어요.{' '}
+                  <button
+                    type="button"
+                    className="font-semibold underline underline-offset-2"
+                    onClick={() => void refetchCategories()}
+                  >
+                    다시 시도
+                  </button>
+                </p>
+              ) : null}
             </div>
             <Input
               label="품목"
