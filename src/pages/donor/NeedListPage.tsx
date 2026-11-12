@@ -21,6 +21,10 @@ import {
 } from '@/components/common/BottomNavigation/BottomNavigation'
 
 import {
+  FilterSelect,
+} from '@/components/common/FilterSelect/FilterSelect'
+
+import {
   DonorPage,
 } from '@/features/donor/DonorPage'
 
@@ -348,19 +352,22 @@ export function NeedListPage() {
     fetchNextPage,
   ])
 
-  const openFilterPage =
-    () => {
-      const queryString =
-        searchParams.toString()
+  const updateFilter = (
+    key: 'categoryId' | 'regionId' | 'condition',
+    value: string,
+  ) => {
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
 
-      navigate(
-        `${ROUTES.donor.needFilter}${
-          queryString
-            ? `?${queryString}`
-            : ''
-        }`,
-      )
-    }
+        if (value) next.set(key, value)
+        else next.delete(key)
+
+        return next
+      },
+      { replace: true },
+    )
+  }
 
   return (
     <DonorPage
@@ -405,51 +412,41 @@ export function NeedListPage() {
       </label>
 
       <div className="flex w-full gap-2 overflow-x-auto">
-        <FilterChip
-          label={
-            selectedCategoryName ??
-            '카테고리'
-          }
-          active={
-            categoryId !==
-            undefined
-          }
-          onClick={
-            openFilterPage
+        <FilterSelect
+          label="카테고리"
+          showMenuLabel={false}
+          value={selectedCategoryName ?? ''}
+          options={(categoryQuery.data ?? []).map((category) => category.name)}
+          disabled={categoryQuery.isPending || categoryQuery.isError}
+          onChange={(value) => {
+            const selected = categoryQuery.data?.find(
+              (category) => category.name === value,
+            )
+            updateFilter('categoryId', selected ? String(selected.categoryId) : '')
+          }}
+        />
+
+        <FilterSelect
+          label="지역"
+          showMenuLabel={false}
+          value={regionId === PILOT_REGION.id ? PILOT_REGION.name : ''}
+          options={[PILOT_REGION.name]}
+          onChange={(value) =>
+            updateFilter('regionId', value ? String(PILOT_REGION.id) : '')
           }
         />
 
-        <FilterChip
-          label={
-            regionId ===
-            PILOT_REGION.id
-              ? PILOT_REGION.name
-              : '지역'
-          }
-          active={
-            regionId !==
-            undefined
-          }
-          onClick={
-            openFilterPage
-          }
-        />
-
-        <FilterChip
-          label={
-            condition
-              ? CONDITION_LABELS[
-                  condition
-                ]
-              : '희망 상태'
-          }
-          active={
-            condition !==
-            undefined
-          }
-          onClick={
-            openFilterPage
-          }
+        <FilterSelect
+          label="희망 상태"
+          showMenuLabel={false}
+          value={condition ? CONDITION_LABELS[condition] : ''}
+          options={Object.values(CONDITION_LABELS)}
+          onChange={(value) => {
+            const selected = Object.entries(CONDITION_LABELS).find(
+              ([, label]) => label === value,
+            )?.[0] as ItemConditionCode | undefined
+            updateFilter('condition', selected ?? '')
+          }}
         />
       </div>
 
@@ -564,32 +561,6 @@ export function NeedListPage() {
         </div>
       )}
     </DonorPage>
-  )
-}
-
-function FilterChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      className={
-        active
-          ? 'h-7 shrink-0 rounded-pill border border-primary-300 bg-primary-100 px-3 typography-label-1 text-primary-700'
-          : 'h-7 shrink-0 rounded-pill border border-neutral-200 bg-white px-3 typography-label-1 text-neutral-700'
-      }
-      onClick={
-        onClick
-      }
-    >
-      {label}
-    </button>
   )
 }
 
