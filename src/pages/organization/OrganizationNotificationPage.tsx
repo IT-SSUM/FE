@@ -3,7 +3,6 @@ import { Bell, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { useNotificationItems } from '@/features/notifications/useNotificationItems'
-import { NotificationFeedback } from '@/features/notifications/NotificationFeedback'
 import { useUnreadNotificationCountQuery } from '@/hooks/queries/useNotificationsQuery'
 import { cn } from '@/utils/cn'
 
@@ -74,7 +73,6 @@ export function OrganizationNotificationPage() {
           })}
         </section>
         {notificationAction.error && <p role="alert">읽음 처리에 실패했어요. 알림을 다시 선택해주세요.</p>}
-        <NotificationFeedback />
       </main>
 
       <BottomNavigation
