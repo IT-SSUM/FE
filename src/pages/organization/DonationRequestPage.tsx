@@ -33,7 +33,8 @@ export function DonationRequestPage() {
           need.status === 'RECRUITING' &&
           need.availableQuantity > 0 &&
           need.categoryId === donation?.categoryId &&
-          need.unit === donation.unit,
+          need.unit === donation.unit &&
+          normalizeItemName(need.itemName) === normalizeItemName(donation.itemName),
       ),
     [donation, neededItemsQuery.data],
   )
@@ -160,13 +161,17 @@ export function DonationRequestPage() {
               <section className="mt-4 rounded-control border border-neutral-200 bg-white p-4">
                 <p className="typography-title-3 text-neutral-900">연결할 수 있는 필요 물품이 없어요.</p>
                 <p className="mt-2 typography-label-2 text-neutral-700">
-                  같은 카테고리와 단위의 모집 중인 필요 물품을 먼저 등록해 주세요.
+                  물품명, 카테고리와 단위가 같은 모집 중인 필요 물품을 먼저 등록해 주세요.
                 </p>
                 <Button
                   type="button"
                   variant="secondary"
                   className="mt-4 w-full"
-                  onClick={() => navigate(ROUTES.organization.needNew)}
+                  onClick={() =>
+                    navigate(
+                      `${ROUTES.organization.needNew}?sourceDonationId=${donation.donationItemId}`,
+                    )
+                  }
                 >
                   필요 물품 등록하기
                 </Button>
@@ -342,6 +347,10 @@ function parsePositiveId(value: string | null) {
   if (!value || !/^[1-9]\d*$/.test(value)) return null
   const id = Number(value)
   return Number.isSafeInteger(id) ? id : null
+}
+
+function normalizeItemName(value: string) {
+  return value.trim().replace(/\s+/g, '').toLocaleLowerCase('ko-KR')
 }
 
 type PageHeaderProps = { title: string; onBack: () => void }
