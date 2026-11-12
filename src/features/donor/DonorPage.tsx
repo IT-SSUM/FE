@@ -1,37 +1,65 @@
-import type { ReactNode } from 'react'
-import { ChevronLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import type {
+  ReactNode,
+} from 'react'
+
+import {
+  ChevronLeft,
+} from 'lucide-react'
+
+import {
+  Link,
+} from 'react-router-dom'
 
 type DonorPageProps = {
   title: string
-  back: string
+  back?: string
+  onBack?: () => void
   children: ReactNode
   footer?: ReactNode
 
   // 기존 호출부 호환용입니다.
   // 더 이상 demo UI를 표시하지 않습니다.
-  mode?: 'demo' | 'server'
+  mode?:
+    | 'demo'
+    | 'server'
 }
 
 export function DonorPage({
   title,
   back,
+  onBack,
   children,
   footer,
 }: DonorPageProps) {
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
       <header className="flex min-h-14 items-center gap-2 px-5">
-        <Link
-          to={back}
-          aria-label="뒤로가기"
-          className="p-2 text-primary-700"
-        >
-          <ChevronLeft
-            aria-hidden
-            size={24}
-          />
-        </Link>
+        {onBack ? (
+          <button
+            type="button"
+            aria-label="뒤로가기"
+            className="p-2 text-primary-700"
+            onClick={
+              onBack
+            }
+          >
+            <ChevronLeft
+              aria-hidden
+              size={24}
+            />
+          </button>
+        ) : back ? (
+          <Link
+            to={back}
+            aria-label="뒤로가기"
+            className="p-2 text-primary-700"
+          >
+            <ChevronLeft
+              aria-hidden
+              size={24}
+            />
+          </Link>
+        ) : null}
 
         <h1 className="typography-title-3">
           {title}

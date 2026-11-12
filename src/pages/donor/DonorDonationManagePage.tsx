@@ -3,14 +3,12 @@ import {
 } from 'lucide-react'
 
 import {
-  Link,
   useNavigate,
   useSearchParams,
 } from 'react-router-dom'
 
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { Button } from '@/components/common/Button/Button'
-import { ItemRow } from '@/components/item/ItemRow/ItemRow'
 
 import {
   DonorPage,
@@ -35,43 +33,19 @@ import type {
   MyDonationItem,
 } from '@/types/donationItem'
 
-const statusFilters: Array<{
-  value:
-    | ''
-    | DonationItemStatus
-
-  label: string
-}> = [
-  {
-    value: '',
-    label: '전체',
-  },
-  {
-    value: 'RECRUITING',
-    label: '모집 중',
-  },
-  {
-    value: 'FULL',
-    label: '모집 완료',
-  },
-  {
-    value: 'COMPLETED',
-    label: '기부 완료',
-  },
-]
-
-const statusLabels: Record<
-  DonationItemStatus,
-  string
-> = {
+const statusLabels:
+  Record<
+    DonationItemStatus,
+    string
+  > = {
   RECRUITING:
-    '모집 중',
+    '모집중',
 
   FULL:
-    '모집 완료',
+    '예약마감',
 
   COMPLETED:
-    '기부 완료',
+    '전달 완료',
 }
 
 export function DonorDonationManagePage() {
@@ -87,28 +61,46 @@ export function DonorDonationManagePage() {
   const query =
     useDonorDonationItemsQuery()
 
+  const items =
+    query.data ?? []
+
   const filter =
     params.get(
-      'status',
+      'category',
     ) ?? ''
 
-  const items =
-    query.data ??
-    []
+  const categories =
+    Array.from(
+      new Set(
+        items
+          .map(
+            (item) =>
+              item.categoryName,
+          )
+          .filter(
+            (
+              value,
+            ): value is string =>
+              Boolean(value),
+          ),
+      ),
+    )
 
   const filtered =
-    items.filter(
-      (item) =>
-        !filter ||
-        item.status ===
-          filter,
-    )
+    filter
+      ? items.filter(
+          (item) =>
+            item.categoryName ===
+            filter,
+        )
+      : items
 
   return (
     <DonorPage
-      title="등록한 물품 관리"
+      title="등록한 물품"
       back={
-        ROUTES.donor.myPage
+        ROUTES.donor
+          .myPage
       }
       footer={
         <BottomNavigation
@@ -116,37 +108,13 @@ export function DonorDonationManagePage() {
         />
       }
     >
-      <section className="flex items-center justify-between rounded-card bg-primary-100 p-4">
-        <div>
-          <p className="typography-label-2 text-neutral-700">
-            내가 등록한
-            기부 물품
-          </p>
-
-          <h2 className="mt-1 typography-title-2 text-neutral-900">
-            등록 물품{' '}
-            {items.length}개
-          </h2>
-        </div>
-
-        <Link
-          to={
-            ROUTES.donor
-              .donationNew
-          }
-          className="typography-label-1 text-primary-700"
-        >
-          물품 등록
-        </Link>
-      </section>
-
       {query.isPending ? (
         <p
           role="status"
           className="py-8 text-center typography-body-2 text-neutral-700"
         >
-          등록한 물품을
-          불러오고 있어요.
+          등록한 물품을 불러오고
+          있어요.
         </p>
       ) : null}
 
@@ -164,9 +132,6 @@ export function DonorDonationManagePage() {
           <Button
             variant="secondary"
             className="mt-4"
-            disabled={
-              query.isFetching
-            }
             onClick={() =>
               void query.refetch()
             }
@@ -180,99 +145,95 @@ export function DonorDonationManagePage() {
       !query.isError ? (
         <>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {statusFilters.map(
-              ({
-                value,
-                label,
-              }) => {
-                const count =
-                  items.filter(
-                    (item) =>
-                      !value ||
-                      item.status ===
-                        value,
-                  ).length
-
-                return (
-                  <button
-                    key={
-                      value ||
-                      'all'
-                    }
-                    type="button"
-                    aria-pressed={
-                      filter ===
-                      value
-                    }
-                    onClick={() =>
-                      setParams(
-                        value
-                          ? {
-                              status:
-                                value,
-                            }
-                          : {},
-                        {
-                          replace:
-                            true,
-                        },
-                      )
-                    }
-                    className={`shrink-0 rounded-pill border border-neutral-200 px-3 py-2 typography-label-1 ${
-                      filter ===
-                      value
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-white text-neutral-700'
-                    }`}
-                  >
-                    {label}{' '}
-                    {count}
-                  </button>
+            <CategoryChip
+              active={
+                !filter
+              }
+              label={`전체 ${items.length}`}
+              onClick={() =>
+                setParams(
+                  {},
+                  {
+                    replace:
+                      true,
+                  },
                 )
-              },
+              }
+            />
+
+            {categories.map(
+              (category) => (
+                <CategoryChip
+                  key={
+                    category
+                  }
+                  active={
+                    filter ===
+                    category
+                  }
+                  label={shortCategoryName(
+                    category,
+                  )}
+                  onClick={() =>
+                    setParams(
+                      {
+                        category,
+                      },
+                      {
+                        replace:
+                          true,
+                      },
+                    )
+                  }
+                />
+              ),
             )}
           </div>
 
-          <p
-            role="status"
-            className="typography-label-2 text-neutral-700"
-          >
-            {filtered.length}
-            개 물품
-          </p>
-
           {filtered.length >
           0 ? (
-            <section className="space-y-3">
-              {filtered.map(
-                (item) => (
-                  <DonationItemRow
-                    key={
-                      item.donationItemId
-                    }
-                    item={
-                      item
-                    }
-                    onClick={() =>
-                      navigate(
-                        routePath.donorDonationDetail(
-                          String(
-                            item.donationItemId,
+            <>
+              <section className="space-y-3">
+                {filtered.map(
+                  (item) => (
+                    <DonationCard
+                      key={
+                        item.donationItemId
+                      }
+                      item={
+                        item
+                      }
+                      onClick={() =>
+                        navigate(
+                          routePath.donorDonationDetail(
+                            String(
+                              item.donationItemId,
+                            ),
                           ),
-                        ),
-                      )
-                    }
-                  />
-                ),
-              )}
-            </section>
+                        )
+                      }
+                    />
+                  ),
+                )}
+              </section>
+
+              <div className="mt-8 flex justify-end">
+                <Button
+                  className="h-12 rounded-pill px-5"
+                  onClick={() =>
+                    navigate(
+                      ROUTES.donor
+                        .donationNew,
+                    )
+                  }
+                >
+                  등록하기
+                </Button>
+              </div>
+            </>
           ) : (
             <EmptyState
-              title={
-                filter
-                  ? '해당 상태의 물품이 없어요'
-                  : '등록된 물품이 없어요'
-              }
+              title="등록된 물품이 없어요"
               to={
                 ROUTES.donor
                   .donationNew
@@ -286,7 +247,36 @@ export function DonorDonationManagePage() {
   )
 }
 
-function DonationItemRow({
+function CategoryChip({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={
+        active
+      }
+      onClick={
+        onClick
+      }
+      className={
+        active
+          ? 'h-9 shrink-0 rounded-pill bg-primary-700 px-3 typography-label-1 text-white'
+          : 'h-9 shrink-0 rounded-pill border border-neutral-200 bg-white px-3 typography-label-1 text-neutral-700'
+      }
+    >
+      {label}
+    </button>
+  )
+}
+
+function DonationCard({
   item,
   onClick,
 }: {
@@ -296,57 +286,107 @@ function DonationItemRow({
   const image =
     item.imageUrl ??
     item.imageUrls?.[0] ??
-    undefined
+    null
 
-  const categoryText =
-    item.categoryName ??
-    '기부 물품'
+  const reserved =
+    item.reservedQuantity ??
+    0
 
-  const regionText =
-    item.regionName
-      ? ` · ${item.regionName}`
-      : ''
+  const completed =
+    item.completedQuantity ??
+    0
 
   return (
-    <ItemRow
-      title={`${item.itemName} ${item.quantity}${item.unit}`}
-      description={
-        <>
-          <p>
-            {categoryText}
-            {regionText}
-          </p>
-
-          <p>
-            남은 수량{' '}
-            {
-              item.availableQuantity
-            }
-            {item.unit} ·{' '}
-            {
-              statusLabels[
-                item.status
-              ]
-            }
-          </p>
-        </>
-      }
-      imageSrc={
-        image
-      }
-      icon={
-        <Package
-          aria-hidden
-          size={28}
-        />
-      }
-      thumbnailClassName="h-[68px] w-16 rounded-input !bg-error-bg"
-      className="gap-3 p-4 shadow-none"
-      titleClassName="typography-title-3"
-      descriptionClassName="typography-label-2 line-clamp-none"
+    <button
+      type="button"
       onClick={
         onClick
       }
-    />
+      className="flex w-full items-center gap-3 rounded-card border border-neutral-200 bg-white p-4 text-left"
+    >
+      <div className="flex size-[72px] shrink-0 items-center justify-center overflow-hidden rounded-input bg-error-bg text-primary-700">
+        {image ? (
+          <img
+            src={
+              image
+            }
+            alt=""
+            className="size-full object-cover"
+          />
+        ) : (
+          <Package
+            aria-hidden
+            size={28}
+          />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <h2 className="truncate typography-title-3 text-neutral-900">
+          {
+            item.itemName
+          }{' '}
+          {
+            item.quantity
+          }
+          {
+            item.unit
+          }
+        </h2>
+
+        <p className="mt-1 typography-label-2 text-neutral-700">
+          예약 수량{' '}
+          {reserved} · 전달 완료{' '}
+          {completed}
+        </p>
+
+        <p className="typography-label-2 text-neutral-700">
+          신청 가능 수량{' '}
+          {
+            item.availableQuantity
+          }{' '}
+          (총 {item.quantity})
+        </p>
+
+        <span
+          className={`mt-2 inline-flex h-7 items-center rounded-pill px-3 typography-label-2 ${
+            item.status ===
+            'RECRUITING'
+              ? 'bg-neutral-100 text-neutral-700'
+              : item.status ===
+                  'FULL'
+                ? 'bg-primary-100 text-primary-700'
+                : 'bg-success-bg text-success'
+          }`}
+        >
+          {
+            statusLabels[
+              item.status
+            ]
+          }
+        </span>
+      </div>
+    </button>
   )
+}
+
+function shortCategoryName(
+  category: string,
+) {
+  switch (category) {
+    case '생활용품':
+      return '생활'
+
+    case '도서·문구':
+      return '도서'
+
+    case '의류·잡화':
+      return '의류'
+
+    case '유아·아동용품':
+      return '유아'
+
+    default:
+      return category
+  }
 }

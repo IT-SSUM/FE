@@ -7,15 +7,13 @@ import {
   useParams,
 } from 'react-router-dom'
 
-import { Button } from '@/components/common/Button/Button'
+import {
+  Button,
+} from '@/components/common/Button/Button'
 
 import {
   DonorPage,
 } from '@/features/donor/DonorPage'
-
-import {
-  conditionLabel,
-} from '@/features/donor/donationItemApiState'
 
 import {
   getNeededItemErrorMessage,
@@ -29,13 +27,18 @@ import {
   ROUTES,
 } from '@/routes/paths'
 
+import type {
+  ItemConditionCode,
+} from '@/types/item'
+
 export function NeedDetailPage() {
   const navigate =
     useNavigate()
 
   const {
     needId,
-  } = useParams()
+  } =
+    useParams()
 
   const id =
     parsePositiveId(
@@ -50,7 +53,7 @@ export function NeedDetailPage() {
   if (id === null) {
     return (
       <DonorPage
-        title="필요 물품 상세"
+        title="물품 상세"
         back={
           ROUTES.donor
             .needList
@@ -63,18 +66,19 @@ export function NeedDetailPage() {
     )
   }
 
-  if (
-    query.isPending
-  ) {
+  if (query.isPending) {
     return (
       <DonorPage
-        title="필요 물품 상세"
+        title="물품 상세"
         back={
           ROUTES.donor
             .needList
         }
       >
-        <p role="status">
+        <p
+          role="status"
+          className="typography-body-2 text-neutral-700"
+        >
           필요 물품 정보를
           불러오고 있어요.
         </p>
@@ -82,12 +86,10 @@ export function NeedDetailPage() {
     )
   }
 
-  if (
-    query.isError
-  ) {
+  if (query.isError) {
     return (
       <DonorPage
-        title="필요 물품 상세"
+        title="물품 상세"
         back={
           ROUTES.donor
             .needList
@@ -113,7 +115,7 @@ export function NeedDetailPage() {
   if (!need) {
     return (
       <DonorPage
-        title="필요 물품 상세"
+        title="물품 상세"
         back={
           ROUTES.donor
             .needList
@@ -134,12 +136,12 @@ export function NeedDetailPage() {
 
   return (
     <DonorPage
-      title="필요 물품 상세"
+      title="물품 상세"
       back={
         ROUTES.donor.needList
       }
       footer={
-        <footer className="shrink-0 border-t border-neutral-200 bg-surface-canvas px-5 py-4">
+        <footer className="shrink-0 bg-surface-canvas p-5">
           <Button
             className="w-full"
             disabled={
@@ -152,7 +154,7 @@ export function NeedDetailPage() {
             }
           >
             {canDonate
-              ? '이 품목 기부하기'
+              ? '제안하기'
               : '현재 모집이 종료됐어요'}
           </Button>
         </footer>
@@ -164,19 +166,19 @@ export function NeedDetailPage() {
           {
             need.availableQuantity
           }
-          {need.unit}이
+          {need.unit}가
           필요해요
         </h2>
 
-        <p className="mt-3 typography-body-2 text-neutral-700">
+        <p className="mt-4 typography-body-1 text-neutral-700">
           {
             need.organizationName
           }{' '}
           ·{' '}
           {need.verificationStatus ===
           'VERIFIED'
-            ? '기관 확인 완료'
-            : '기관 상태 확인 필요'}
+            ? '사업자 확인 완료'
+            : '사업자 확인 필요'}
         </p>
       </div>
 
@@ -189,7 +191,7 @@ export function NeedDetailPage() {
           className="h-[216px] w-full rounded-card object-cover"
         />
       ) : (
-        <div className="flex h-[216px] items-center justify-center rounded-card bg-error-bg text-primary-700">
+        <div className="flex h-[216px] w-full items-center justify-center rounded-card bg-error-bg text-primary-700">
           <BookOpen
             aria-hidden
             size={88}
@@ -199,7 +201,7 @@ export function NeedDetailPage() {
       )}
 
       <section className="rounded-card border border-neutral-200 bg-white p-4">
-        <dl className="space-y-2 typography-body-2">
+        <dl className="space-y-2">
           <NeedInfoRow
             label="필요 품목"
             value={
@@ -208,23 +210,15 @@ export function NeedDetailPage() {
           />
 
           <NeedInfoRow
-            label="전체 수량"
-            value={`${need.requiredQuantity}${need.unit}`}
-          />
-
-          <NeedInfoRow
-            label="남은 수량"
+            label="필요 수량"
             value={`${need.availableQuantity}${need.unit}`}
           />
 
           <NeedInfoRow
             label="희망 상태"
-            value={
-              conditionLabel[
-                need.desiredCondition
-              ] ??
-              need.desiredCondition
-            }
+            value={getConditionLabel(
+              need.desiredCondition,
+            )}
           />
 
           <NeedInfoRow
@@ -234,30 +228,15 @@ export function NeedDetailPage() {
               need.regionName
             }
           />
-
-          {need.receiveAddress ? (
-            <NeedInfoRow
-              label="수령 주소"
-              value={
-                need.receiveAddress
-              }
-            />
-          ) : null}
         </dl>
       </section>
 
       {need.description ? (
-        <section>
-          <h3 className="typography-title-2 text-neutral-900">
-            필요 물품 설명
-          </h3>
-
-          <p className="mt-3 whitespace-pre-wrap typography-body-1 text-neutral-900">
-            {
-              need.description
-            }
-          </p>
-        </section>
+        <p className="whitespace-pre-wrap typography-body-1 text-neutral-900">
+          {
+            need.description
+          }
+        </p>
       ) : null}
 
       <section>
@@ -265,7 +244,7 @@ export function NeedDetailPage() {
           기관 소개
         </h3>
 
-        <p className="mt-3 whitespace-pre-wrap typography-body-1 text-neutral-900">
+        <p className="mt-4 whitespace-pre-wrap typography-body-1 text-neutral-900">
           {need.organizationIntroduction ||
             '등록된 기관 소개가 없어요.'}
         </p>
@@ -283,15 +262,31 @@ function NeedInfoRow({
 }) {
   return (
     <div className="grid grid-cols-[88px_1fr] gap-2">
-      <dt className="text-neutral-700">
+      <dt className="typography-label-1 text-neutral-700">
         {label}
       </dt>
 
-      <dd className="text-neutral-900">
+      <dd className="typography-body-2 text-neutral-900">
         {value}
       </dd>
     </div>
   )
+}
+
+function getConditionLabel(
+  condition:
+    ItemConditionCode,
+) {
+  switch (condition) {
+    case 'HIGH':
+      return '상'
+
+    case 'MID':
+      return '중 이상'
+
+    case 'LOW':
+      return '하 이상'
+  }
 }
 
 function StateCard({
@@ -305,7 +300,7 @@ function StateCard({
 }) {
   return (
     <section className="rounded-card border border-neutral-200 bg-white p-6 text-center">
-      <p className="typography-title-3">
+      <p className="typography-title-3 text-neutral-900">
         {message}
       </p>
 

@@ -1,11 +1,11 @@
 import {
   useEffect,
   useRef,
+  type ReactNode,
 } from 'react'
 
 import {
   ChevronLeft,
-  MapPin,
   RefreshCw,
 } from 'lucide-react'
 
@@ -21,15 +21,22 @@ import {
 } from '@/apis/organization'
 
 import {
+  matchErrorMessage,
+} from '@/apis/match'
+
+import {
   getRecommendationErrorMessage,
 } from '@/apis/recommendation'
 
-import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
-
-import { Button } from '@/components/common/Button/Button'
+import {
+  BottomNavigation,
+} from '@/components/common/BottomNavigation/BottomNavigation'
 
 import {
-  conditionLabel,
+  Button,
+} from '@/components/common/Button/Button'
+
+import {
   getDonationItemFailure,
   parseDonationItemId,
 } from '@/features/donor/donationItemApiState'
@@ -37,6 +44,10 @@ import {
 import {
   useOrganizationDetail,
 } from '@/hooks/organization/useOrganizationDetail'
+
+import {
+  useCreateMatchMutation,
+} from '@/hooks/mutations/useCreateMatchMutation'
 
 import {
   useRecalculateDonationRecommendationsMutation,
@@ -55,6 +66,10 @@ import {
   routePath,
 } from '@/routes/paths'
 
+import type {
+  ItemConditionCode,
+} from '@/types/item'
+
 type RecommendationLocationState = {
   recalculate?: boolean
 }
@@ -64,7 +79,8 @@ export function RecommendationPage() {
     donationId = '',
     organizationId:
       organizationIdParam,
-  } = useParams()
+  } =
+    useParams()
 
   const navigate =
     useNavigate()
@@ -109,15 +125,21 @@ export function RecommendationPage() {
   const recalculateMutation =
     useRecalculateDonationRecommendationsMutation()
 
+  const createMatchMutation =
+    useCreateMatchMutation()
+
   const recommendations =
     recommendationsQuery.data ??
     []
 
   const selectedRecommendation =
-    organizationId === null
+    organizationId ===
+    null
       ? undefined
       : recommendations.find(
-          (recommendation) =>
+          (
+            recommendation,
+          ) =>
             recommendation.organizationId ===
             organizationId,
         )
@@ -150,8 +172,11 @@ export function RecommendationPage() {
                 ),
               ),
               {
-                replace: true,
-                state: null,
+                replace:
+                  true,
+
+                state:
+                  null,
               },
             )
           },
@@ -162,7 +187,8 @@ export function RecommendationPage() {
   useEffect(() => {
     if (
       !shouldRecalculate ||
-      donationItemId === null ||
+      donationItemId ===
+        null ||
       recalculationStarted.current
     ) {
       return
@@ -182,8 +208,11 @@ export function RecommendationPage() {
               ),
             ),
             {
-              replace: true,
-              state: null,
+              replace:
+                true,
+
+              state:
+                null,
             },
           )
         },
@@ -197,14 +226,16 @@ export function RecommendationPage() {
   ])
 
   if (
-    donationItemId === null
+    donationItemId ===
+    null
   ) {
     return (
       <RecommendationLayout
         title="기관 추천"
         onBack={() =>
           navigate(
-            ROUTES.donor.myItems,
+            ROUTES.donor
+              .myItems,
           )
         }
       >
@@ -223,7 +254,8 @@ export function RecommendationPage() {
         title="기관 추천"
         onBack={() =>
           navigate(
-            ROUTES.donor.myItems,
+            ROUTES.donor
+              .myItems,
           )
         }
       >
@@ -242,7 +274,8 @@ export function RecommendationPage() {
         title="기관 추천"
         onBack={() =>
           navigate(
-            ROUTES.donor.myItems,
+            ROUTES.donor
+              .myItems,
           )
         }
       >
@@ -270,7 +303,8 @@ export function RecommendationPage() {
         title="기관 추천"
         onBack={() =>
           navigate(
-            ROUTES.donor.myItems,
+            ROUTES.donor
+              .myItems,
           )
         }
       >
@@ -297,14 +331,15 @@ export function RecommendationPage() {
       : recommendationsQuery.isError
 
   if (
-    organizationId !== null
+    organizationId !==
+    null
   ) {
     if (
       loadingRecommendations
     ) {
       return (
         <RecommendationLayout
-          title="추천 기관 상세"
+          title="기관 상세"
           onBack={() =>
             navigate(
               routePath.donorRecommendation(
@@ -325,7 +360,7 @@ export function RecommendationPage() {
     ) {
       return (
         <RecommendationLayout
-          title="추천 기관 상세"
+          title="기관 상세"
           onBack={() =>
             navigate(
               routePath.donorRecommendation(
@@ -354,7 +389,7 @@ export function RecommendationPage() {
     ) {
       return (
         <RecommendationLayout
-          title="추천 기관 상세"
+          title="기관 상세"
           onBack={() =>
             navigate(
               routePath.donorRecommendation(
@@ -381,9 +416,71 @@ export function RecommendationPage() {
     const organization =
       organizationQuery.data
 
+    const proposedQuantity =
+      Math.min(
+        donation.availableQuantity,
+        selectedRecommendation.remainingQuantity,
+      )
+
+    const canPropose =
+      Number.isSafeInteger(
+        proposedQuantity,
+      ) &&
+      proposedQuantity >
+        0
+
+    const createProposal =
+      () => {
+        if (
+          !canPropose ||
+          createMatchMutation.isPending
+        ) {
+          return
+        }
+
+        createMatchMutation.mutate(
+          {
+            donationItemId,
+            neededItemId:
+              selectedRecommendation.neededItemId,
+
+            quantity:
+              proposedQuantity,
+
+            message:
+              '',
+          },
+          {
+            onSuccess: (
+              result,
+            ) => {
+              navigate(
+                routePath.donorRequestDetail(
+                  String(
+                    result.matchId,
+                  ),
+                ),
+              )
+            },
+          },
+        )
+      }
+
+    const organizationAddress =
+      organization
+        ? [
+            organization.address,
+            organization.addressDetail,
+          ]
+            .filter(
+              Boolean,
+            )
+            .join(' ')
+        : selectedRecommendation.organizationAddress
+
     return (
       <RecommendationLayout
-        title="추천 기관 상세"
+        title="기관 상세"
         onBack={() =>
           navigate(
             routePath.donorRecommendation(
@@ -391,41 +488,69 @@ export function RecommendationPage() {
             ),
           )
         }
-      >
-        <section className="rounded-card bg-primary-100 p-4">
-          <p className="typography-label-2 text-primary-700">
-            {
-              selectedRecommendation.rank
-            }
-            순위 추천
-          </p>
+        footer={
+          <footer className="shrink-0 bg-surface-canvas px-5 pb-5 pt-3">
+            {createMatchMutation.isError ? (
+              <p
+                role="alert"
+                className="mb-2 typography-label-2 text-error"
+              >
+                {matchErrorMessage(
+                  createMatchMutation.error,
+                )}
+              </p>
+            ) : null}
 
-          <h2 className="mt-1 typography-heading-2 text-neutral-900">
+            <Button
+              className="w-full"
+              disabled={
+                !canPropose ||
+                createMatchMutation.isPending
+              }
+              onClick={
+                createProposal
+              }
+            >
+              {createMatchMutation.isPending
+                ? '제안 중...'
+                : '제안하기'}
+            </Button>
+          </footer>
+        }
+      >
+        <section>
+          <h2 className="typography-heading-2 text-neutral-900">
             {
               selectedRecommendation.organizationName
             }
           </h2>
 
-          <p className="mt-2 flex items-center gap-1 typography-body-2 text-neutral-700">
-            <MapPin
-              aria-hidden
-              size={16}
-            />
-
-            {
-              selectedRecommendation.organizationAddress
-            }
+          <p className="mt-2 typography-body-2 text-neutral-700">
+            {organization?.introduction ||
+              '기관 상세 정보를 확인해 주세요.'}
           </p>
         </section>
 
         <section className="rounded-card border border-neutral-200 bg-white p-4">
-          <h3 className="typography-title-3 text-neutral-900">
-            필요 물품
-          </h3>
-
-          <dl className="mt-3 space-y-2">
+          <dl className="space-y-2">
             <InfoRow
-              label="품목"
+              label="주소"
+              value={
+                organizationAddress ||
+                '-'
+              }
+            />
+
+            <InfoRow
+              label="전화번호"
+              value={
+                organization?.phone ||
+                '-'
+              }
+            />
+
+            <InfoRow
+              label="필요 물품"
               value={
                 selectedRecommendation.itemName
               }
@@ -438,22 +563,9 @@ export function RecommendationPage() {
 
             <InfoRow
               label="희망 상태"
-              value={
-                conditionLabel[
-                  selectedRecommendation.desiredCondition
-                ] ??
-                selectedRecommendation.desiredCondition
-              }
-            />
-
-            <InfoRow
-              label="추천 점수"
-              value={`${selectedRecommendation.score}점`}
-            />
-
-            <InfoRow
-              label="거리"
-              value={`${selectedRecommendation.distanceKm}km`}
+              value={recommendationConditionLabel(
+                selectedRecommendation.desiredCondition,
+              )}
             />
           </dl>
         </section>
@@ -463,8 +575,7 @@ export function RecommendationPage() {
             role="status"
             className="typography-body-2 text-neutral-700"
           >
-            기관 상세 정보를
-            불러오고 있어요.
+            기관 상세 정보를 불러오고 있어요.
           </p>
         ) : null}
 
@@ -492,120 +603,116 @@ export function RecommendationPage() {
           </section>
         ) : null}
 
-        {organization ? (
-          <section className="rounded-card border border-neutral-200 bg-white p-4">
-            <h3 className="typography-title-3 text-neutral-900">
-              기관 정보
-            </h3>
+        <section>
+          <h3 className="typography-title-2 text-neutral-900">
+            기관의 요청
+          </h3>
 
-            <dl className="mt-3 space-y-2">
-              <InfoRow
-                label="기관명"
-                value={
-                  organization.name
-                }
-              />
+          <p className="mt-3 typography-body-1 text-neutral-800">
+            {
+              selectedRecommendation.itemName
+            }{' '}
+            {
+              selectedRecommendation.remainingQuantity
+            }
+            {
+              selectedRecommendation.unit
+            }
+            이 필요해요. 희망 상태는{' '}
+            {recommendationConditionLabel(
+              selectedRecommendation.desiredCondition,
+            )}
+            입니다.
+          </p>
+        </section>
 
-              <InfoRow
-                label="연락처"
-                value={
-                  organization.phone
-                }
-              />
+        <section>
+          <h3 className="typography-title-2 text-neutral-900">
+            추천 이유
+          </h3>
 
-              <InfoRow
-                label="주소"
-                value={[
-                  organization.address,
-                  organization.addressDetail,
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              />
-            </dl>
-
-            <h3 className="mt-5 typography-title-3 text-neutral-900">
-              기관 소개
-            </h3>
-
-            <p className="mt-2 whitespace-pre-wrap typography-body-2 text-neutral-700">
-              {organization.introduction ||
-                '등록된 기관 소개가 없어요.'}
-            </p>
-          </section>
-        ) : null}
-
-        {selectedRecommendation.reason ? (
-          <section className="rounded-card border border-neutral-200 bg-white p-4">
-            <h3 className="typography-title-3 text-neutral-900">
-              추천 이유
-            </h3>
-
-            <p className="mt-2 typography-body-2 text-neutral-700">
-              {
-                selectedRecommendation.reason
-              }
-            </p>
-          </section>
-        ) : null}
+          <p className="mt-3 whitespace-pre-wrap typography-body-2 text-neutral-700">
+            {selectedRecommendation.reason ||
+              '등록한 물품과 기관의 필요 조건이 잘 맞아 추천됐어요.'}
+          </p>
+        </section>
       </RecommendationLayout>
     )
   }
+
+  const showRecommendationCards =
+    !loadingRecommendations &&
+    !isRecommendationError &&
+    recommendations.length >
+      0
 
   return (
     <RecommendationLayout
       title="기관 추천"
       onBack={() =>
         navigate(
-          ROUTES.donor.myItems,
+          ROUTES.donor
+            .myItems,
         )
       }
+      footer={
+        <BottomNavigation
+          activeItem="explore"
+          className="shrink-0"
+        />
+      }
     >
-      <section className="rounded-card bg-primary-100 p-4">
-        <p className="typography-label-2 text-neutral-700">
-          등록한 기부 물품
-        </p>
+      {!showRecommendationCards ? (
+        <>
+          <section className="rounded-card bg-primary-100 p-4">
+            <p className="typography-label-2 text-neutral-700">
+              등록한 기부 물품
+            </p>
 
-        <h2 className="mt-1 typography-title-2 text-neutral-900">
-          {donation.itemName}{' '}
-          {
-            donation.availableQuantity
-          }
-          {donation.unit}
-        </h2>
+            <h2 className="mt-1 typography-title-2 text-neutral-900">
+              {
+                donation.itemName
+              }{' '}
+              {
+                donation.availableQuantity
+              }
+              {
+                donation.unit
+              }
+            </h2>
 
-        <p className="mt-2 typography-body-2 text-neutral-700">
-          추천 가능한 기관을
-          수량과 거리 기준으로
-          찾아드려요.
-        </p>
-      </section>
+            <p className="mt-2 typography-body-2 text-neutral-700">
+              추천 가능한 기관을 수량과 거리 기준으로 찾아드려요.
+            </p>
+          </section>
 
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="typography-title-2 text-neutral-900">
-          추천 기관
-        </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="typography-title-2 text-neutral-900">
+              추천 기관
+            </h2>
 
-        <Button
-          variant="secondary"
-          className="h-10 shrink-0"
-          disabled={
-            recalculateMutation.isPending
-          }
-          onClick={
-            runRecalculation
-          }
-        >
-          <RefreshCw
-            aria-hidden
-            size={16}
-          />
+            <Button
+              variant="secondary"
+              className="h-10 shrink-0 gap-1.5"
+              disabled={
+                recalculateMutation.isPending
+              }
+              onClick={
+                runRecalculation
+              }
+            >
+              <RefreshCw
+                aria-hidden
+                size={16}
+              />
 
-          {recalculateMutation.isPending
-            ? '계산 중'
-            : '다시 계산'}
-        </Button>
-      </div>
+              {recalculateMutation.isPending
+                ? '계산 중'
+                : '다시 계산'}
+            </Button>
+          </div>
+        </>
+      ) : null}
 
       {loadingRecommendations ? (
         <StateCard
@@ -644,11 +751,8 @@ export function RecommendationPage() {
         />
       ) : null}
 
-      {!loadingRecommendations &&
-      !isRecommendationError &&
-      recommendations.length >
-        0 ? (
-        <section className="space-y-3">
+      {showRecommendationCards ? (
+        <section className="space-y-4">
           {recommendations.map(
             (
               recommendation,
@@ -657,77 +761,49 @@ export function RecommendationPage() {
                 key={`${recommendation.organizationId}-${recommendation.neededItemId}`}
                 className="rounded-card border border-neutral-200 bg-white p-4"
               >
-                <p className="typography-label-1 text-primary-700">
-                  {
-                    recommendation.rank
-                  }
-                  순위
-                </p>
-
-                <h3 className="mt-1 typography-title-2 text-neutral-900">
+                <h2 className="typography-title-2 text-neutral-900">
+                  <span className="text-primary-700">
+                    {
+                      recommendation.rank
+                    }
+                    순위
+                  </span>{' '}
+                  ·{' '}
                   {
                     recommendation.organizationName
                   }
-                </h3>
+                </h2>
 
-                <p className="mt-2 typography-body-2 text-neutral-700">
+                <p className="mt-2 typography-label-2 text-neutral-700">
                   {
                     recommendation.organizationAddress
                   }
                 </p>
 
-                <div className="mt-4 rounded-control bg-neutral-100 p-3">
-                  <p className="typography-label-1 text-neutral-900">
-                    {
-                      recommendation.itemName
-                    }{' '}
-                    {
-                      recommendation.remainingQuantity
-                    }
-                    {
-                      recommendation.unit
-                    }{' '}
-                    필요
-                  </p>
+                <p className="mt-2 typography-body-2 text-neutral-900">
+                  필요 물품{' '}
+                  {
+                    recommendation.itemName
+                  }{' '}
+                  {
+                    recommendation.remainingQuantity
+                  }
+                  {
+                    recommendation.unit
+                  }{' '}
+                  · 희망 상태{' '}
+                  {recommendationConditionLabel(
+                    recommendation.desiredCondition,
+                  )}
+                </p>
 
-                  <p className="mt-1 typography-label-2 text-neutral-700">
-                    희망 상태{' '}
-                    {conditionLabel[
-                      recommendation
-                        .desiredCondition
-                    ] ??
-                      recommendation.desiredCondition}
-                  </p>
-                </div>
+                <p className="mt-2 typography-body-2 text-neutral-700">
+                  추천 이유 ·{' '}
+                  {recommendation.reason ||
+                    '등록한 물품과 기관의 필요 조건이 잘 맞아요.'}
+                </p>
 
-                <div className="mt-3 flex gap-4 typography-label-2 text-neutral-700">
-                  <span>
-                    추천 점수{' '}
-                    {
-                      recommendation.score
-                    }
-                    점
-                  </span>
-
-                  <span>
-                    거리{' '}
-                    {
-                      recommendation.distanceKm
-                    }
-                    km
-                  </span>
-                </div>
-
-                {recommendation.reason ? (
-                  <p className="mt-3 typography-body-2 text-neutral-700">
-                    추천 이유 ·{' '}
-                    {
-                      recommendation.reason
-                    }
-                  </p>
-                ) : null}
-
-                <div className="mt-4 text-right">
+                <div className="mt-2 text-right">
                   <Link
                     to={routePath.donorRecommendedOrganization(
                       String(
@@ -737,7 +813,7 @@ export function RecommendationPage() {
                         recommendation.organizationId,
                       ),
                     )}
-                    className="inline-block py-2 typography-label-1 text-primary-700"
+                    className="inline-block typography-label-1 text-primary-700"
                   >
                     기관 상세보기 →
                   </Link>
@@ -747,10 +823,6 @@ export function RecommendationPage() {
           )}
         </section>
       ) : null}
-
-      <BottomNavigation
-        activeItem="explore"
-      />
     </RecommendationLayout>
   )
 }
@@ -759,10 +831,14 @@ function RecommendationLayout({
   title,
   onBack,
   children,
+  footer,
 }: {
   title: string
   onBack: () => void
-  children: React.ReactNode
+  children:
+    ReactNode
+  footer?:
+    ReactNode
 }) {
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -770,7 +846,9 @@ function RecommendationLayout({
         <button
           type="button"
           aria-label="뒤로가기"
-          onClick={onBack}
+          onClick={
+            onBack
+          }
           className="flex size-8 items-center justify-center text-primary-700"
         >
           <ChevronLeft
@@ -784,9 +862,11 @@ function RecommendationLayout({
         </h1>
       </header>
 
-      <main className="flex flex-1 flex-col gap-4 px-5 pb-6 pt-2">
+      <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-6 pt-2">
         {children}
       </main>
+
+      {footer}
     </div>
   )
 }
@@ -810,7 +890,9 @@ function StateCard({
 
       {description ? (
         <p className="mt-2 typography-body-2 text-neutral-700">
-          {description}
+          {
+            description
+          }
         </p>
       ) : null}
 
@@ -838,16 +920,34 @@ function InfoRow({
   value: string
 }) {
   return (
-    <div className="grid grid-cols-[84px_1fr] gap-3">
-      <dt className="text-neutral-700">
+    <div className="grid grid-cols-[88px_1fr] gap-3">
+      <dt className="typography-body-2 text-neutral-700">
         {label}
       </dt>
 
-      <dd className="break-words text-neutral-900">
+      <dd className="break-words typography-body-2 text-neutral-900">
         {value}
       </dd>
     </div>
   )
+}
+
+function recommendationConditionLabel(
+  condition:
+    ItemConditionCode,
+) {
+  switch (
+    condition
+  ) {
+    case 'HIGH':
+      return '상'
+
+    case 'MID':
+      return '중 이상'
+
+    case 'LOW':
+      return '하 이상'
+  }
 }
 
 function parsePositiveId(
