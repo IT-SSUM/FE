@@ -1,5 +1,5 @@
 import { ChevronLeft, Package } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import {
   conditionLabel,
@@ -11,6 +11,7 @@ import { routePath } from '@/routes/paths'
 
 export function DonationDetailPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { donationId: donationIdParam } = useParams()
   const donationId = parseDonationItemId(donationIdParam)
   const donationQuery = useDonationItemQuery(donationId)
@@ -95,7 +96,10 @@ export function DonationDetailPage() {
               disabled={donation.status !== 'RECRUITING' || donation.availableQuantity <= 0}
               onClick={() =>
                 navigate(
-                  routePath.organizationDonationRequest(String(donation.donationItemId)),
+                  routePath.organizationDonationRequest(String(donation.donationItemId)) +
+                    (searchParams.get('needId')
+                      ? `?needId=${encodeURIComponent(searchParams.get('needId') ?? '')}`
+                      : ''),
                 )
               }
             >
