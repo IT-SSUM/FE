@@ -7,7 +7,6 @@ import {
 import {
   ChevronLeft,
   RefreshCw,
-  Sparkles,
 } from 'lucide-react'
 
 import {
@@ -628,8 +627,7 @@ export function RecommendationPage() {
         </section>
 
         <section className="rounded-control bg-primary-100 p-4">
-          <h3 className="flex items-center gap-2 typography-title-3 text-primary-700">
-            <Sparkles aria-hidden size={18} strokeWidth={2} />
+          <h3 className="typography-title-3 text-primary-700">
             추천 이유
           </h3>
           <p className="mt-2 whitespace-pre-wrap typography-body-2 leading-6 text-neutral-800">
@@ -795,8 +793,7 @@ export function RecommendationPage() {
                 </p>
 
                 <div className="mt-3 rounded-control bg-primary-100 px-3 py-3">
-                  <p className="flex items-center gap-1.5 typography-label-1 text-primary-700">
-                    <Sparkles aria-hidden size={16} strokeWidth={2} />
+                  <p className="typography-label-1 text-primary-700">
                     추천 이유
                   </p>
                   <p className="mt-1.5 typography-body-2 leading-6 text-neutral-800">

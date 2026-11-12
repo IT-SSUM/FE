@@ -33,6 +33,14 @@ import {
 } from '@/hooks/queries/useMatchesQuery'
 
 import {
+  useMatchQuery,
+} from '@/hooks/queries/useMatchQuery'
+
+import {
+  useDonationItemQuery,
+} from '@/hooks/queries/useDonationItemQuery'
+
+import {
   matchErrorMessage,
 } from '@/apis/match'
 
@@ -106,6 +114,23 @@ export function DonorHomePage() {
 
   const activeMatch =
     activeMatches[0]
+
+  const activeMatchDetailQuery =
+    useMatchQuery(
+      activeMatch?.matchId ??
+        null,
+    )
+
+  const activeDonationItemQuery =
+    useDonationItemQuery(
+      activeMatchDetailQuery.data
+        ?.donationItemId ??
+        null,
+    )
+
+  const activeDonationImage =
+    activeDonationItemQuery.data
+      ?.imageUrls[0]
 
   const userName =
     profileQuery.data?.name ??
@@ -346,6 +371,9 @@ export function DonorHomePage() {
                   size={24}
                   strokeWidth={2}
                 />
+              }
+              imageSrc={
+                activeDonationImage
               }
               status={getItemRowStatus(
                 activeMatch.status,
