@@ -25,6 +25,7 @@ import {
 
 import {
   ROUTES,
+  routePath,
 } from '@/routes/paths'
 
 import type {
@@ -149,7 +150,7 @@ export function NeedDetailPage() {
             }
             onClick={() =>
               navigate(
-                `${ROUTES.donor.donationNew}?needId=${need.neededItemId}`,
+                routePath.donorDonationProposal(String(need.neededItemId)),
               )
             }
           >

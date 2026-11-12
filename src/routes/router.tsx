@@ -63,6 +63,11 @@ import {
 } from '@/pages/donor/DonationRegisterPage'
 
 import {
+  DonationProposalCompletePage,
+  DonationProposalPage,
+} from '@/pages/donor/DonationProposalPage'
+
+import {
   NeedDetailPage as DonorNeedDetailPage,
 } from '@/pages/donor/NeedDetailPage'
 
@@ -304,6 +309,22 @@ export const router =
 
               element:
                 <DonorNeedDetailPage />,
+            },
+
+            {
+              path:
+                ROUTES.donor.donationProposal,
+
+              element:
+                <DonationProposalPage />,
+            },
+
+            {
+              path:
+                ROUTES.donor.donationProposalComplete,
+
+              element:
+                <DonationProposalCompletePage />,
             },
 
             {

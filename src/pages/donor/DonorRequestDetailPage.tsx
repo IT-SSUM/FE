@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import {
   useNavigate,
@@ -325,8 +325,12 @@ export function DonorRequestDetailPage() {
         </section>
 
         {request.message ? (
-          <section className="mt-4 rounded-card bg-primary-100 p-4">
-            <p className="whitespace-pre-wrap typography-body-1 text-neutral-900">
+          <section className="mt-4">
+            <h3 className="flex items-center gap-1.5 typography-label-1 text-primary-700">
+              <MessageCircle aria-hidden size={16} strokeWidth={2} />
+              {direction === 'sent' ? '기관에 보낸 메시지' : '기관에서 보낸 메시지'}
+            </h3>
+            <p className="mt-2 rounded-card bg-primary-100 p-4 whitespace-pre-wrap typography-body-1 text-neutral-900">
               {request.message}
             </p>
           </section>
