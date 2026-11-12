@@ -7,126 +7,291 @@ export const ROUTES = {
 
   donor: {
     home: '/donor/home',
-    donationNew: '/donor/donations/new',
-    donationDetail: '/donor/donations/:donationId',
-    donationEdit: '/donor/donations/:donationId/edit',
-    needList: '/donor/needs',
-    needDetail: '/donor/needs/:needId',
-    recommendation: '/donor/recommendations/:donationId',
+
+    donationNew:
+      '/donor/donations/new',
+
+    donationDetail:
+      '/donor/donations/:donationId',
+
+    donationEdit:
+      '/donor/donations/:donationId/edit',
+
+    needList:
+      '/donor/needs',
+
+    needFilter:
+      '/donor/needs/filter',
+
+    needDetail:
+      '/donor/needs/:needId',
+
+    recommendation:
+      '/donor/recommendations/:donationId',
+
     recommendedOrganization:
       '/donor/recommendations/:donationId/organizations/:organizationId',
-    myPage: '/donor/mypage',
-    myItems: '/donor/mypage/items',
-    myRequests: '/donor/mypage/requests',
-    myHistory: '/donor/mypage/history',
-    myProfile: '/donor/mypage/profile',
-    requestDetail: '/donor/requests/:requestId',
+
+    myPage:
+      '/donor/mypage',
+
+    myItems:
+      '/donor/mypage/items',
+
+    myRequests:
+      '/donor/mypage/requests',
+
+    myHistory:
+      '/donor/mypage/history',
+
+    myProfile:
+      '/donor/mypage/profile',
+
+    requestDetail:
+      '/donor/requests/:requestId',
   },
 
   organization: {
-    home: '/organization/home',
-    notifications: '/organization/notifications',
-    needManage: '/organization/mypage/needs',
-    needNew: '/organization/needs/new',
-    needDetail: '/organization/needs/:needId',
-    needEdit: '/organization/needs/:needId/edit',
-    donationList: '/organization/donations',
-    donationDetail: '/organization/donations/:donationId',
-    donationRequest: '/organization/donations/:donationId/request',
+    home:
+      '/organization/home',
+
+    notifications:
+      '/organization/notifications',
+
+    needManage:
+      '/organization/mypage/needs',
+
+    needNew:
+      '/organization/needs/new',
+
+    needDetail:
+      '/organization/needs/:needId',
+
+    needEdit:
+      '/organization/needs/:needId/edit',
+
+    donationList:
+      '/organization/donations',
+
+    donationDetail:
+      '/organization/donations/:donationId',
+
+    donationRequest:
+      '/organization/donations/:donationId/request',
+
     donationRequestComplete:
       '/organization/donations/:donationId/request/complete',
-    recommendation: '/organization/recommendations/:needId',
-    myPage: '/organization/mypage',
-    myProfile: '/organization/mypage/profile',
-    offerList: '/organization/mypage/offers',
-    offerDetail: '/organization/offers/:offerId',
-    tradeStatus: '/organization/mypage/trades',
+
+    recommendation:
+      '/organization/recommendations/:needId',
+
+    myPage:
+      '/organization/mypage',
+
+    myProfile:
+      '/organization/mypage/profile',
+
+    offerList:
+      '/organization/mypage/offers',
+
+    offerDetail:
+      '/organization/offers/:offerId',
+
+    tradeStatus:
+      '/organization/mypage/trades',
+
     individualTradeStatus:
       '/organization/mypage/trades/:needId',
+
     activeTradeDetail:
       '/organization/trades/:tradeId',
+
     tradeQuantityEdit:
       '/organization/trades/:tradeId/quantity',
+
     tradeAppointment:
       '/organization/trades/:tradeId/appointment',
   },
 
-  tradeDetail: '/trades/:tradeId',
-  tradeQuantityEdit: '/trades/:tradeId/quantity',
-  tradeAppointment: '/trades/:tradeId/appointment',
+  tradeDetail:
+    '/trades/:tradeId',
 
-  chatList: '/chats',
-  chatRoom: '/chats/:chatRoomId',
-  notifications: '/notifications',
+  tradeQuantityEdit:
+    '/trades/:tradeId/quantity',
+
+  tradeAppointment:
+    '/trades/:tradeId/appointment',
+
+  chatList:
+    '/chats',
+
+  chatRoom:
+    '/chats/:chatRoomId',
+
+  notifications:
+    '/notifications',
 } as const
 
 export const routePath = {
-  signup: (role: 'donor' | 'organization') =>
-    `/signup/${role}`,
+  signup:
+    (
+      role:
+        | 'donor'
+        | 'organization',
+    ) =>
+      `/signup/${role}`,
 
-  donorDonationDetail: (donationId: string) =>
-    `/donor/donations/${donationId}`,
+  donorDonationDetail:
+    (
+      donationId:
+        string,
+    ) =>
+      `/donor/donations/${donationId}`,
 
-  donorDonationEdit: (donationId: string) =>
-    `/donor/donations/${donationId}/edit`,
+  donorDonationEdit:
+    (
+      donationId:
+        string,
+    ) =>
+      `/donor/donations/${donationId}/edit`,
 
-  donorNeedDetail: (needId: string) =>
-    `/donor/needs/${needId}`,
+  donorNeedDetail:
+    (
+      needId:
+        string,
+    ) =>
+      `/donor/needs/${needId}`,
 
-  donorRecommendation: (donationId: string) =>
-    `/donor/recommendations/${donationId}`,
+  donorRecommendation:
+    (
+      donationId:
+        string,
+    ) =>
+      `/donor/recommendations/${donationId}`,
 
-  donorRequestDetail: (requestId: string) =>
-    `/donor/requests/${requestId}`,
+  donorRequestDetail:
+    (
+      requestId:
+        string,
+    ) =>
+      `/donor/requests/${requestId}`,
 
-  donorRecommendedOrganization: (
-    donationId: string,
-    organizationId: string,
-  ) =>
-    `/donor/recommendations/${encodeURIComponent(donationId)}/organizations/${encodeURIComponent(organizationId)}`,
+  donorRecommendedOrganization:
+    (
+      donationId:
+        string,
 
-  organizationNeedDetail: (needId: string) =>
-    `/organization/needs/${needId}`,
+      organizationId:
+        string,
+    ) =>
+      `/donor/recommendations/${encodeURIComponent(
+        donationId,
+      )}/organizations/${encodeURIComponent(
+        organizationId,
+      )}`,
 
-  organizationNeedEdit: (needId: string) =>
-    `/organization/needs/${needId}/edit`,
+  organizationNeedDetail:
+    (
+      needId:
+        string,
+    ) =>
+      `/organization/needs/${needId}`,
 
-  organizationDonationDetail: (donationId: string) =>
-    `/organization/donations/${donationId}`,
+  organizationNeedEdit:
+    (
+      needId:
+        string,
+    ) =>
+      `/organization/needs/${needId}/edit`,
 
-  organizationDonationRequest: (donationId: string) =>
-    `/organization/donations/${donationId}/request`,
+  organizationDonationDetail:
+    (
+      donationId:
+        string,
+    ) =>
+      `/organization/donations/${donationId}`,
 
-  organizationDonationRequestComplete: (donationId: string) =>
-    `/organization/donations/${donationId}/request/complete`,
+  organizationDonationRequest:
+    (
+      donationId:
+        string,
+    ) =>
+      `/organization/donations/${donationId}/request`,
 
-  organizationRecommendation: (needId: string) =>
-    `/organization/recommendations/${needId}`,
+  organizationDonationRequestComplete:
+    (
+      donationId:
+        string,
+    ) =>
+      `/organization/donations/${donationId}/request/complete`,
 
-  organizationOfferDetail: (offerId: string) =>
-    `/organization/offers/${offerId}`,
+  organizationRecommendation:
+    (
+      needId:
+        string,
+    ) =>
+      `/organization/recommendations/${needId}`,
 
-  organizationIndividualTradeStatus: (needId: string) =>
-    `/organization/mypage/trades/${needId}`,
+  organizationOfferDetail:
+    (
+      offerId:
+        string,
+    ) =>
+      `/organization/offers/${offerId}`,
 
-  organizationActiveTradeDetail: (tradeId: string) =>
-    `/organization/trades/${tradeId}`,
+  organizationIndividualTradeStatus:
+    (
+      needId:
+        string,
+    ) =>
+      `/organization/mypage/trades/${needId}`,
 
-  organizationTradeQuantityEdit: (tradeId: string) =>
-    `/organization/trades/${tradeId}/quantity`,
+  organizationActiveTradeDetail:
+    (
+      tradeId:
+        string,
+    ) =>
+      `/organization/trades/${tradeId}`,
 
-  organizationTradeAppointment: (tradeId: string) =>
-    `/organization/trades/${tradeId}/appointment`,
+  organizationTradeQuantityEdit:
+    (
+      tradeId:
+        string,
+    ) =>
+      `/organization/trades/${tradeId}/quantity`,
 
-  tradeDetail: (tradeId: string) =>
-    `/trades/${tradeId}`,
+  organizationTradeAppointment:
+    (
+      tradeId:
+        string,
+    ) =>
+      `/organization/trades/${tradeId}/appointment`,
 
-  tradeQuantityEdit: (tradeId: string) =>
-    `/trades/${tradeId}/quantity`,
+  tradeDetail:
+    (
+      tradeId:
+        string,
+    ) =>
+      `/trades/${tradeId}`,
 
-  tradeAppointment: (tradeId: string) =>
-    `/trades/${tradeId}/appointment`,
+  tradeQuantityEdit:
+    (
+      tradeId:
+        string,
+    ) =>
+      `/trades/${tradeId}/quantity`,
 
-  chatRoom: (chatRoomId: string) =>
-    `/chats/${chatRoomId}`,
+  tradeAppointment:
+    (
+      tradeId:
+        string,
+    ) =>
+      `/trades/${tradeId}/appointment`,
+
+  chatRoom:
+    (
+      chatRoomId:
+        string,
+    ) =>
+      `/chats/${chatRoomId}`,
 } as const

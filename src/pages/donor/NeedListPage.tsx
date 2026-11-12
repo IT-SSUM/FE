@@ -73,9 +73,12 @@ function parsePositiveId(
     return undefined
   }
 
-  const id = Number(value)
+  const id =
+    Number(value)
 
-  return Number.isSafeInteger(id)
+  return Number.isSafeInteger(
+    id,
+  )
     ? id
     : undefined
 }
@@ -195,7 +198,9 @@ export function NeedListPage() {
               searchParams,
             )
 
-          if (nextKeyword) {
+          if (
+            nextKeyword
+          ) {
             next.set(
               'keyword',
               nextKeyword,
@@ -209,10 +214,12 @@ export function NeedListPage() {
           setSearchParams(
             next,
             {
-              replace: true,
+              replace:
+                true,
             },
           )
         },
+
         300,
       )
 
@@ -247,6 +254,7 @@ export function NeedListPage() {
 
         condition,
       }),
+
       [
         keywordParam,
         categoryId,
@@ -267,6 +275,7 @@ export function NeedListPage() {
           (page) =>
             page.items,
         ) ?? [],
+
       [
         query.data,
       ],
@@ -307,7 +316,9 @@ export function NeedListPage() {
 
     const observer =
       new IntersectionObserver(
-        (entries) => {
+        (
+          entries,
+        ) => {
           const entry =
             entries[0]
 
@@ -317,6 +328,7 @@ export function NeedListPage() {
             fetchNextPage()
           }
         },
+
         {
           rootMargin:
             '160px',
@@ -459,6 +471,7 @@ export function NeedListPage() {
           <p className="typography-body-2 text-error">
             {getNeededItemErrorMessage(
               query.error,
+
               '필요 물품 목록을 불러오지 못했어요.',
             )}
           </p>
@@ -489,7 +502,9 @@ export function NeedListPage() {
       ) : (
         <div className="space-y-4">
           {items.map(
-            (item) => (
+            (
+              item,
+            ) => (
               <NeededItemCard
                 key={
                   item.neededItemId
@@ -523,7 +538,8 @@ export function NeedListPage() {
               role="status"
               className="py-2 text-center typography-label-2 text-neutral-600"
             >
-              더 불러오고 있어요.
+              더 불러오고
+              있어요.
             </p>
           ) : null}
 
@@ -617,11 +633,15 @@ function NeededItemCard({
 
         <div className="min-w-0 flex-1">
           <h2 className="truncate typography-title-3 text-neutral-900">
-            {item.itemName}{' '}
+            {
+              item.itemName
+            }{' '}
             {
               item.availableQuantity
             }
-            {item.unit}
+            {
+              item.unit
+            }
           </h2>
 
           <p className="mt-1 truncate typography-label-2 text-neutral-700">

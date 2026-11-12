@@ -1,4 +1,9 @@
 import {
+  ChevronLeft,
+} from 'lucide-react'
+
+import {
+  useMemo,
   useState,
 } from 'react'
 
@@ -8,24 +13,12 @@ import {
 } from 'react-router-dom'
 
 import {
-  Button,
-} from '@/components/common/Button/Button'
-
-import {
-  DonorPage,
-} from '@/features/donor/DonorPage'
-
-import {
   useItemCategoriesQuery,
 } from '@/hooks/queries/useItemCategoriesQuery'
 
 import {
   ROUTES,
 } from '@/routes/paths'
-
-import {
-  cn,
-} from '@/utils/cn'
 
 import type {
   ItemConditionCode,
@@ -37,42 +30,28 @@ const PILOT_REGION = {
 } as const
 
 const CONDITION_OPTIONS:
-  {
-    code:
-      ItemConditionCode
-
-    label:
-      string
-  }[] = [
+  Array<{
+    value: ItemConditionCode
+    label: string
+  }> = [
     {
-      code:
-        'HIGH',
-
-      label:
-        '상 · 미개봉',
+      value: 'HIGH',
+      label: '상 · 미개봉',
     },
 
     {
-      code:
-        'MID',
-
-      label:
-        '중 · 사용감 적음',
+      value: 'MID',
+      label: '중 · 사용감 적음',
     },
 
     {
-      code:
-        'LOW',
-
-      label:
-        '하 · 다회 사용',
+      value: 'LOW',
+      label: '하 · 다회 사용',
     },
   ]
 
 function parsePositiveId(
-  value:
-    | string
-    | null,
+  value: string | null,
 ) {
   if (
     !value ||
@@ -84,7 +63,9 @@ function parsePositiveId(
   }
 
   const id =
-    Number(value)
+    Number(
+      value,
+    )
 
   return Number.isSafeInteger(
     id,
@@ -94,9 +75,7 @@ function parsePositiveId(
 }
 
 function parseCondition(
-  value:
-    | string
-    | null,
+  value: string | null,
 ):
   | ItemConditionCode
   | undefined {
@@ -123,40 +102,45 @@ export function NeedFilterPage() {
   const categoryQuery =
     useItemCategoriesQuery()
 
+  const initialCategoryId =
+    parsePositiveId(
+      searchParams.get(
+        'categoryId',
+      ),
+    )
+
+  const initialRegionId =
+    parsePositiveId(
+      searchParams.get(
+        'regionId',
+      ),
+    )
+
+  const initialCondition =
+    parseCondition(
+      searchParams.get(
+        'condition',
+      ),
+    )
+
   const [
     categoryId,
     setCategoryId,
   ] =
     useState<
       number | undefined
-    >(() =>
-      parsePositiveId(
-        searchParams.get(
-          'categoryId',
-        ),
-      ),
+    >(
+      initialCategoryId,
     )
 
-  /*
-   * 현재 백엔드는 파일럿 지역
-   * 경기 부천시(regionId=1)만
-   * 사용하고 있습니다.
-   *
-   * 지역 데이터가 확장되면
-   * 이 부분만 지역 선택 UI로
-   * 교체하면 됩니다.
-   */
   const [
     regionId,
+    setRegionId,
   ] =
-    useState<number>(
-      () =>
-        parsePositiveId(
-          searchParams.get(
-            'regionId',
-          ),
-        ) ??
-        PILOT_REGION.id,
+    useState<
+      number | undefined
+    >(
+      initialRegionId,
     )
 
   const [
@@ -164,32 +148,40 @@ export function NeedFilterPage() {
     setCondition,
   ] =
     useState<
-      | ItemConditionCode
-      | undefined
-    >(() =>
-      parseCondition(
-        searchParams.get(
-          'condition',
-        ),
-      ),
+      ItemConditionCode | undefined
+    >(
+      initialCondition,
     )
 
-  const backQuery =
-    searchParams.toString()
+  const categories =
+    useMemo(
+      () =>
+        categoryQuery.data ??
+        [],
 
-  const backTarget =
-    `${ROUTES.donor.needList}${
-      backQuery
-        ? `?${backQuery}`
-        : ''
-    }`
+      [
+        categoryQuery.data,
+      ],
+    )
 
   const applyFilters =
     () => {
       const next =
-        new URLSearchParams(
-          searchParams,
+        new URLSearchParams()
+
+      const keyword =
+        searchParams.get(
+          'keyword',
         )
+
+      if (
+        keyword
+      ) {
+        next.set(
+          'keyword',
+          keyword,
+        )
+      }
 
       if (
         categoryId !==
@@ -197,20 +189,25 @@ export function NeedFilterPage() {
       ) {
         next.set(
           'categoryId',
+
           String(
             categoryId,
           ),
         )
-      } else {
-        next.delete(
-          'categoryId',
-        )
       }
 
-      next.set(
-        'regionId',
-        String(regionId),
-      )
+      if (
+        regionId !==
+        undefined
+      ) {
+        next.set(
+          'regionId',
+
+          String(
+            regionId,
+          ),
+        )
+      }
 
       if (
         condition
@@ -219,195 +216,213 @@ export function NeedFilterPage() {
           'condition',
           condition,
         )
-      } else {
-        next.delete(
-          'condition',
-        )
       }
 
-      const queryString =
+      const query =
         next.toString()
 
       navigate(
         `${ROUTES.donor.needList}${
-          queryString
-            ? `?${queryString}`
+          query
+            ? `?${query}`
             : ''
         }`,
+        {
+          replace: true,
+        },
       )
     }
 
   return (
-    <DonorPage
-      title="검색 · 필터"
-      back={
-        backTarget
-      }
-      footer={
-        <footer className="shrink-0 bg-surface-canvas p-5">
-          <Button
-            className="w-full"
-            onClick={
-              applyFilters
-            }
-          >
-            적용
-          </Button>
-        </footer>
-      }
-    >
-      <section className="space-y-3">
-        <h2 className="typography-title-3 text-neutral-900">
-          카테고리
-        </h2>
+    <div className="flex min-h-dvh flex-col bg-surface-canvas">
+      <header className="flex h-14 shrink-0 items-center gap-2 px-5">
+        <button
+          type="button"
+          aria-label="뒤로가기"
+          onClick={() =>
+            navigate(-1)
+          }
+          className="flex size-6 items-center justify-center text-primary-700"
+        >
+          <ChevronLeft
+            aria-hidden
+            size={24}
+            strokeWidth={2}
+          />
+        </button>
 
-        <div className="flex flex-wrap gap-2">
-          <SelectionChip
-            selected={
-              categoryId ===
-              undefined
+        <h1 className="typography-title-3 text-neutral-900">
+          검색 · 필터
+        </h1>
+      </header>
+
+      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-5">
+        <section>
+          <h2 className="typography-title-3 text-neutral-900">
+            카테고리
+          </h2>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <FilterOption
+              active={
+                categoryId ===
+                undefined
+              }
+              label="전체"
+              onClick={() =>
+                setCategoryId(
+                  undefined,
+                )
+              }
+            />
+
+            {categories.map(
+              (
+                category,
+              ) => (
+                <FilterOption
+                  key={
+                    category.categoryId
+                  }
+                  active={
+                    categoryId ===
+                    category.categoryId
+                  }
+                  label={
+                    category.name
+                  }
+                  onClick={() =>
+                    setCategoryId(
+                      category.categoryId,
+                    )
+                  }
+                />
+              ),
+            )}
+          </div>
+
+          {categoryQuery.isError ? (
+            <p className="mt-2 typography-label-2 text-error">
+              카테고리를 불러오지
+              못했어요.
+            </p>
+          ) : null}
+        </section>
+
+        <section className="mt-7">
+          <h2 className="typography-title-3 text-neutral-900">
+            지역
+          </h2>
+
+          <button
+            type="button"
+            aria-pressed={
+              regionId ===
+              PILOT_REGION.id
             }
             onClick={() =>
-              setCategoryId(
-                undefined,
+              setRegionId(
+                (
+                  current,
+                ) =>
+                  current ===
+                  PILOT_REGION.id
+                    ? undefined
+                    : PILOT_REGION.id,
               )
             }
+            className={
+              regionId ===
+              PILOT_REGION.id
+                ? 'mt-3 flex h-[54px] w-full items-center rounded-input border border-primary-700 bg-primary-100 px-4 text-left typography-body-1 text-primary-700'
+                : 'mt-3 flex h-[54px] w-full items-center rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-1 text-neutral-900'
+            }
           >
-            전체
-          </SelectionChip>
-
-          {categoryQuery.data?.map(
-            (
-              category,
-            ) => (
-              <SelectionChip
-                key={
-                  category.categoryId
-                }
-                selected={
-                  categoryId ===
-                  category.categoryId
-                }
-                onClick={() =>
-                  setCategoryId(
-                    category.categoryId,
-                  )
-                }
-              >
-                {
-                  category.name
-                }
-              </SelectionChip>
-            ),
-          )}
-        </div>
-
-        {categoryQuery.isPending ? (
-          <p
-            role="status"
-            className="typography-label-2 text-neutral-600"
-          >
-            카테고리를
-            불러오고 있어요.
-          </p>
-        ) : null}
-
-        {categoryQuery.isError ? (
-          <p
-            role="alert"
-            className="typography-label-2 text-error"
-          >
-            카테고리를
-            불러오지 못했어요.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="typography-title-3 text-neutral-900">
-          지역
-        </h2>
-
-        <div className="flex h-[54px] w-full items-center rounded-input border border-neutral-500 bg-white px-4">
-          <span className="typography-body-1 text-neutral-900">
             {
               PILOT_REGION.name
             }
-          </span>
-        </div>
-      </section>
+          </button>
+        </section>
 
-      <section className="space-y-3">
-        <h2 className="typography-title-3 text-neutral-900">
-          희망 상태
-        </h2>
+        <section className="mt-7">
+          <h2 className="typography-title-3 text-neutral-900">
+            희망 상태
+          </h2>
 
-        <div className="flex flex-wrap gap-2">
-          {CONDITION_OPTIONS.map(
-            (option) => (
-              <SelectionChip
-                key={
-                  option.code
-                }
-                selected={
-                  condition ===
-                  option.code
-                }
-                onClick={() =>
-                  setCondition(
-                    (
-                      current,
-                    ) =>
-                      current ===
-                      option.code
-                        ? undefined
-                        : option.code,
-                  )
-                }
-              >
-                {
-                  option.label
-                }
-              </SelectionChip>
-            ),
-          )}
-        </div>
-      </section>
-    </DonorPage>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {CONDITION_OPTIONS.map(
+              (
+                option,
+              ) => (
+                <FilterOption
+                  key={
+                    option.value
+                  }
+                  active={
+                    condition ===
+                    option.value
+                  }
+                  label={
+                    option.label
+                  }
+                  onClick={() =>
+                    setCondition(
+                      (
+                        current,
+                      ) =>
+                        current ===
+                        option.value
+                          ? undefined
+                          : option.value,
+                    )
+                  }
+                />
+              ),
+            )}
+          </div>
+        </section>
+      </main>
+
+      <footer className="shrink-0 bg-surface-canvas px-5 pb-5 pt-3">
+        <button
+          type="button"
+          onClick={
+            applyFilters
+          }
+          className="h-14 w-full rounded-control bg-primary-700 typography-title-3 text-white transition-colors hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
+        >
+          적용
+        </button>
+      </footer>
+    </div>
   )
 }
 
-function SelectionChip({
-  selected,
+function FilterOption({
+  active,
+  label,
   onClick,
-  children,
 }: {
-  selected: boolean
-
-  onClick:
-    () => void
-
-  children:
-    string
+  active: boolean
+  label: string
+  onClick: () => void
 }) {
   return (
     <button
       type="button"
       aria-pressed={
-        selected
+        active
       }
-      className={cn(
-        'shrink-0 rounded-pill border px-3 py-2 typography-label-1 transition-colors',
-
-        selected
-          ? 'border-primary-700 bg-primary-700 text-white'
-          : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100',
-      )}
       onClick={
         onClick
       }
+      className={
+        active
+          ? 'h-9 rounded-pill bg-primary-700 px-4 typography-label-1 text-white'
+          : 'h-9 rounded-pill border border-neutral-200 bg-white px-4 typography-label-1 text-neutral-700'
+      }
     >
-      {children}
+      {label}
     </button>
   )
 }
