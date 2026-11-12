@@ -336,16 +336,13 @@ function DonationCard({
 
         <p className="mt-1 typography-label-2 text-neutral-700">
           예약 수량{' '}
-          {reserved} · 전달 완료{' '}
-          {completed}
+          {reserved}{item.unit} · 전달 완료{' '}
+          {completed}{item.unit}
         </p>
 
         <p className="typography-label-2 text-neutral-700">
           신청 가능 수량{' '}
-          {
-            item.availableQuantity
-          }{' '}
-          (총 {item.quantity})
+          {item.availableQuantity}{item.unit}
         </p>
 
         <span
