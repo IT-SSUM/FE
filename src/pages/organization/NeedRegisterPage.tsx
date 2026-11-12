@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { CheckCircle2, ChevronLeft, Search } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
@@ -33,13 +33,11 @@ export function NeedRegisterPage() {
   const sourceDonation = sourceDonationQuery.data
   const isDonationFixed = sourceDonationId !== null
   const [step, setStep] = useState<1 | 2>(1)
-  const [regionPanelOpen, setRegionPanelOpen] = useState(false)
-  const [regionQuery, setRegionQuery] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState('')
   const [unit, setUnit] = useState('개')
-  const [region, setRegion] = useState('경기도 부천시')
+  const region = '경기도 부천시'
   const [condition, setCondition] = useState<ItemConditionCode>('MID')
   const [reason, setReason] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
@@ -145,81 +143,6 @@ export function NeedRegisterPage() {
     } finally {
       submitting.current = false
     }
-  }
-
-  if (regionPanelOpen) {
-    const showBucheon =
-      !regionQuery.trim() || '경기도 부천시'.includes(regionQuery.trim())
-
-    return (
-      <div className="flex min-h-dvh flex-col bg-surface-canvas">
-        <PageHeader
-          title="지역 선택"
-          onBack={() => setRegionPanelOpen(false)}
-        />
-
-        <main className="flex-1 overflow-y-auto px-5 pb-6 pt-4">
-          <label
-            htmlFor="region-search"
-            className="text-xs font-bold leading-[18px] text-neutral-900"
-          >
-            지역 검색
-          </label>
-          <div className="mt-3 flex gap-2">
-            <input
-              id="region-search"
-              type="search"
-              value={regionQuery}
-              onChange={(event) => setRegionQuery(event.target.value)}
-              placeholder="시·군·구 검색"
-              className="h-[52px] min-w-0 flex-1 rounded-input border border-neutral-500 bg-white px-4 typography-body-2 text-neutral-900 outline-none placeholder:text-neutral-500 focus:border-primary-700"
-            />
-            <button
-              type="button"
-              className="flex h-[52px] shrink-0 items-center gap-2 rounded-control bg-primary-700 px-4 typography-title-3 text-white transition-colors hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
-            >
-              <Search aria-hidden size={18} strokeWidth={2} />
-              검색
-            </button>
-          </div>
-
-          <section className="mt-4" aria-label="선택 가능한 지역">
-            {showBucheon ? (
-              <button
-                type="button"
-                aria-pressed="true"
-                onClick={() => setRegion('경기도 부천시')}
-                style={{ minHeight: 52 }}
-                className="flex w-full items-center gap-3 rounded-control border border-primary-300 bg-primary-100 px-4 text-left typography-body-2 text-primary-700"
-              >
-                <CheckCircle2 aria-hidden size={20} strokeWidth={2} />
-                경기도 부천시
-              </button>
-            ) : (
-              <div className="rounded-control border border-neutral-200 bg-white px-4 py-8 text-center typography-body-2 text-neutral-600">
-                선택할 수 있는 지역은 경기도 부천시예요.
-              </div>
-            )}
-          </section>
-
-          <p className="mt-4 typography-label-2 text-neutral-600">
-            시·군·구 단위로 공개돼요. 상세 위치는 채팅에서 협의해요.
-          </p>
-        </main>
-
-        <footer className="shrink-0 bg-surface-canvas px-5 pb-4 pt-2">
-          <Button
-            className="h-[46px] w-full"
-            onClick={() => {
-              setRegion('경기도 부천시')
-              setRegionPanelOpen(false)
-            }}
-          >
-            적용
-          </Button>
-        </footer>
-      </div>
-    )
   }
 
   return (
@@ -341,12 +264,9 @@ export function NeedRegisterPage() {
               </span>
               <button
                 type="button"
-                onClick={() => {
-                  setRegionQuery('')
-                  setRegionPanelOpen(true)
-                }}
+                disabled
                 style={{ height: 54 }}
-                className="w-full rounded-input border border-neutral-500 bg-white px-4 text-left typography-body-2 text-neutral-900 outline-none transition-colors hover:border-primary-700 focus-visible:border-primary-700 focus-visible:outline-none"
+                className="w-full cursor-not-allowed rounded-input border border-neutral-300 bg-neutral-100 px-4 text-left typography-body-2 text-neutral-700"
               >
                 {region}
               </button>
