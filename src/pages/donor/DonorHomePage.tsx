@@ -168,13 +168,13 @@ export function DonorHomePage() {
         <section aria-labelledby="donor-home-greeting">
           <h1
             id="donor-home-greeting"
-            className="typography-heading-2 text-neutral-900"
+            className="text-xl font-bold leading-7 text-neutral-900"
           >
             안녕하세요,{' '}
             {userName}님!
           </h1>
 
-          <p className="mt-2 typography-body-2 text-neutral-700">
+          <p className="mt-2 typography-body-2 text-neutral-600">
             오늘도 나눔을
             이어가 볼까요?
           </p>
