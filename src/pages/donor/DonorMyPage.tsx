@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  FileCheck2,
   Package,
   ShieldCheck,
   UserRound,
@@ -99,6 +100,23 @@ const donationMenus:
 
       icon: (
         <CalendarDays
+          aria-hidden
+          size={22}
+          strokeWidth={2}
+        />
+      ),
+    },
+
+    {
+      title:
+        '기부 내역서 발급',
+
+      to:
+        ROUTES.donor
+          .donationStatement,
+
+      icon: (
+        <FileCheck2
           aria-hidden
           size={22}
           strokeWidth={2}

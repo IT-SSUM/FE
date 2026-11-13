@@ -269,44 +269,46 @@ export function DonorHomePage() {
               </button>
             </div>
           ) : (
-            <div className="mt-3 rounded-card border border-neutral-200 bg-white p-4">
-              <dl className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <dt className="typography-heading-2 text-primary-700">
-                    {
-                      donationItems.length
-                    }
-                  </dt>
+            <div className="mt-3 overflow-hidden rounded-card border border-neutral-200 bg-white">
+              <div className="grid grid-cols-3">
+                <StatButton
+                  value={
+                    donationItems.length
+                  }
+                  label="등록 물품"
+                  onClick={() =>
+                    navigate(
+                      ROUTES.donor
+                        .myItems,
+                    )
+                  }
+                />
 
-                  <dd className="mt-1 typography-label-2 text-neutral-700">
-                    등록 물품
-                  </dd>
-                </div>
+                <StatButton
+                  value={
+                    activeMatches.length
+                  }
+                  label="진행 중"
+                  onClick={() =>
+                    navigate(
+                      ROUTES.donor
+                        .myRequests,
+                    )
+                  }
+                />
 
-                <div>
-                  <dt className="typography-heading-2 text-primary-700">
-                    {
-                      activeMatches.length
-                    }
-                  </dt>
-
-                  <dd className="mt-1 typography-label-2 text-neutral-700">
-                    진행 중
-                  </dd>
-                </div>
-
-                <div>
-                  <dt className="typography-heading-2 text-primary-700">
-                    {
-                      completedMatches.length
-                    }
-                  </dt>
-
-                  <dd className="mt-1 typography-label-2 text-neutral-700">
-                    전달 완료
-                  </dd>
-                </div>
-              </dl>
+                <StatButton
+                  value={
+                    completedMatches.length
+                  }
+                  label="전달 완료"
+                  onClick={() =>
+                    navigate(
+                      `${ROUTES.donor.myHistory}?status=COMPLETED`,
+                    )
+                  }
+                />
+              </div>
             </div>
           )}
         </section>
@@ -416,5 +418,37 @@ export function DonorHomePage() {
         className="sticky bottom-0 shrink-0"
       />
     </div>
+  )
+}
+
+function StatButton({
+  value,
+  label,
+  onClick,
+}: {
+  value:
+    number
+  label:
+    string
+  onClick:
+    () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={`${label} ${value}건 보기`}
+      onClick={
+        onClick
+      }
+      className="flex min-h-[100px] flex-col items-center justify-center text-center transition-colors hover:bg-primary-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-primary-700"
+    >
+      <strong className="typography-heading-2 text-primary-700">
+        {value}
+      </strong>
+
+      <span className="mt-1 typography-label-2 text-neutral-700">
+        {label}
+      </span>
+    </button>
   )
 }
