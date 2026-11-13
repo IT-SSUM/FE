@@ -33,10 +33,6 @@ import {
   useMatchesQuery,
 } from '@/hooks/queries/useMatchesQuery'
 
-import {
-  ROUTES,
-} from '@/routes/paths'
-
 import type {
   MatchListItem,
 } from '@/types/match'
