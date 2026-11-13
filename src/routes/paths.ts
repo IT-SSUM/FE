@@ -50,6 +50,9 @@ export const ROUTES = {
     myHistory:
       '/donor/mypage/history',
 
+    donationStatement:
+      '/donor/mypage/donation-statement',
+
     myProfile:
       '/donor/mypage/profile',
 

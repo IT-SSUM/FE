@@ -1,36 +1,123 @@
-import { ChevronLeft } from 'lucide-react'
-import { useState } from 'react'
+import {
+  ChevronLeft,
+} from 'lucide-react'
+
+import {
+  useState,
+} from 'react'
+
 import {
   useNavigate,
   useParams,
 } from 'react-router-dom'
 
-import { matchErrorMessage, parseMatchId } from '@/apis/match'
-import { Button } from '@/components/common/Button/Button'
-import { Dialog } from '@/components/common/Dialog/Dialog'
-import { Input } from '@/components/common/Input/Input'
-import { getAuthSession } from '@/features/auth/storage'
-import { conditionLabel } from '@/features/donor/donationItemApiState'
-import { useCancelMatchMutation } from '@/hooks/mutations/useCancelMatchMutation'
-import { useReserveMatchMutation } from '@/hooks/mutations/useReserveMatchMutation'
-import { useMatchQuery } from '@/hooks/queries/useMatchQuery'
-import { ROUTES, routePath } from '@/routes/paths'
+import {
+  matchErrorMessage,
+  parseMatchId,
+} from '@/apis/match'
+
+import {
+  Button,
+} from '@/components/common/Button/Button'
+
+import {
+  Dialog,
+} from '@/components/common/Dialog/Dialog'
+
+import {
+  Input,
+} from '@/components/common/Input/Input'
+
+import {
+  getAuthSession,
+} from '@/features/auth/storage'
+
+import {
+  conditionLabel,
+} from '@/features/donor/donationItemApiState'
+
+import {
+  useCancelMatchMutation,
+} from '@/hooks/mutations/useCancelMatchMutation'
+
+import {
+  useCompleteMatchMutation,
+} from '@/hooks/mutations/useCompleteMatchMutation'
+
+import {
+  useReserveMatchMutation,
+} from '@/hooks/mutations/useReserveMatchMutation'
+
+import {
+  useMatchQuery,
+} from '@/hooks/queries/useMatchQuery'
+
+import {
+  ROUTES,
+  routePath,
+} from '@/routes/paths'
 
 export function TradeDetailPage() {
-  const navigate = useNavigate()
-  const { tradeId } = useParams()
-  const id = parseMatchId(tradeId)
-  const query = useMatchQuery(id)
+  const navigate =
+    useNavigate()
 
-  const reserveMutation = useReserveMatchMutation()
-  const cancelMutation = useCancelMatchMutation()
+  const {
+    tradeId,
+  } =
+    useParams()
 
-  const role = getAuthSession()?.role ?? null
+  const id =
+    parseMatchId(
+      tradeId,
+    )
 
-  const [reserveOpen, setReserveOpen] = useState(false)
-  const [cancelOpen, setCancelOpen] = useState(false)
-  const [cancelReason, setCancelReason] = useState('')
-  const [error, setError] = useState('')
+  const query =
+    useMatchQuery(
+      id,
+    )
+
+  const reserveMutation =
+    useReserveMatchMutation()
+
+  const cancelMutation =
+    useCancelMatchMutation()
+
+  const completeMutation =
+    useCompleteMatchMutation()
+
+  const role =
+    getAuthSession()?.role ??
+    null
+
+  const [
+    reserveOpen,
+    setReserveOpen,
+  ] =
+    useState(false)
+
+  const [
+    cancelOpen,
+    setCancelOpen,
+  ] =
+    useState(false)
+
+  const [
+    completeOpen,
+    setCompleteOpen,
+  ] =
+    useState(false)
+
+  const [
+    cancelReason,
+    setCancelReason,
+  ] =
+    useState('')
+
+  const [
+    error,
+    setError,
+  ] =
+    useState('')
 
   if (
     id === null ||
@@ -45,13 +132,19 @@ export function TradeDetailPage() {
         </h1>
 
         <p
-          role={query.isError ? 'alert' : 'status'}
+          role={
+            query.isError
+              ? 'alert'
+              : 'status'
+          }
           className="mt-4 typography-body-2 text-neutral-700"
         >
           {id === null
             ? '올바른 매칭 번호가 필요해요.'
             : query.isError
-              ? matchErrorMessage(query.error)
+              ? matchErrorMessage(
+                  query.error,
+                )
               : query.isPending
                 ? '불러오는 중이에요.'
                 : '거래 정보를 찾을 수 없어요.'}
@@ -60,7 +153,9 @@ export function TradeDetailPage() {
         {query.isError ? (
           <Button
             className="mt-4"
-            onClick={() => void query.refetch()}
+            onClick={() =>
+              void query.refetch()
+            }
           >
             다시 시도
           </Button>
@@ -69,7 +164,9 @@ export function TradeDetailPage() {
         <Button
           variant="secondary"
           className="mt-2"
-          onClick={() => navigate(-1)}
+          onClick={() =>
+            navigate(-1)
+          }
         >
           뒤로가기
         </Button>
@@ -77,25 +174,44 @@ export function TradeDetailPage() {
     )
   }
 
-  const trade = query.data
+  const trade =
+    query.data
 
-  const trading = trade.status === 'TRADING'
-  const reserved = trade.status === 'RESERVED'
+  const trading =
+    trade.status ===
+    'TRADING'
+
+  const reserved =
+    trade.status ===
+    'RESERVED'
+
+  const completed =
+    trade.status ===
+    'COMPLETED'
 
   const canReserve =
     trading &&
-    role === 'DONOR'
+    role ===
+      'DONOR'
 
   const canChangeQuantity =
     trading &&
-    role === 'DONOR'
+    role ===
+      'DONOR'
 
   const canEditAppointment =
     reserved &&
-    role === 'DONOR'
+    role ===
+      'DONOR'
+
+  const canComplete =
+    reserved &&
+    role ===
+      'ORGANIZATION'
 
   const canCancel =
-    trading || reserved
+    trading ||
+    reserved
 
   const hasAppointment =
     Boolean(
@@ -103,63 +219,135 @@ export function TradeDetailPage() {
       trade.deliveryPlace,
     )
 
-  const openChat = () => {
-    if (trade.chatRoomId !== null) {
-      navigate(
-        routePath.chatRoom(
-          String(trade.chatRoomId),
-        ),
-      )
-    }
-  }
-
-  const handleReserve = async () => {
-    if (
-      !canReserve ||
-      reserveMutation.isPending
-    ) {
-      return
+  const openChat =
+    () => {
+      if (
+        trade.chatRoomId !==
+        null
+      ) {
+        navigate(
+          routePath.chatRoom(
+            String(
+              trade.chatRoomId,
+            ),
+          ),
+        )
+      }
     }
 
-    setError('')
+  const handleReserve =
+    async () => {
+      if (
+        !canReserve ||
+        reserveMutation.isPending
+      ) {
+        return
+      }
 
-    try {
-      await reserveMutation.mutateAsync(trade.matchId)
-      setReserveOpen(false)
-    } catch (cause) {
-      setError(matchErrorMessage(cause))
+      setError('')
+
+      try {
+        await reserveMutation.mutateAsync(
+          trade.matchId,
+        )
+
+        setReserveOpen(
+          false,
+        )
+      } catch (
+        cause
+      ) {
+        setError(
+          matchErrorMessage(
+            cause,
+          ),
+        )
+      }
     }
-  }
 
-  const handleCancel = async () => {
-    if (
-      !canCancel ||
-      cancelMutation.isPending ||
-      !cancelReason.trim()
-    ) {
-      return
+  const handleComplete =
+    async () => {
+      if (
+        !canComplete ||
+        completeMutation.isPending
+      ) {
+        return
+      }
+
+      setError('')
+
+      try {
+        await completeMutation.mutateAsync(
+          trade.matchId,
+        )
+
+        setCompleteOpen(
+          false,
+        )
+
+        navigate(
+          `${ROUTES.organization.tradeStatus}?status=complete`,
+          {
+            replace:
+              true,
+          },
+        )
+      } catch (
+        cause
+      ) {
+        setError(
+          matchErrorMessage(
+            cause,
+          ),
+        )
+      }
     }
 
-    setError('')
+  const handleCancel =
+    async () => {
+      if (
+        !canCancel ||
+        cancelMutation.isPending ||
+        !cancelReason.trim()
+      ) {
+        return
+      }
 
-    try {
-      await cancelMutation.mutateAsync({
-        matchId: trade.matchId,
-        body: {
-          reason: cancelReason.trim(),
-        },
-      })
+      setError('')
 
-      navigate(
-        role === 'DONOR'
-          ? ROUTES.donor.myHistory
-          : ROUTES.organization.tradeStatus,
-        { replace: true },
-      )
-    } catch (cause) {
-      setError(matchErrorMessage(cause))
+      try {
+        await cancelMutation.mutateAsync(
+          {
+            matchId:
+              trade.matchId,
+
+            body: {
+              reason:
+                cancelReason.trim(),
+            },
+          },
+        )
+
+        navigate(
+          role ===
+            'DONOR'
+            ? `${ROUTES.donor.myHistory}?status=CANCELED`
+            : `${ROUTES.organization.tradeStatus}?status=canceled`,
+          {
+            replace:
+              true,
+          },
+        )
+      } catch (
+        cause
+      ) {
+        setError(
+          matchErrorMessage(
+            cause,
+          ),
+        )
+      }
     }
-  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
@@ -167,23 +355,43 @@ export function TradeDetailPage() {
         <button
           type="button"
           aria-label="뒤로가기"
-          onClick={() => navigate(-1)}
+          onClick={() =>
+            navigate(-1)
+          }
           className="flex size-6 shrink-0 items-center justify-center text-primary-700"
         >
-          <ChevronLeft aria-hidden size={24} strokeWidth={2} />
+          <ChevronLeft
+            aria-hidden
+            size={24}
+            strokeWidth={2}
+          />
         </button>
 
         <h1 className="typography-title-3 text-neutral-900">
-          {reserved ? '예약중' : '거래 상세'}
+          {completed
+            ? '전달 완료'
+            : reserved
+              ? '예약중'
+              : '거래 상세'}
         </h1>
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-3">
         <section className="rounded-card border border-neutral-200 bg-white p-4">
           <h2 className="typography-title-2 text-neutral-900">
-            {trade.organizationName} ·{' '}
-            {trade.donationItemName}{' '}
-            {trade.quantity}{trade.unit}
+            {
+              trade.organizationName
+            }{' '}
+            ·{' '}
+            {
+              trade.donationItemName
+            }{' '}
+            {
+              trade.quantity
+            }
+            {
+              trade.unit
+            }
           </h2>
 
           <p className="mt-3 typography-label-2 text-primary-700">
@@ -193,9 +401,17 @@ export function TradeDetailPage() {
           {trading ? (
             <>
               <div className="mt-4 space-y-1 typography-label-2 leading-5 text-neutral-700">
-                <p>거래중에는 수량을 확보하지 않아요.</p>
-                <p>예약중 변경은 기부자만 가능해요.</p>
-                <p>취소는 양측 모두 가능해요.</p>
+                <p>
+                  거래중에는 수량을 확보하지 않아요.
+                </p>
+
+                <p>
+                  예약중 변경은 기부자만 가능해요.
+                </p>
+
+                <p>
+                  취소는 양측 모두 가능해요.
+                </p>
               </div>
 
               {canReserve ? (
@@ -203,8 +419,13 @@ export function TradeDetailPage() {
                   variant="secondary"
                   className="mt-4 w-full border-primary-700"
                   onClick={() => {
-                    setError('')
-                    setReserveOpen(true)
+                    setError(
+                      '',
+                    )
+
+                    setReserveOpen(
+                      true,
+                    )
                   }}
                 >
                   예약중으로 변경
@@ -212,13 +433,32 @@ export function TradeDetailPage() {
               ) : null}
             </>
           ) : null}
+
+          {completed ? (
+            <div className="mt-4 rounded-control bg-success-bg px-4 py-3 text-center">
+              <p className="typography-label-1 text-success">
+                물품 전달이 완료되었어요.
+              </p>
+
+              <p className="mt-1 typography-label-2 text-neutral-700">
+                기관에서 실제 수령을 확인한 거래예요.
+              </p>
+            </div>
+          ) : null}
         </section>
 
         <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="typography-title-2 text-neutral-900">
-              {trade.donationItemName}{' '}
-              {trade.quantity}{trade.unit}
+              {
+                trade.donationItemName
+              }{' '}
+              {
+                trade.quantity
+              }
+              {
+                trade.unit
+              }
             </h2>
 
             {canChangeQuantity ? (
@@ -227,7 +467,9 @@ export function TradeDetailPage() {
                 onClick={() =>
                   navigate(
                     routePath.tradeQuantityEdit(
-                      String(trade.matchId),
+                      String(
+                        trade.matchId,
+                      ),
                     ),
                   )
                 }
@@ -242,18 +484,26 @@ export function TradeDetailPage() {
             <InfoRow
               label="품목 · 수량"
               value={`${trade.donationItemName} · ${
-                reserved ? '예약' : '협의'
+                completed
+                  ? '전달 완료'
+                  : reserved
+                    ? '예약'
+                    : '협의'
               } 수량 ${trade.quantity}${trade.unit}`}
             />
 
             <InfoRow
               label="물품 상태"
-              value={conditionText(trade.conditionGrade)}
+              value={conditionText(
+                trade.conditionGrade,
+              )}
             />
 
             <InfoRow
               label="물품 위치"
-              value={trade.donationItemRegion}
+              value={
+                trade.donationItemRegion
+              }
             />
           </dl>
         </section>
@@ -263,12 +513,16 @@ export function TradeDetailPage() {
             <dl className="space-y-3">
               <InfoRow
                 label="수령 기관"
-                value={trade.organizationName}
+                value={
+                  trade.organizationName
+                }
               />
 
               <InfoRow
                 label="기관 주소"
-                value={trade.organizationAddress}
+                value={
+                  trade.organizationAddress
+                }
               />
 
               <InfoRow
@@ -278,7 +532,7 @@ export function TradeDetailPage() {
                     ? `${deliveryMethodLabel(
                         trade.deliveryMethod,
                       )} · 채팅에서 협의`
-                    : '직접 전달 · 채팅에서 협의'
+                    : '채팅에서 협의'
                 }
               />
 
@@ -286,7 +540,9 @@ export function TradeDetailPage() {
                 label="전달 일정"
                 value={
                   trade.scheduledAt
-                    ? formatAppointmentDate(trade.scheduledAt)
+                    ? formatAppointmentDate(
+                        trade.scheduledAt,
+                      )
                     : '채팅에서 조율 중'
                 }
               />
@@ -294,7 +550,8 @@ export function TradeDetailPage() {
           </section>
         ) : null}
 
-        {reserved ? (
+        {(reserved ||
+          completed) ? (
           <section className="mt-4 rounded-card border border-neutral-200 bg-white p-4">
             <h2 className="typography-title-2 text-neutral-900">
               전달 약속
@@ -304,15 +561,21 @@ export function TradeDetailPage() {
               <>
                 <div className="mt-3 space-y-1 typography-body-2 text-neutral-700">
                   <p>
-                    {formatAppointmentDate(trade.scheduledAt)}
+                    {formatAppointmentDate(
+                      trade.scheduledAt,
+                    )}
                   </p>
 
                   <p>
-                    {formatDeliveryPlace(trade.deliveryPlace)}
+                    {formatDeliveryPlace(
+                      trade.deliveryPlace,
+                    )}
                   </p>
 
                   <p>
-                    {deliveryMethodLabel(trade.deliveryMethod)}
+                    {deliveryMethodLabel(
+                      trade.deliveryMethod,
+                    )}
                   </p>
                 </div>
 
@@ -323,7 +586,9 @@ export function TradeDetailPage() {
                     onClick={() =>
                       navigate(
                         routePath.tradeAppointment(
-                          String(trade.matchId),
+                          String(
+                            trade.matchId,
+                          ),
                         ),
                       )
                     }
@@ -347,7 +612,9 @@ export function TradeDetailPage() {
                     onClick={() =>
                       navigate(
                         routePath.tradeAppointment(
-                          String(trade.matchId),
+                          String(
+                            trade.matchId,
+                          ),
                         ),
                       )
                     }
@@ -357,6 +624,37 @@ export function TradeDetailPage() {
                 ) : null}
               </>
             )}
+          </section>
+        ) : null}
+
+        {canComplete ? (
+          <section className="mt-4 rounded-card bg-primary-100 p-4">
+            <h2 className="typography-title-3 text-neutral-900">
+              물품을 전달받으셨나요?
+            </h2>
+
+            <p className="mt-2 typography-body-2 leading-5 text-neutral-700">
+              실제로 물품을 수령한 경우에만
+              전달 완료 처리를 진행해 주세요.
+            </p>
+
+            <Button
+              className="mt-4 w-full"
+              disabled={
+                completeMutation.isPending
+              }
+              onClick={() => {
+                setError(
+                  '',
+                )
+
+                setCompleteOpen(
+                  true,
+                )
+              }}
+            >
+              전달 완료
+            </Button>
           </section>
         ) : null}
 
@@ -371,30 +669,108 @@ export function TradeDetailPage() {
       </main>
 
       {canCancel ? (
-        <footer className="grid shrink-0 grid-cols-2 gap-2 bg-surface-canvas px-5 pb-5 pt-3">
-          <Button
-            disabled={trade.chatRoomId === null}
-            onClick={openChat}
-          >
-            채팅
-          </Button>
+        <footer className="shrink-0 bg-surface-canvas px-5 pb-5 pt-3">
+          {canComplete ? (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                disabled={
+                  trade.chatRoomId ===
+                  null
+                }
+                onClick={
+                  openChat
+                }
+              >
+                채팅
+              </Button>
 
-          <Button
-            variant="secondary"
-            disabled={cancelMutation.isPending}
-            onClick={() => {
-              setError('')
-              setCancelReason('')
-              setCancelOpen(true)
-            }}
-          >
-            거래 취소
-          </Button>
+              <Button
+                disabled={
+                  completeMutation.isPending
+                }
+                onClick={() => {
+                  setError(
+                    '',
+                  )
+
+                  setCompleteOpen(
+                    true,
+                  )
+                }}
+              >
+                전달 완료
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                disabled={
+                  trade.chatRoomId ===
+                  null
+                }
+                onClick={
+                  openChat
+                }
+              >
+                채팅
+              </Button>
+
+              <Button
+                variant="secondary"
+                disabled={
+                  cancelMutation.isPending
+                }
+                onClick={() => {
+                  setError(
+                    '',
+                  )
+
+                  setCancelReason(
+                    '',
+                  )
+
+                  setCancelOpen(
+                    true,
+                  )
+                }}
+              >
+                거래 취소
+              </Button>
+            </div>
+          )}
+
+          {canComplete ? (
+            <button
+              type="button"
+              disabled={
+                cancelMutation.isPending ||
+                completeMutation.isPending
+              }
+              onClick={() => {
+                setError(
+                  '',
+                )
+
+                setCancelReason(
+                  '',
+                )
+
+                setCancelOpen(
+                  true,
+                )
+              }}
+              className="mt-3 w-full py-2 typography-label-2 text-neutral-600 underline"
+            >
+              거래 취소
+            </button>
+          ) : null}
         </footer>
       ) : null}
 
       <Dialog
-        open={reserveOpen}
+        open={
+          reserveOpen
+        }
         title="예약중으로 변경할까요?"
         description={`${trade.quantity}${trade.unit}를 임시 예약해요.\n최종 확정은 기관의 전달 완료 처리 후예요.`}
         confirmText={
@@ -403,13 +779,60 @@ export function TradeDetailPage() {
             : '변경하기'
         }
         cancelText="취소"
-        confirmDisabled={reserveMutation.isPending}
-        cancelDisabled={reserveMutation.isPending}
+        confirmDisabled={
+          reserveMutation.isPending
+        }
+        cancelDisabled={
+          reserveMutation.isPending
+        }
         className="text-center [&>p]:whitespace-pre-line"
-        onConfirm={() => void handleReserve()}
+        onConfirm={() =>
+          void handleReserve()
+        }
         onCancel={() => {
-          if (!reserveMutation.isPending) {
-            setReserveOpen(false)
+          if (
+            !reserveMutation.isPending
+          ) {
+            setReserveOpen(
+              false,
+            )
+          }
+        }}
+      />
+
+      <Dialog
+        open={
+          completeOpen
+        }
+        title="실제 물품을 수령했나요?"
+        description={`물품을 실제로 전달받은 경우에만 완료해 주세요.\n완료 후 예약 수량이 수령 완료 수량으로 반영됩니다.`}
+        confirmText={
+          completeMutation.isPending
+            ? '처리 중...'
+            : '전달 완료'
+        }
+        cancelText="취소"
+        confirmDisabled={
+          completeMutation.isPending
+        }
+        cancelDisabled={
+          completeMutation.isPending
+        }
+        className="text-center [&>p]:whitespace-pre-line"
+        onConfirm={() =>
+          void handleComplete()
+        }
+        onCancel={() => {
+          if (
+            !completeMutation.isPending
+          ) {
+            setCompleteOpen(
+              false,
+            )
+
+            setError(
+              '',
+            )
           }
         }}
       />
@@ -428,11 +851,19 @@ export function TradeDetailPage() {
             <div className="mt-5">
               <Input
                 label="취소 사유"
-                value={cancelReason}
-                disabled={cancelMutation.isPending}
+                value={
+                  cancelReason
+                }
+                disabled={
+                  cancelMutation.isPending
+                }
                 placeholder="취소 사유를 입력해 주세요"
-                onChange={(event) =>
-                  setCancelReason(event.target.value)
+                onChange={(
+                  event,
+                ) =>
+                  setCancelReason(
+                    event.target.value,
+                  )
                 }
               />
             </div>
@@ -445,7 +876,9 @@ export function TradeDetailPage() {
                   cancelMutation.isPending ||
                   !cancelReason.trim()
                 }
-                onClick={() => void handleCancel()}
+                onClick={() =>
+                  void handleCancel()
+                }
               >
                 {cancelMutation.isPending
                   ? '취소 중...'
@@ -455,8 +888,14 @@ export function TradeDetailPage() {
               <Button
                 variant="secondary"
                 className="w-full"
-                disabled={cancelMutation.isPending}
-                onClick={() => setCancelOpen(false)}
+                disabled={
+                  cancelMutation.isPending
+                }
+                onClick={() =>
+                  setCancelOpen(
+                    false,
+                  )
+                }
               >
                 닫기
               </Button>
@@ -472,12 +911,18 @@ function InfoRow({
   label,
   value,
 }: {
-  label: string
-  value: string
+  label:
+    string
+
+  value:
+    string
 }) {
   return (
     <div className="grid grid-cols-[80px_1fr] gap-3 typography-body-2">
-      <dt className="text-neutral-700">{label}</dt>
+      <dt className="text-neutral-700">
+        {label}
+      </dt>
+
       <dd className="min-w-0 break-words text-neutral-900">
         {value}
       </dd>
@@ -485,58 +930,134 @@ function InfoRow({
   )
 }
 
-function conditionText(value: string) {
+function conditionText(
+  value:
+    string,
+) {
   return (
     conditionLabel[
       value as keyof typeof conditionLabel
-    ] ?? value
+    ] ??
+    value
   )
 }
 
-function deliveryMethodLabel(value: string | null) {
-  if (!value || value === 'DIRECT') {
+function deliveryMethodLabel(
+  value:
+    string | null,
+) {
+  if (
+    !value
+  ) {
+    return '미정'
+  }
+
+  if (
+    value ===
+    'DIRECT'
+  ) {
     return '직접 전달'
+  }
+
+  if (
+    value ===
+    'PARCEL'
+  ) {
+    return '택배'
   }
 
   return value
 }
 
-function formatDeliveryPlace(value: string | null) {
-  if (!value) return '미정'
+function formatDeliveryPlace(
+  value:
+    string | null,
+) {
+  if (
+    !value
+  ) {
+    return '미정'
+  }
 
-  return value.replace(/,\s*/g, ' · ')
+  return value.replace(
+    /,\s*/g,
+    ' · ',
+  )
 }
 
-function formatAppointmentDate(value: string | null) {
-  if (!value) return '미정'
+function formatAppointmentDate(
+  value:
+    string | null,
+) {
+  if (
+    !value
+  ) {
+    return '미정'
+  }
 
-  const date = new Date(value)
+  const date =
+    new Date(
+      value,
+    )
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
     return value
   }
 
-  const parts = new Intl.DateTimeFormat(
-    'ko-KR',
-    {
-      timeZone: 'Asia/Seoul',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    },
-  ).formatToParts(date)
+  const parts =
+    new Intl.DateTimeFormat(
+      'ko-KR',
+      {
+        timeZone:
+          'Asia/Seoul',
 
-  const part = (
-    type: Intl.DateTimeFormatPartTypes,
-  ) =>
-    parts.find((item) => item.type === type)?.value ?? ''
+        month:
+          'long',
 
-  const minute = part('minute')
+        day:
+          'numeric',
+
+        weekday:
+          'short',
+
+        hour:
+          'numeric',
+
+        minute:
+          '2-digit',
+
+        hour12:
+          true,
+      },
+    ).formatToParts(
+      date,
+    )
+
+  const part =
+    (
+      type:
+        Intl.DateTimeFormatPartTypes,
+    ) =>
+      parts.find(
+        (item) =>
+          item.type ===
+          type,
+      )?.value ??
+      ''
+
+  const minute =
+    part(
+      'minute',
+    )
 
   return `${part('month')} ${part('day')} (${part('weekday')}) ${part('dayPeriod')} ${part('hour')}시${
-    minute === '00' ? '' : ` ${minute}분`
+    minute ===
+    '00'
+      ? ''
+      : ` ${minute}분`
   }`
 }
