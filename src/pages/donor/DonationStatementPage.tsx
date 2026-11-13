@@ -30,12 +30,20 @@ import {
 } from '@/components/common/Button/Button'
 
 import {
+  KakaoBrowserGuideDialog,
+} from '@/components/common/KakaoBrowserGuideDialog/KakaoBrowserGuideDialog'
+
+import {
   useMatchesQuery,
 } from '@/hooks/queries/useMatchesQuery'
 
 import type {
   MatchListItem,
 } from '@/types/match'
+
+import {
+  isKakaoTalkInAppBrowser,
+} from '@/utils/inAppBrowser'
 
 import '@/styles/donation-statement.css'
 
@@ -45,6 +53,12 @@ export function DonationStatementPage() {
 
   const matchesQuery =
     useMatchesQuery()
+
+  const [
+    browserGuideOpen,
+    setBrowserGuideOpen,
+  ] =
+    useState(false)
 
   const [
     selectedIds,
@@ -179,6 +193,16 @@ export function DonationStatementPage() {
         selectedMatches.length ===
         0
       ) {
+        return
+      }
+
+      if (
+        isKakaoTalkInAppBrowser()
+      ) {
+        setBrowserGuideOpen(
+          true,
+        )
+
         return
       }
 
@@ -595,6 +619,17 @@ export function DonationStatementPage() {
           </p>
         </footer>
       </section>
+
+      <KakaoBrowserGuideDialog
+        open={
+          browserGuideOpen
+        }
+        onClose={() =>
+          setBrowserGuideOpen(
+            false,
+          )
+        }
+      />
     </div>
   )
 }

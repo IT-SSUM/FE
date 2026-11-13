@@ -6,6 +6,7 @@ import {
 
 import {
   useEffect,
+  useState,
 } from 'react'
 
 import {
@@ -25,6 +26,10 @@ import {
 } from '@/components/common/Button/Button'
 
 import {
+  KakaoBrowserGuideDialog,
+} from '@/components/common/KakaoBrowserGuideDialog/KakaoBrowserGuideDialog'
+
+import {
   useMatchQuery,
 } from '@/hooks/queries/useMatchQuery'
 
@@ -32,11 +37,21 @@ import {
   ROUTES,
 } from '@/routes/paths'
 
+import {
+  isKakaoTalkInAppBrowser,
+} from '@/utils/inAppBrowser'
+
 import '@/styles/donation-certificate.css'
 
 export function DonationCertificatePage() {
   const navigate =
     useNavigate()
+
+  const [
+    browserGuideOpen,
+    setBrowserGuideOpen,
+  ] =
+    useState(false)
 
   const {
     matchId,
@@ -174,6 +189,16 @@ export function DonationCertificatePage() {
 
   const handlePrint =
     () => {
+      if (
+        isKakaoTalkInAppBrowser()
+      ) {
+        setBrowserGuideOpen(
+          true,
+        )
+
+        return
+      }
+
       window.print()
     }
 
@@ -374,9 +399,21 @@ export function DonationCertificatePage() {
             aria-hidden
             size={18}
           />
+
           PDF로 저장
         </Button>
       </footer>
+
+      <KakaoBrowserGuideDialog
+        open={
+          browserGuideOpen
+        }
+        onClose={() =>
+          setBrowserGuideOpen(
+            false,
+          )
+        }
+      />
     </div>
   )
 }
