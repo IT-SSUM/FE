@@ -103,7 +103,10 @@ export function OfferDetailPage({
                 <InfoRow label="기관 주소" value={offer.organizationAddress} />
                 <InfoRow label="수령 주소" value={offer.neededItemReceiveAddress || '아직 정하지 않았어요.'} />
                 <InfoRow label="물품 위치" value={offer.donationItemRegion} />
-                <InfoRow label="기부 잔여" value={`${offer.donationItemRemainingQuantity}${offer.unit}`} />
+                <InfoRow
+                  label="기부 잔여"
+                  value={formatQuantity(offer.donationItemRemainingQuantity, offer.unit)}
+                />
                 {offer.deliveryMethod ? (
                   <InfoRow label="전달 방법" value={offer.deliveryMethod === 'DIRECT' ? '직접 전달' : '택배'} />
                 ) : null}
@@ -172,4 +175,8 @@ function InfoRow({ label, value }: { label: string; value: ReactNode }) {
       <dd className="font-normal text-neutral-900">{value}</dd>
     </div>
   )
+}
+
+function formatQuantity(quantity: number | undefined, unit: string) {
+  return Number.isFinite(quantity) ? `${quantity}${unit}` : '확인할 수 없어요.'
 }

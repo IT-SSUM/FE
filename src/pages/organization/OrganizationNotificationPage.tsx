@@ -1,11 +1,10 @@
 import { useOpenNotification } from '@/features/notifications/useOpenNotification'
-import { Bell, ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
 import { useNotificationItems } from '@/features/notifications/useNotificationItems'
-import { NotificationFeedback } from '@/features/notifications/NotificationFeedback'
+import { NotificationCard } from '@/features/notifications/NotificationCard'
 import { useUnreadNotificationCountQuery } from '@/hooks/queries/useNotificationsQuery'
-import { cn } from '@/utils/cn'
 
 export function OrganizationNotificationPage() {
   const navigate = useNavigate()
@@ -36,45 +35,17 @@ export function OrganizationNotificationPage() {
 
         <section className="mt-4 space-y-3" aria-label="기관 알림 목록">
           {organizationNotifications.map((notification) => {
-            const Icon = Bell
             return (
-              <button
+              <NotificationCard
                 key={notification.id}
-                type="button"
+                notification={notification}
                 disabled={notificationAction.isPending || (!notification.to && !notification.unread)}
                 onClick={() => void notificationAction.open(notification)}
-                className={cn(
-                  'w-full rounded-card border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700',
-                  notification.unread
-                    ? 'border-transparent bg-primary-100 hover:bg-primary-200'
-                    : 'border-neutral-200 bg-white hover:bg-neutral-100',
-                )}
-              >
-                <span className="flex items-start gap-3">
-                  <Icon
-                    aria-hidden
-                    size={24}
-                    strokeWidth={2}
-                    className="mt-0.5 shrink-0 text-primary-700"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <strong className="block text-sm font-semibold leading-[22px] text-neutral-900">
-                      {notification.title}
-                    </strong>
-                    <span className="mt-1 block text-xs font-normal leading-[18px] text-neutral-700">
-                      {notification.description}
-                    </span>
-                    <span className="mt-2 block text-right text-xs font-normal leading-[18px] text-neutral-600">
-                      {notification.time}
-                    </span>
-                  </span>
-                </span>
-              </button>
+              />
             )
           })}
         </section>
         {notificationAction.error && <p role="alert">읽음 처리에 실패했어요. 알림을 다시 선택해주세요.</p>}
-        <NotificationFeedback />
       </main>
 
       <BottomNavigation
