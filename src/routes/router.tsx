@@ -39,6 +39,10 @@ import {
 } from '@/pages/donor/DonorDonationManagePage'
 
 import {
+  DonationStatementPage,
+} from '@/pages/donor/DonationStatementPage'
+
+import {
   DonorMyPage,
 } from '@/pages/donor/DonorMyPage'
 
@@ -250,6 +254,15 @@ export const router =
         <ProtectedRoute />,
 
       children: [
+        {
+          path:
+            ROUTES.donor
+              .donationStatement,
+
+          element:
+            <DonationStatementPage />,
+        },
+
         {
           element:
             <DonorLayout />,
