@@ -12,6 +12,12 @@ import { matchErrorMessage } from '@/apis/match'
 import { useAcceptMatchMutation } from '@/hooks/mutations/useAcceptMatchMutation'
 import { useWithdrawMatchMutation } from '@/hooks/mutations/useWithdrawMatchMutation'
 import { useReserveMatchMutation } from '@/hooks/mutations/useReserveMatchMutation'
+import { Toast } from '@/components/common/Toast/Toast'
+
+type ActionNotice = {
+  title: string
+  description?: string
+}
 
 export function matchDirection(requestedBy: string, audience: 'DONOR' | 'ORGANIZATION' | null) {
   // 확인되지 않은 역할 값은 수신/발신으로 추측하지 않습니다.
@@ -48,7 +54,7 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
   const reserve = useReserveMatchMutation()
   const lock = useRef(false)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<ActionNotice | null>(null)
   const pending = accept.isPending || withdraw.isPending || reserve.isPending || reject.isPending || quantityMutation.isPending || complete.isPending || cancel.isPending
   const direction = matchDirection(match.requestedBy, authenticatedRole)
   async function run(action: 'accept' | 'withdraw' | 'reserve' | 'reject' | 'quantity' | 'complete' | 'cancel') {
@@ -62,26 +68,27 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
     if (!allowed) return
     lock.current = true
     setError('')
-    setNotice('')
+    setNotice(null)
     try {
       if (action === 'accept') {
         const result = await accept.mutateAsync(match.matchId)
-        setNotice(
-          result.chatRoomId
-            ? '수락되었습니다. 채팅방에서 대화를 시작할 수 있어요.'
-            : '수락되었습니다.',
-        )
+        setNotice({
+          title: '제안을 수락했어요',
+          description: result.chatRoomId
+            ? '채팅방에서 기부자와 대화를 시작해 보세요.'
+            : '거래 상세에서 진행 상태를 확인할 수 있어요.',
+        })
       } else if (action === 'withdraw') {
         await withdraw.mutateAsync(match.matchId)
       } else if (action === 'reserve') {
         const result = await reserve.mutateAsync(match.matchId)
-        setNotice(`처리 상태: ${matchStatusLabel(result.status)}`)
+        setNotice({ title: `처리 상태가 ${matchStatusLabel(result.status)}으로 변경됐어요` })
       } else {
         const result = action === 'reject' ? await reject.mutateAsync(match.matchId)
           : action === 'quantity' ? await quantityMutation.mutateAsync({ matchId: match.matchId, body: { quantity: Number(quantity) } })
           : action === 'complete' ? await complete.mutateAsync(match.matchId)
           : await cancel.mutateAsync({ matchId: match.matchId, body: { reason } })
-        setNotice(`처리 상태: ${matchStatusLabel(result.status)}`)
+        setNotice({ title: `처리 상태가 ${matchStatusLabel(result.status)}으로 변경됐어요` })
         setEditing(null)
         setConfirm(null)
         if (action === 'complete' || action === 'cancel') navigate(audience === 'DONOR' ? ROUTES.donor.myRequests : ROUTES.organization.offerList, { replace: true })
@@ -112,7 +119,13 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
       confirmText={pending ? '처리 중...' : '확인'} onConfirm={() => { if (confirm) void run(confirm) }}
       onCancel={() => { if (!lock.current) { setConfirm(null); setError('') } }} />
     {pending ? <p role="status">처리 중이에요.</p> : null}
-    {notice ? <p role="status">{notice}</p> : null}
+    {notice ? (
+      <Toast
+        title={notice.title}
+        description={notice.description}
+        className="min-h-0 max-w-none shadow-none"
+      />
+    ) : null}
     {error ? <p role="alert" className="text-error">{error}</p> : null}
   </div>
 }
