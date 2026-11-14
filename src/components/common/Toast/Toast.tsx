@@ -35,7 +35,7 @@ export function Toast({
 
   return (
     <section
-      role="status"
+      role={variant === 'error' ? 'alert' : 'status'}
       className={cn(
         'flex min-h-[86px] w-full max-w-[440px] items-start gap-3 rounded-control px-5 py-4 shadow-sm',
         toastConfig[variant].className,
