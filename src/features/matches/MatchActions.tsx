@@ -80,15 +80,27 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
         })
       } else if (action === 'withdraw') {
         await withdraw.mutateAsync(match.matchId)
+        setNotice({ title: '요청을 철회했어요' })
       } else if (action === 'reserve') {
-        const result = await reserve.mutateAsync(match.matchId)
-        setNotice({ title: `처리 상태가 ${matchStatusLabel(result.status)}으로 변경됐어요` })
+        await reserve.mutateAsync(match.matchId)
+        setNotice({
+          title: '거래를 예약했어요',
+          description: '기관과 전달 일정과 장소를 정해 보세요.',
+        })
       } else {
-        const result = action === 'reject' ? await reject.mutateAsync(match.matchId)
+        await (action === 'reject' ? reject.mutateAsync(match.matchId)
           : action === 'quantity' ? await quantityMutation.mutateAsync({ matchId: match.matchId, body: { quantity: Number(quantity) } })
           : action === 'complete' ? await complete.mutateAsync(match.matchId)
-          : await cancel.mutateAsync({ matchId: match.matchId, body: { reason } })
-        setNotice({ title: `처리 상태가 ${matchStatusLabel(result.status)}으로 변경됐어요` })
+          : await cancel.mutateAsync({ matchId: match.matchId, body: { reason } }))
+        setNotice({
+          title: action === 'reject'
+            ? '제안·요청을 거절했어요'
+            : action === 'quantity'
+              ? '거래 수량을 변경했어요'
+              : action === 'complete'
+                ? '전달을 완료했어요'
+                : '거래를 취소했어요',
+        })
         setEditing(null)
         setConfirm(null)
         if (action === 'complete' || action === 'cancel') navigate(audience === 'DONOR' ? ROUTES.donor.myRequests : ROUTES.organization.offerList, { replace: true })
@@ -118,7 +130,13 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
       description={error || (confirm === 'complete' ? '수령을 확인한 뒤 완료 처리해 주세요.' : '거절한 제안·요청은 수락할 수 없어요.')}
       confirmText={pending ? '처리 중...' : '확인'} onConfirm={() => { if (confirm) void run(confirm) }}
       onCancel={() => { if (!lock.current) { setConfirm(null); setError('') } }} />
-    {pending ? <p role="status">처리 중이에요.</p> : null}
+    {pending ? (
+      <Toast
+        variant="info"
+        title="요청을 처리하고 있어요"
+        className="min-h-0 max-w-none shadow-none"
+      />
+    ) : null}
     {notice ? (
       <Toast
         title={notice.title}
@@ -126,6 +144,13 @@ export function MatchActions({ match, audience, authenticatedRole = null }: {
         className="min-h-0 max-w-none shadow-none"
       />
     ) : null}
-    {error ? <p role="alert" className="text-error">{error}</p> : null}
+    {error ? (
+      <Toast
+        variant="error"
+        title="요청을 처리하지 못했어요"
+        description={error}
+        className="min-h-0 max-w-none shadow-none"
+      />
+    ) : null}
   </div>
 }

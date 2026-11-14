@@ -8,6 +8,7 @@ import {
 import { matchErrorMessage, parseMatchId } from '@/apis/match'
 import { Button } from '@/components/common/Button/Button'
 import { Dialog } from '@/components/common/Dialog/Dialog'
+import { Toast } from '@/components/common/Toast/Toast'
 import { TransactionStatus } from '@/components/common/TransactionStatus/TransactionStatus'
 import { getAuthSession } from '@/features/auth/storage'
 import { conditionLabel } from '@/features/donor/donationItemApiState'
@@ -33,7 +34,10 @@ export function DonorRequestDetailPage() {
 
   const [rejectOpen, setRejectOpen] = useState(false)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<{
+    title: string
+    description?: string
+  } | null>(null)
 
   const request = query.data
 
@@ -107,11 +111,14 @@ export function DonorRequestDetailPage() {
       if (pending) return
 
       setError('')
-      setNotice('')
+      setNotice(null)
 
       try {
         await accept.mutateAsync(request.matchId)
-        setNotice('요청을 수락했어요.')
+        setNotice({
+          title: '기부 요청을 수락했어요',
+          description: '채팅방에서 기관과 전달 방법을 이야기해 보세요.',
+        })
       } catch (cause) {
         setError(matchErrorMessage(cause))
       }
@@ -121,13 +128,13 @@ export function DonorRequestDetailPage() {
       if (pending) return
 
       setError('')
-      setNotice('')
+      setNotice(null)
 
       try {
         await reject.mutateAsync(request.matchId)
 
         setRejectOpen(false)
-        setNotice('요청을 거절했어요.')
+        setNotice({ title: '기부 요청을 거절했어요' })
       } catch (cause) {
         setError(matchErrorMessage(cause))
       }
@@ -208,21 +215,20 @@ export function DonorRequestDetailPage() {
           </section>
 
           {notice ? (
-            <p
-              role="status"
-              className="mt-4 typography-body-2 text-primary-700"
-            >
-              {notice}
-            </p>
+            <Toast
+              title={notice.title}
+              description={notice.description}
+              className="mt-4 min-h-0 max-w-none shadow-none"
+            />
           ) : null}
 
           {error ? (
-            <p
-              role="alert"
-              className="mt-4 typography-body-2 text-error"
-            >
-              {error}
-            </p>
+            <Toast
+              variant="error"
+              title="요청을 처리하지 못했어요"
+              description={error}
+              className="mt-4 min-h-0 max-w-none shadow-none"
+            />
           ) : null}
         </main>
 
@@ -334,6 +340,14 @@ export function DonorRequestDetailPage() {
               {request.message}
             </p>
           </section>
+        ) : null}
+
+        {notice ? (
+          <Toast
+            title={notice.title}
+            description={notice.description}
+            className="mt-4 min-h-0 max-w-none shadow-none"
+          />
         ) : null}
 
         <div className="mt-5">
