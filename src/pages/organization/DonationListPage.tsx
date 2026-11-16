@@ -1,9 +1,14 @@
-import { useDeferredValue } from 'react'
+import {
+  useEffect,
+  useState,
+} from 'react'
+
 import {
   ChevronLeft,
   Package,
   Search,
 } from 'lucide-react'
+
 import {
   useNavigate,
   useSearchParams,
@@ -37,7 +42,8 @@ const conditionShortLabels: Record<
 }
 
 export function DonationListPage() {
-  const navigate = useNavigate()
+  const navigate =
+    useNavigate()
 
   const [
     searchParams,
@@ -47,10 +53,65 @@ export function DonationListPage() {
   const query =
     searchParams.get('q') ?? ''
 
-  const deferredQuery =
-    useDeferredValue(
-      query.trim(),
-    )
+  const [
+    searchInput,
+    setSearchInput,
+  ] = useState(query)
+
+  useEffect(() => {
+    setSearchInput(query)
+  }, [query])
+
+  useEffect(() => {
+    const timer =
+      window.setTimeout(
+        () => {
+          const nextQuery =
+            searchInput.trim()
+
+          if (
+            nextQuery ===
+            query
+          ) {
+            return
+          }
+
+          setSearchParams(
+            (previous) => {
+              const next =
+                new URLSearchParams(
+                  previous,
+                )
+
+              if (nextQuery) {
+                next.set(
+                  'q',
+                  nextQuery,
+                )
+              } else {
+                next.delete('q')
+              }
+
+              return next
+            },
+            {
+              replace: true,
+            },
+          )
+        },
+        300,
+      )
+
+    return () => {
+      window.clearTimeout(
+        timer,
+      )
+    }
+  }, [
+    query,
+    searchInput,
+    setSearchParams,
+  ])
 
   const selected = {
     category:
@@ -128,7 +189,7 @@ export function DonationListPage() {
   const itemsQuery =
     useInfiniteDonationItemsQuery({
       keyword:
-        deferredQuery ||
+        query.trim() ||
         undefined,
 
       categoryId:
@@ -145,7 +206,8 @@ export function DonationListPage() {
 
   const items =
     itemsQuery.data?.pages.flatMap(
-      (page) => page.items,
+      (page) =>
+        page.items,
     ) ?? []
 
   const updateFilter = (
@@ -176,33 +238,34 @@ export function DonationListPage() {
     )
   }
 
-  const resetFilters = () => {
-    setSearchParams(
-      (previous) => {
-        const next =
-          new URLSearchParams(
-            previous,
+  const resetFilters =
+    () => {
+      setSearchParams(
+        (previous) => {
+          const next =
+            new URLSearchParams(
+              previous,
+            )
+
+          next.delete(
+            'category',
           )
 
-        next.delete(
-          'category',
-        )
+          next.delete(
+            'location',
+          )
 
-        next.delete(
-          'location',
-        )
+          next.delete(
+            'condition',
+          )
 
-        next.delete(
-          'condition',
-        )
-
-        return next
-      },
-      {
-        replace: true,
-      },
-    )
-  }
+          return next
+        },
+        {
+          replace: true,
+        },
+      )
+    }
 
   const listError =
     itemsQuery.error
@@ -270,11 +333,15 @@ export function DonationListPage() {
             id="donation-search"
             type="search"
             aria-label="물품 또는 기부자명 검색"
-            value={query}
-            onChange={(event) =>
-              updateFilter(
-                'q',
-                event.target.value,
+            value={
+              searchInput
+            }
+            onChange={(
+              event,
+            ) =>
+              setSearchInput(
+                event.target
+                  .value,
               )
             }
             placeholder="물품 또는 기부자명 검색"
@@ -298,7 +365,9 @@ export function DonationListPage() {
               (item) =>
                 item.name,
             )}
-            onChange={(value) =>
+            onChange={(
+              value,
+            ) =>
               updateFilter(
                 'category',
                 value,
@@ -317,7 +386,9 @@ export function DonationListPage() {
             options={[
               serviceRegion.name,
             ]}
-            onChange={(value) =>
+            onChange={(
+              value,
+            ) =>
               updateFilter(
                 'location',
                 value,
@@ -340,7 +411,9 @@ export function DonationListPage() {
               (item) =>
                 item.description,
             )}
-            onChange={(value) =>
+            onChange={(
+              value,
+            ) =>
               updateFilter(
                 'condition',
                 value,
@@ -468,7 +541,8 @@ export function DonationListPage() {
           ) : null}
 
           {canRenderItems &&
-            items.length > 0 &&
+            items.length >
+              0 &&
             items.map(
               (item) => (
                 <ItemRow
@@ -500,7 +574,9 @@ export function DonationListPage() {
                         {
                           item.availableQuantity
                         }
-                        {item.unit}
+                        {
+                          item.unit
+                        }
                       </p>
                     </>
                   }

@@ -1,14 +1,11 @@
 import {
+  lazy,
+  type ComponentType,
+} from 'react'
+
+import {
   createBrowserRouter,
 } from 'react-router-dom'
-
-import {
-  ProtectedRoute,
-} from '@/routes/ProtectedRoute'
-
-import {
-  ROUTES,
-} from '@/routes/paths'
 
 import {
   DonorLayout,
@@ -23,156 +20,6 @@ import {
 } from '@/layouts/SharedLayout'
 
 import {
-  DonorHomePage,
-} from '@/pages/donor/DonorHomePage'
-
-import {
-  DonorDonationEditPage,
-} from '@/pages/donor/DonorDonationEditPage'
-
-import {
-  DonorDonationHistoryPage,
-} from '@/pages/donor/DonorDonationHistoryPage'
-
-import {
-  DonorDonationManagePage,
-} from '@/pages/donor/DonorDonationManagePage'
-
-import {
-  DonationStatementPage,
-} from '@/pages/donor/DonationStatementPage'
-
-import {
-  DonorMyPage,
-} from '@/pages/donor/DonorMyPage'
-
-import {
-  DonorProfileEditPage,
-} from '@/pages/donor/DonorProfileEditPage'
-
-import {
-  DonorRequestDetailPage,
-} from '@/pages/donor/DonorRequestDetailPage'
-
-import {
-  DonorRequestListPage,
-} from '@/pages/donor/DonorRequestListPage'
-
-import {
-  DonationDetailPage as DonorDonationDetailPage,
-} from '@/pages/donor/DonationDetailPage'
-
-import {
-  DonationRegisterPage,
-} from '@/pages/donor/DonationRegisterPage'
-
-import {
-  DonationProposalCompletePage,
-  DonationProposalPage,
-} from '@/pages/donor/DonationProposalPage'
-
-import {
-  NeedDetailPage as DonorNeedDetailPage,
-} from '@/pages/donor/NeedDetailPage'
-
-import {
-  NeedFilterPage,
-} from '@/pages/donor/NeedFilterPage'
-
-import {
-  NeedListPage,
-} from '@/pages/donor/NeedListPage'
-
-import {
-  RecommendationPage as DonorRecommendationPage,
-} from '@/pages/donor/RecommendationPage'
-
-import {
-  DonationDetailPage as OrganizationDonationDetailPage,
-} from '@/pages/organization/DonationDetailPage'
-
-import {
-  DonationListPage,
-} from '@/pages/organization/DonationListPage'
-
-import {
-  NeedDetailPage as OrganizationNeedDetailPage,
-} from '@/pages/organization/NeedDetailPage'
-
-import {
-  NeedEditPage,
-} from '@/pages/organization/NeedEditPage'
-
-import {
-  NeedManagePage,
-} from '@/pages/organization/NeedManagePage'
-
-import {
-  NeedRegisterPage,
-} from '@/pages/organization/NeedRegisterPage'
-
-import {
-  OrganizationHomePage,
-} from '@/pages/organization/OrganizationHomePage'
-
-import {
-  OrganizationNotificationPage,
-} from '@/pages/organization/OrganizationNotificationPage'
-
-import {
-  OrganizationMyPage,
-} from '@/pages/organization/OrganizationMyPage'
-
-import {
-  OrganizationProfileEditPage,
-} from '@/pages/organization/OrganizationProfileEditPage'
-
-import {
-  OfferDetailPage,
-} from '@/pages/organization/OfferDetailPage'
-
-import {
-  OfferListPage,
-} from '@/pages/organization/OfferListPage'
-
-import {
-  OrganizationTradeStatusPage,
-} from '@/pages/organization/OrganizationTradeStatusPage'
-
-import {
-  IndividualTradeStatusPage,
-} from '@/pages/organization/IndividualTradeStatusPage'
-
-import {
-  OrganizationActiveTradeDetailPage,
-} from '@/pages/organization/OrganizationActiveTradeDetailPage'
-
-import {
-  TradeQuantityEditPage as OrganizationTradeQuantityEditPage,
-} from '@/pages/organization/TradeQuantityEditPage'
-
-import {
-  TradeAppointmentPage as OrganizationTradeAppointmentPage,
-} from '@/pages/organization/TradeAppointmentPage'
-
-import {
-  DonationRequestCompletePage,
-  DonationRequestPage,
-} from '@/pages/organization/DonationRequestPage'
-
-import {
-  RecommendationPage as OrganizationRecommendationPage,
-} from '@/pages/organization/RecommendationPage'
-
-import {
-  ChatListPage,
-} from '@/pages/shared/ChatListPage'
-
-import {
-  ChatRoomPage,
-} from '@/pages/shared/ChatRoomPage'
-
-import {
   HomePage,
 } from '@/pages/shared/HomePage'
 
@@ -181,77 +28,331 @@ import {
 } from '@/pages/shared/NotFoundPage'
 
 import {
-  NotificationPage,
-} from '@/pages/shared/NotificationPage'
+  ProtectedRoute,
+} from '@/routes/ProtectedRoute'
 
 import {
-  TradeAppointmentPage,
-} from '@/pages/shared/TradeAppointmentPage'
+  ROUTES,
+} from '@/routes/paths'
 
-import {
-  TradeDetailPage,
-} from '@/pages/shared/TradeDetailPage'
+function lazyNamed<
+  TModule extends Record<string, unknown>,
+  TKey extends keyof TModule,
+>(
+  loader: () => Promise<TModule>,
+  key: TKey,
+) {
+  return lazy(async () => {
+    const module =
+      await loader()
 
-import {
-  TradeQuantityEditPage,
-} from '@/pages/shared/TradeQuantityEditPage'
+    return {
+      default:
+        module[key] as unknown as ComponentType,
+    }
+  })
+}
 
-import {
-  LoginPage,
-} from '@/pages/login/LoginPage'
+const LoginPage = lazyNamed(
+  () =>
+    import('@/pages/login/LoginPage'),
+  'LoginPage',
+)
 
-import {
-  SignupPage,
-} from '@/pages/onboarding/SignupPage'
+const SignupPage = lazyNamed(
+  () =>
+    import('@/pages/onboarding/SignupPage'),
+  'SignupPage',
+)
+
+const DonationStatementPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationStatementPage'),
+  'DonationStatementPage',
+)
+
+const DonorHomePage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorHomePage'),
+  'DonorHomePage',
+)
+
+const DonationRegisterPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationRegisterPage'),
+  'DonationRegisterPage',
+)
+
+const DonorDonationDetailPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationDetailPage'),
+  'DonationDetailPage',
+)
+
+const DonorDonationEditPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorDonationEditPage'),
+  'DonorDonationEditPage',
+)
+
+const DonorNeedListPage = lazyNamed(
+  () =>
+    import('@/pages/donor/NeedListPage'),
+  'NeedListPage',
+)
+
+const DonorNeedFilterPage = lazyNamed(
+  () =>
+    import('@/pages/donor/NeedFilterPage'),
+  'NeedFilterPage',
+)
+
+const DonorNeedDetailPage = lazyNamed(
+  () =>
+    import('@/pages/donor/NeedDetailPage'),
+  'NeedDetailPage',
+)
+
+const DonationProposalPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationProposalPage'),
+  'DonationProposalPage',
+)
+
+const DonationProposalCompletePage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationProposalPage'),
+  'DonationProposalCompletePage',
+)
+
+const DonorRecommendationPage = lazyNamed(
+  () =>
+    import('@/pages/donor/RecommendationPage'),
+  'RecommendationPage',
+)
+
+const DonorMyPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorMyPage'),
+  'DonorMyPage',
+)
+
+const DonorDonationManagePage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorDonationManagePage'),
+  'DonorDonationManagePage',
+)
+
+const DonorRequestListPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorRequestListPage'),
+  'DonorRequestListPage',
+)
+
+const DonorDonationHistoryPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorDonationHistoryPage'),
+  'DonorDonationHistoryPage',
+)
+
+const DonorProfileEditPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorProfileEditPage'),
+  'DonorProfileEditPage',
+)
+
+const DonorRequestDetailPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorRequestDetailPage'),
+  'DonorRequestDetailPage',
+)
+
+const OrganizationHomePage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationHomePage'),
+  'OrganizationHomePage',
+)
+
+const OrganizationNotificationPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationNotificationPage'),
+  'OrganizationNotificationPage',
+)
+
+const OrganizationNeedManagePage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedManagePage'),
+  'NeedManagePage',
+)
+
+const OrganizationNeedRegisterPage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedRegisterPage'),
+  'NeedRegisterPage',
+)
+
+const OrganizationNeedEditPage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedEditPage'),
+  'NeedEditPage',
+)
+
+const OrganizationNeedDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedDetailPage'),
+  'NeedDetailPage',
+)
+
+const OrganizationDonationListPage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationListPage'),
+  'DonationListPage',
+)
+
+const OrganizationDonationDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationDetailPage'),
+  'DonationDetailPage',
+)
+
+const DonationRequestPage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationRequestPage'),
+  'DonationRequestPage',
+)
+
+const DonationRequestCompletePage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationRequestPage'),
+  'DonationRequestCompletePage',
+)
+
+const OrganizationRecommendationPage = lazyNamed(
+  () =>
+    import('@/pages/organization/RecommendationPage'),
+  'RecommendationPage',
+)
+
+const OrganizationMyPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationMyPage'),
+  'OrganizationMyPage',
+)
+
+const OrganizationProfileEditPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationProfileEditPage'),
+  'OrganizationProfileEditPage',
+)
+
+const OrganizationOfferListPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OfferListPage'),
+  'OfferListPage',
+)
+
+const OrganizationOfferDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OfferDetailPage'),
+  'OfferDetailPage',
+)
+
+const OrganizationTradeStatusPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationTradeStatusPage'),
+  'OrganizationTradeStatusPage',
+)
+
+const IndividualTradeStatusPage = lazyNamed(
+  () =>
+    import('@/pages/organization/IndividualTradeStatusPage'),
+  'IndividualTradeStatusPage',
+)
+
+const OrganizationActiveTradeDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationActiveTradeDetailPage'),
+  'OrganizationActiveTradeDetailPage',
+)
+
+const OrganizationTradeQuantityEditPage = lazyNamed(
+  () =>
+    import('@/pages/organization/TradeQuantityEditPage'),
+  'TradeQuantityEditPage',
+)
+
+const OrganizationTradeAppointmentPage = lazyNamed(
+  () =>
+    import('@/pages/organization/TradeAppointmentPage'),
+  'TradeAppointmentPage',
+)
+
+const TradeDetailPage = lazyNamed(
+  () =>
+    import('@/pages/shared/TradeDetailPage'),
+  'TradeDetailPage',
+)
+
+const TradeQuantityEditPage = lazyNamed(
+  () =>
+    import('@/pages/shared/TradeQuantityEditPage'),
+  'TradeQuantityEditPage',
+)
+
+const TradeAppointmentPage = lazyNamed(
+  () =>
+    import('@/pages/shared/TradeAppointmentPage'),
+  'TradeAppointmentPage',
+)
+
+const ChatListPage = lazyNamed(
+  () =>
+    import('@/pages/shared/ChatListPage'),
+  'ChatListPage',
+)
+
+const ChatRoomPage = lazyNamed(
+  () =>
+    import('@/pages/shared/ChatRoomPage'),
+  'ChatRoomPage',
+)
+
+const NotificationPage = lazyNamed(
+  () =>
+    import('@/pages/shared/NotificationPage'),
+  'NotificationPage',
+)
 
 export const router =
   createBrowserRouter([
     {
-      path:
-        ROUTES.root,
-
-      element:
-        <HomePage />,
-
-      errorElement:
-        <NotFoundPage />,
+      path: ROUTES.root,
+      element: <HomePage />,
+      errorElement: <NotFoundPage />,
     },
 
     {
-      path:
-        ROUTES.start,
-
-      element:
-        <HomePage />,
+      path: ROUTES.start,
+      element: <HomePage />,
     },
 
     {
-      path:
-        ROUTES.login,
-
-      element:
-        <LoginPage />,
+      path: ROUTES.login,
+      element: <LoginPage />,
     },
 
     {
-      path:
-        ROUTES.signup,
-
-      element:
-        <SignupPage />,
+      path: ROUTES.signup,
+      element: <SignupPage />,
     },
 
     {
-      path:
-        ROUTES.signupRole,
-
-      element:
-        <SignupPage />,
+      path: ROUTES.signupRole,
+      element: <SignupPage />,
     },
 
     {
-      element:
-        <ProtectedRoute />,
+      element: <ProtectedRoute />,
 
       children: [
         {
@@ -278,7 +379,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.donationNew,
+                ROUTES.donor
+                  .donationNew,
 
               element:
                 <DonationRegisterPage />,
@@ -286,7 +388,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.donationDetail,
+                ROUTES.donor
+                  .donationDetail,
 
               element:
                 <DonorDonationDetailPage />,
@@ -294,7 +397,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.donationEdit,
+                ROUTES.donor
+                  .donationEdit,
 
               element:
                 <DonorDonationEditPage />,
@@ -302,23 +406,26 @@ export const router =
 
             {
               path:
-                ROUTES.donor.needList,
+                ROUTES.donor
+                  .needList,
 
               element:
-                <NeedListPage />,
+                <DonorNeedListPage />,
             },
 
             {
               path:
-                ROUTES.donor.needFilter,
+                ROUTES.donor
+                  .needFilter,
 
               element:
-                <NeedFilterPage />,
+                <DonorNeedFilterPage />,
             },
 
             {
               path:
-                ROUTES.donor.needDetail,
+                ROUTES.donor
+                  .needDetail,
 
               element:
                 <DonorNeedDetailPage />,
@@ -326,7 +433,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.donationProposal,
+                ROUTES.donor
+                  .donationProposal,
 
               element:
                 <DonationProposalPage />,
@@ -334,7 +442,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.donationProposalComplete,
+                ROUTES.donor
+                  .donationProposalComplete,
 
               element:
                 <DonationProposalCompletePage />,
@@ -342,7 +451,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.recommendation,
+                ROUTES.donor
+                  .recommendation,
 
               element:
                 <DonorRecommendationPage />,
@@ -350,7 +460,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.recommendedOrganization,
+                ROUTES.donor
+                  .recommendedOrganization,
 
               element:
                 <DonorRecommendationPage />,
@@ -374,7 +485,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.myRequests,
+                ROUTES.donor
+                  .myRequests,
 
               element:
                 <DonorRequestListPage />,
@@ -382,7 +494,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.myHistory,
+                ROUTES.donor
+                  .myHistory,
 
               element:
                 <DonorDonationHistoryPage />,
@@ -390,7 +503,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.myProfile,
+                ROUTES.donor
+                  .myProfile,
 
               element:
                 <DonorProfileEditPage />,
@@ -398,7 +512,8 @@ export const router =
 
             {
               path:
-                ROUTES.donor.requestDetail,
+                ROUTES.donor
+                  .requestDetail,
 
               element:
                 <DonorRequestDetailPage />,
@@ -420,7 +535,8 @@ export const router =
           children: [
             {
               path:
-                ROUTES.organization.home,
+                ROUTES.organization
+                  .home,
 
               element:
                 <OrganizationHomePage />,
@@ -428,7 +544,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.notifications,
+                ROUTES.organization
+                  .notifications,
 
               element:
                 <OrganizationNotificationPage />,
@@ -436,31 +553,35 @@ export const router =
 
             {
               path:
-                ROUTES.organization.needManage,
+                ROUTES.organization
+                  .needManage,
 
               element:
-                <NeedManagePage />,
+                <OrganizationNeedManagePage />,
             },
 
             {
               path:
-                ROUTES.organization.needNew,
+                ROUTES.organization
+                  .needNew,
 
               element:
-                <NeedRegisterPage />,
+                <OrganizationNeedRegisterPage />,
             },
 
             {
               path:
-                ROUTES.organization.needEdit,
+                ROUTES.organization
+                  .needEdit,
 
               element:
-                <NeedEditPage />,
+                <OrganizationNeedEditPage />,
             },
 
             {
               path:
-                ROUTES.organization.needDetail,
+                ROUTES.organization
+                  .needDetail,
 
               element:
                 <OrganizationNeedDetailPage />,
@@ -468,15 +589,17 @@ export const router =
 
             {
               path:
-                ROUTES.organization.donationList,
+                ROUTES.organization
+                  .donationList,
 
               element:
-                <DonationListPage />,
+                <OrganizationDonationListPage />,
             },
 
             {
               path:
-                ROUTES.organization.donationDetail,
+                ROUTES.organization
+                  .donationDetail,
 
               element:
                 <OrganizationDonationDetailPage />,
@@ -484,7 +607,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.donationRequest,
+                ROUTES.organization
+                  .donationRequest,
 
               element:
                 <DonationRequestPage />,
@@ -492,7 +616,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.donationRequestComplete,
+                ROUTES.organization
+                  .donationRequestComplete,
 
               element:
                 <DonationRequestCompletePage />,
@@ -500,7 +625,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.recommendation,
+                ROUTES.organization
+                  .recommendation,
 
               element:
                 <OrganizationRecommendationPage />,
@@ -508,7 +634,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.myPage,
+                ROUTES.organization
+                  .myPage,
 
               element:
                 <OrganizationMyPage />,
@@ -516,7 +643,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.myProfile,
+                ROUTES.organization
+                  .myProfile,
 
               element:
                 <OrganizationProfileEditPage />,
@@ -524,23 +652,26 @@ export const router =
 
             {
               path:
-                ROUTES.organization.offerList,
+                ROUTES.organization
+                  .offerList,
 
               element:
-                <OfferListPage />,
+                <OrganizationOfferListPage />,
             },
 
             {
               path:
-                ROUTES.organization.offerDetail,
+                ROUTES.organization
+                  .offerDetail,
 
               element:
-                <OfferDetailPage />,
+                <OrganizationOfferDetailPage />,
             },
 
             {
               path:
-                ROUTES.organization.tradeStatus,
+                ROUTES.organization
+                  .tradeStatus,
 
               element:
                 <OrganizationTradeStatusPage />,
@@ -548,7 +679,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.individualTradeStatus,
+                ROUTES.organization
+                  .individualTradeStatus,
 
               element:
                 <IndividualTradeStatusPage />,
@@ -556,7 +688,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.activeTradeDetail,
+                ROUTES.organization
+                  .activeTradeDetail,
 
               element:
                 <OrganizationActiveTradeDetailPage />,
@@ -564,7 +697,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.tradeQuantityEdit,
+                ROUTES.organization
+                  .tradeQuantityEdit,
 
               element:
                 <OrganizationTradeQuantityEditPage />,
@@ -572,7 +706,8 @@ export const router =
 
             {
               path:
-                ROUTES.organization.tradeAppointment,
+                ROUTES.organization
+                  .tradeAppointment,
 
               element:
                 <OrganizationTradeAppointmentPage />,
@@ -645,9 +780,7 @@ export const router =
     },
 
     {
-      path:
-        '*',
-
+      path: '*',
       element:
         <NotFoundPage />,
     },

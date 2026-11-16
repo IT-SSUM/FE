@@ -7,8 +7,13 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 
-import { BottomNavigation } from '@/components/common/BottomNavigation/BottomNavigation'
-import { Button } from '@/components/common/Button/Button'
+import {
+  BottomNavigation,
+} from '@/components/common/BottomNavigation/BottomNavigation'
+
+import {
+  Button,
+} from '@/components/common/Button/Button'
 
 import {
   DonorPage,
@@ -62,7 +67,8 @@ export function DonorDonationManagePage() {
     useDonorDonationItemsQuery()
 
   const items =
-    query.data ?? []
+    query.data ??
+    []
 
   const filter =
     params.get(
@@ -81,7 +87,9 @@ export function DonorDonationManagePage() {
             (
               value,
             ): value is string =>
-              Boolean(value),
+              Boolean(
+                value,
+              ),
           ),
       ),
     )
@@ -113,8 +121,8 @@ export function DonorDonationManagePage() {
           role="status"
           className="py-8 text-center typography-body-2 text-neutral-700"
         >
-          등록한 물품을 불러오고
-          있어요.
+          등록한 물품을
+          불러오고 있어요.
         </p>
       ) : null}
 
@@ -162,7 +170,9 @@ export function DonorDonationManagePage() {
             />
 
             {categories.map(
-              (category) => (
+              (
+                category,
+              ) => (
                 <CategoryChip
                   key={
                     category
@@ -195,7 +205,9 @@ export function DonorDonationManagePage() {
             <>
               <section className="space-y-3">
                 {filtered.map(
-                  (item) => (
+                  (
+                    item,
+                  ) => (
                     <DonationCard
                       key={
                         item.donationItemId
@@ -271,7 +283,9 @@ function CategoryChip({
           : 'h-9 shrink-0 rounded-pill border border-neutral-200 bg-white px-3 typography-label-1 text-neutral-700'
       }
     >
-      {label}
+      {
+        label
+      }
     </button>
   )
 }
@@ -280,12 +294,16 @@ function DonationCard({
   item,
   onClick,
 }: {
-  item: MyDonationItem
-  onClick: () => void
+  item:
+    MyDonationItem
+  onClick:
+    () => void
 }) {
   const image =
     item.imageUrl ??
-    item.imageUrls?.[0] ??
+    item.imageUrls?.[
+      0
+    ] ??
     null
 
   const reserved =
@@ -311,12 +329,16 @@ function DonationCard({
               image
             }
             alt=""
+            loading="lazy"
+            decoding="async"
             className="size-full object-cover"
           />
         ) : (
           <Package
             aria-hidden
-            size={28}
+            size={
+              28
+            }
           />
         )}
       </div>
@@ -336,13 +358,29 @@ function DonationCard({
 
         <p className="mt-1 typography-label-2 text-neutral-700">
           예약 수량{' '}
-          {reserved}{item.unit} · 전달 완료{' '}
-          {completed}{item.unit}
+          {
+            reserved
+          }
+          {
+            item.unit
+          }{' '}
+          · 전달 완료{' '}
+          {
+            completed
+          }
+          {
+            item.unit
+          }
         </p>
 
         <p className="typography-label-2 text-neutral-700">
           신청 가능 수량{' '}
-          {item.availableQuantity}{item.unit}
+          {
+            item.availableQuantity
+          }
+          {
+            item.unit
+          }
         </p>
 
         <span
@@ -370,7 +408,9 @@ function DonationCard({
 function shortCategoryName(
   category: string,
 ) {
-  switch (category) {
+  switch (
+    category
+  ) {
     case '생활용품':
       return '생활'
 

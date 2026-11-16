@@ -86,6 +86,7 @@ export function ItemRow({
             alt=""
             className="size-full object-cover"
             loading="lazy"
+            decoding="async"
           />
         ) : (
           icon ?? <Package aria-hidden size={28} strokeWidth={2} />
