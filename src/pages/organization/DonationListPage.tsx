@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 
@@ -58,9 +59,38 @@ export function DonationListPage() {
     setSearchInput,
   ] = useState(query)
 
+  /*
+   * 현재 URL의 q가 사용자의 입력을 debounce해서
+   * 직접 반영한 값인지 구분합니다.
+   *
+   * 직접 반영한 값이라면 searchInput을 다시 덮어쓰지 않아
+   * "winter "처럼 입력 중인 공백을 보존합니다.
+   *
+   * 뒤로가기/앞으로가기 등 외부에서 URL이 변경된 경우에는
+   * 검색창을 URL 값과 다시 동기화합니다.
+   */
+  const committedQueryRef =
+    useRef<string | null>(
+      null,
+    )
+
   useEffect(() => {
-    setSearchInput(query)
-  }, [query])
+    if (
+      committedQueryRef.current ===
+      query
+    ) {
+      committedQueryRef.current =
+        null
+
+      return
+    }
+
+    setSearchInput(
+      query,
+    )
+  }, [
+    query,
+  ])
 
   useEffect(() => {
     const timer =
@@ -76,6 +106,9 @@ export function DonationListPage() {
             return
           }
 
+          committedQueryRef.current =
+            nextQuery
+
           setSearchParams(
             (previous) => {
               const next =
@@ -83,13 +116,17 @@ export function DonationListPage() {
                   previous,
                 )
 
-              if (nextQuery) {
+              if (
+                nextQuery
+              ) {
                 next.set(
                   'q',
                   nextQuery,
                 )
               } else {
-                next.delete('q')
+                next.delete(
+                  'q',
+                )
               }
 
               return next
@@ -221,13 +258,17 @@ export function DonationListPage() {
             previous,
           )
 
-        if (value) {
+        if (
+          value
+        ) {
           next.set(
             key,
             value,
           )
         } else {
-          next.delete(key)
+          next.delete(
+            key,
+          )
         }
 
         return next
@@ -300,7 +341,9 @@ export function DonationListPage() {
           type="button"
           aria-label="뒤로가기"
           onClick={() =>
-            navigate(-1)
+            navigate(
+              -1,
+            )
           }
           className="flex size-6 shrink-0 items-center justify-center text-primary-700"
         >
@@ -508,7 +551,9 @@ export function DonationListPage() {
               className="rounded-card border border-neutral-200 bg-white px-4 py-10 text-center"
             >
               <p className="typography-body-2 text-error">
-                {listError}
+                {
+                  listError
+                }
               </p>
 
               <Button
@@ -526,7 +571,8 @@ export function DonationListPage() {
           {canRenderItems &&
           !itemsQuery.isPending &&
           !showInitialListError &&
-          items.length === 0 ? (
+          items.length ===
+            0 ? (
             <div className="rounded-card border border-neutral-200 bg-white px-4 py-10 text-center">
               <p className="typography-title-3 text-neutral-900">
                 조건에 맞는 물품이
@@ -544,7 +590,9 @@ export function DonationListPage() {
             items.length >
               0 &&
             items.map(
-              (item) => (
+              (
+                item,
+              ) => (
                 <ItemRow
                   key={
                     item.donationItemId
