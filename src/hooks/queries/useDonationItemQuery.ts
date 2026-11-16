@@ -1,149 +1,67 @@
-import {
-  useInfiniteQuery,
-  useQuery,
-} from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 
-import {
-  getDonationItems,
-} from '@/apis/donationItem'
+import { getDonationItem } from '@/apis/donationItem'
 
-import type {
-  DonationItemListParams,
-} from '@/types/donationItem'
+import { getDonationItemFailure } from '@/features/donor/donationItemApiState'
 
-export const donationItemKeys = {
-  all: [
-    'donation-items',
-  ] as const,
+import { donationItemKeys } from '@/hooks/queries/useDonationItemsQuery'
 
-  details: () =>
-    [
-      ...donationItemKeys.all,
-      'detail',
-    ] as const,
-
-  detail: (
-    donationItemId:
-      | number
-      | null,
-  ) =>
-    [
-      ...donationItemKeys.details(),
-      donationItemId,
-    ] as const,
-
-  lists: () =>
-    [
-      ...donationItemKeys.all,
-      'list',
-    ] as const,
-
-  list: (
-    params:
-      DonationItemListParams,
-  ) =>
-    [
-      ...donationItemKeys.lists(),
-      'query',
-      params,
-    ] as const,
-
-  infiniteList: (
-    params:
-      Omit<
-        DonationItemListParams,
-        'beforeId'
-      >,
-  ) =>
-    [
-      ...donationItemKeys.lists(),
-      'infinite',
-      params,
-    ] as const,
-}
-
-export function useDonationItemsQuery(
-  params:
-    DonationItemListParams = {},
-  enabled = true,
+export function useDonationItemQuery(
+  donationItemId: number | null,
 ) {
   return useQuery({
     queryKey:
-      donationItemKeys.list(
-        params,
+      donationItemKeys.detail(
+        donationItemId,
       ),
+
+    enabled:
+      donationItemId !== null,
 
     queryFn: ({
       signal,
-    }) =>
-      getDonationItems(
-        params,
-        signal,
-      ),
+    }) => {
+      if (
+        donationItemId === null
+      ) {
+        throw new Error(
+          '올바른 물품 번호가 필요합니다.',
+        )
+      }
 
-    enabled,
+      return getDonationItem(
+        donationItemId,
+        signal,
+      )
+    },
 
     staleTime:
       1000 * 60,
-  })
-}
 
-export function useInfiniteDonationItemsQuery(
-  params:
-    Omit<
-      DonationItemListParams,
-      'beforeId'
-    > = {},
-) {
-  return useInfiniteQuery({
-    queryKey:
-      donationItemKeys.infiniteList(
-        params,
-      ),
-
-    queryFn: ({
-      pageParam,
-      signal,
-    }) =>
-      getDonationItems(
-        {
-          ...params,
-
-          beforeId:
-            pageParam ??
-            undefined,
-
-          size: 20,
-        },
-        signal,
-      ),
-
-    initialPageParam:
-      null as
-        | number
-        | null,
-
-    getNextPageParam: (
-      lastPage,
-      _allPages,
-      lastPageParam,
+    retry: (
+      count,
+      error,
     ) => {
-      if (
-        !lastPage.hasNext ||
-        lastPage.nextCursor ===
-          null
-      ) {
-        return undefined
-      }
+      const {
+        status,
+        code,
+      } =
+        getDonationItemFailure(
+          error,
+        )
 
       if (
-        lastPage.nextCursor ===
-        lastPageParam
+        (status &&
+          status >= 400 &&
+          status < 500) ||
+        code.startsWith(
+          'ITEM_',
+        )
       ) {
-        return undefined
+        return false
       }
 
-      return lastPage.nextCursor
+      return count < 1
     },
   })
 }
