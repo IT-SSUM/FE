@@ -265,6 +265,7 @@ export async function uploadDonationItemImages(
 export async function getDonationItems(
   params:
     DonationItemListParams = {},
+  signal?: AbortSignal,
 ): Promise<DonationItemListResponse> {
   const response =
     await axiosInstance.get<
@@ -273,6 +274,7 @@ export async function getDonationItems(
       '/api/donation-items',
       {
         params,
+        signal,
       },
     )
 

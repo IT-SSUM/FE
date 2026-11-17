@@ -7,12 +7,15 @@ import {
 } from 'lucide-react'
 
 import {
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 
 import {
   useNavigate,
+  useSearchParams,
 } from 'react-router-dom'
 
 import {
@@ -47,9 +50,17 @@ import {
 
 import '@/styles/donation-statement.css'
 
+const SELECTED_MATCH_IDS_PARAM =
+  'selectedMatchIds'
+
 export function DonationStatementPage() {
   const navigate =
     useNavigate()
+
+  const [
+    searchParams,
+  ] =
+    useSearchParams()
 
   const matchesQuery =
     useMatchesQuery()
@@ -69,6 +80,13 @@ export function DonationStatementPage() {
     >(
       () =>
         new Set(),
+    )
+
+  const restoredSelectionRef =
+    useRef<
+      string | null
+    >(
+      null,
     )
 
   const completedMatches =
@@ -100,6 +118,55 @@ export function DonationStatementPage() {
       ],
     )
 
+  const transferredSelection =
+    searchParams.get(
+      SELECTED_MATCH_IDS_PARAM,
+    )
+
+  useEffect(() => {
+    if (
+      !transferredSelection ||
+      matchesQuery.isPending ||
+      matchesQuery.isError ||
+      restoredSelectionRef.current ===
+        transferredSelection
+    ) {
+      return
+    }
+
+    restoredSelectionRef.current =
+      transferredSelection
+
+    const completedIds =
+      new Set(
+        completedMatches.map(
+          (match) =>
+            match.matchId,
+        ),
+      )
+
+    const restoredIds =
+      parseSelectedMatchIds(
+        transferredSelection,
+      ).filter(
+        (matchId) =>
+          completedIds.has(
+            matchId,
+          ),
+      )
+
+    setSelectedIds(
+      new Set(
+        restoredIds,
+      ),
+    )
+  }, [
+    completedMatches,
+    matchesQuery.isError,
+    matchesQuery.isPending,
+    transferredSelection,
+  ])
+
   const selectedMatches =
     useMemo(
       () =>
@@ -112,6 +179,20 @@ export function DonationStatementPage() {
       [
         completedMatches,
         selectedIds,
+      ],
+    )
+
+  const browserGuideUrl =
+    useMemo(
+      () =>
+        createTransferUrl(
+          selectedMatches.map(
+            (match) =>
+              match.matchId,
+          ),
+        ),
+      [
+        selectedMatches,
       ],
     )
 
@@ -624,6 +705,9 @@ export function DonationStatementPage() {
         open={
           browserGuideOpen
         }
+        copyUrl={
+          browserGuideUrl
+        }
         onClose={() =>
           setBrowserGuideOpen(
             false,
@@ -715,6 +799,59 @@ function DonationSelectCard({
       </span>
     </button>
   )
+}
+
+function parseSelectedMatchIds(
+  value: string,
+) {
+  return [
+    ...new Set(
+      value
+        .split(',')
+        .map(
+          (item) =>
+            Number(
+              item,
+            ),
+        )
+        .filter(
+          (matchId) =>
+            Number.isSafeInteger(
+              matchId,
+            ) &&
+            matchId >
+              0,
+        ),
+    ),
+  ]
+}
+
+function createTransferUrl(
+  selectedMatchIds:
+    number[],
+) {
+  const url =
+    new URL(
+      window.location.href,
+    )
+
+  if (
+    selectedMatchIds.length ===
+    0
+  ) {
+    url.searchParams.delete(
+      SELECTED_MATCH_IDS_PARAM,
+    )
+  } else {
+    url.searchParams.set(
+      SELECTED_MATCH_IDS_PARAM,
+      selectedMatchIds.join(
+        ',',
+      ),
+    )
+  }
+
+  return url.toString()
 }
 
 function completedTime(

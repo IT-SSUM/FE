@@ -55,29 +55,23 @@ const donorNavigationItems:
         key: 'home',
         label: '홈',
         to:
-          ROUTES.donor
-            .home,
+          ROUTES.donor.home,
         icon: House,
       },
-
       {
         key: 'explore',
         label: '탐색',
         to:
-          ROUTES.donor
-            .needList,
+          ROUTES.donor.needList,
         icon: Search,
       },
-
       {
         key: 'register',
         label: '등록',
         to:
-          ROUTES.donor
-            .donationNew,
+          ROUTES.donor.donationNew,
         icon: Plus,
       },
-
       {
         key: 'chat',
         label: '채팅',
@@ -86,13 +80,11 @@ const donorNavigationItems:
         icon:
           MessageSquare,
       },
-
       {
         key: 'my',
         label: '마이',
         to:
-          ROUTES.donor
-            .myPage,
+          ROUTES.donor.myPage,
         icon:
           UserRound,
       },
@@ -105,32 +97,26 @@ const organizationNavigationItems:
         key: 'home',
         label: '홈',
         to:
-          ROUTES
-            .organization
+          ROUTES.organization
             .home,
         icon: House,
       },
-
       {
         key: 'explore',
         label: '탐색',
         to:
-          ROUTES
-            .organization
+          ROUTES.organization
             .donationList,
         icon: Search,
       },
-
       {
         key: 'register',
         label: '등록',
         to:
-          ROUTES
-            .organization
+          ROUTES.organization
             .needNew,
         icon: Plus,
       },
-
       {
         key: 'chat',
         label: '채팅',
@@ -139,13 +125,11 @@ const organizationNavigationItems:
         icon:
           MessageSquare,
       },
-
       {
         key: 'my',
         label: '마이',
         to:
-          ROUTES
-            .organization
+          ROUTES.organization
             .myPage,
         icon:
           UserRound,
@@ -164,85 +148,99 @@ export function BottomNavigation({
       : donorNavigationItems
 
   return (
-    <nav
-      aria-label={`${
-        audience ===
-        'organization'
-          ? '기관'
-          : '기부자'
-      } 하단 내비게이션`}
-      className={cn(
-        'h-20 w-full max-w-[393px] bg-white pb-6 pt-2',
-        className,
-      )}
-    >
-      <div className="grid h-12 w-full grid-cols-5">
-        {navigationItems.map(
-          (item) => {
-            const Icon =
-              item.icon
+    <>
+      {/* fixed navigation이 콘텐츠를 가리지 않도록 공간 확보 */}
+      <div
+        aria-hidden
+        className="h-20 shrink-0"
+      />
 
-            return (
-              <NavLink
-                key={
-                  item.key
-                }
-                to={item.to}
-                className={({
-                  isActive,
-                }) =>
-                  cn(
-                    'flex h-[46px] flex-col items-center gap-1 typography-label-2 transition-colors',
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center">
+        <nav
+          aria-label={`${
+            audience ===
+            'organization'
+              ? '기관'
+              : '기부자'
+          } 하단 내비게이션`}
+          className={cn(
+            'pointer-events-auto h-20 w-full max-w-[393px] border-t border-neutral-200 bg-white pb-6 pt-2',
+            className,
+          )}
+        >
+          <div className="grid h-12 w-full grid-cols-5">
+            {navigationItems.map(
+              (item) => {
+                const Icon =
+                  item.icon
 
-                    isActive ||
-                      activeItem ===
-                        item.key
-                      ? 'text-primary-700'
-                      : 'text-neutral-700',
-                  )
-                }
-              >
-                {({
-                  isActive,
-                }) => {
-                  const active =
-                    isActive ||
-                    activeItem ===
+                return (
+                  <NavLink
+                    key={
                       item.key
+                    }
+                    to={
+                      item.to
+                    }
+                    className={({
+                      isActive,
+                    }) =>
+                      cn(
+                        'flex h-[46px] flex-col items-center gap-1 typography-label-2 transition-colors',
 
-                  return (
-                    <>
-                      <span
-                        className={cn(
-                          'flex h-6 w-10 items-center justify-center rounded-control transition-colors',
+                        isActive ||
+                          activeItem ===
+                            item.key
+                          ? 'text-primary-700'
+                          : 'text-neutral-700',
+                      )
+                    }
+                  >
+                    {({
+                      isActive,
+                    }) => {
+                      const active =
+                        isActive ||
+                        activeItem ===
+                          item.key
 
-                          active
-                            ? 'bg-primary-100'
-                            : 'bg-transparent',
-                        )}
-                      >
-                        <Icon
-                          aria-hidden
-                          size={24}
-                          strokeWidth={
-                            2
-                          }
-                        />
-                      </span>
+                      return (
+                        <>
+                          <span
+                            className={cn(
+                              'flex h-6 w-10 items-center justify-center rounded-control transition-colors',
 
-                      <span>
-                        {
-                          item.label
-                        }
-                      </span>
-                    </>
-                  )
-                }}
-              </NavLink>
-            )
-          },
-        )}
+                              active
+                                ? 'bg-primary-100'
+                                : 'bg-transparent',
+                            )}
+                          >
+                            <Icon
+                              aria-hidden
+                              size={
+                                24
+                              }
+                              strokeWidth={
+                                2
+                              }
+                            />
+                          </span>
+
+                          <span>
+                            {
+                              item.label
+                            }
+                          </span>
+                        </>
+                      )
+                    }}
+                  </NavLink>
+                )
+              },
+            )}
+          </div>
+        </nav>
       </div>
-    </nav>
+    </>
   )
 }

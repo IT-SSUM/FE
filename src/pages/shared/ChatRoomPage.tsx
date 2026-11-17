@@ -68,23 +68,28 @@ export function ChatRoomPage() {
     useNavigate()
 
   const {
-    chatRoomId: chatRoomIdParam,
+    chatRoomId:
+      chatRoomIdParam,
   } =
     useParams()
 
   const parsedChatRoomId =
-    Number(chatRoomIdParam)
+    Number(
+      chatRoomIdParam,
+    )
 
   const chatRoomId =
     Number.isSafeInteger(
       parsedChatRoomId,
     ) &&
-    parsedChatRoomId > 0
+    parsedChatRoomId >
+      0
       ? parsedChatRoomId
       : null
 
   const currentUserId =
-    getAuthSession()?.userId ??
+    getAuthSession()
+      ?.userId ??
     null
 
   const [
@@ -109,7 +114,9 @@ export function ChatRoomPage() {
     dismissedTerminalNotice,
     setDismissedTerminalNotice,
   ] =
-    useState<string | null>(null)
+    useState<
+      string | null
+    >(null)
 
   const fileInputRef =
     useRef<HTMLInputElement>(
@@ -169,7 +176,8 @@ export function ChatRoomPage() {
     )
 
   const terminalNoticeKey =
-    terminalNotice && room
+    terminalNotice &&
+    room
       ? `${room.chatRoomId}:${room.matchStatus}`
       : null
 
@@ -179,7 +187,9 @@ export function ChatRoomPage() {
         messagesQuery.data
           ?.pages
           .flatMap(
-            (page) =>
+            (
+              page,
+            ) =>
               page.messages,
           )
           .reverse() ??
@@ -206,7 +216,9 @@ export function ChatRoomPage() {
 
   const otherLastReadMessageId =
     messagesQuery.data
-      ?.pages[0]
+      ?.pages[
+        0
+      ]
       ?.otherLastReadMessageId ??
     null
 
@@ -232,10 +244,11 @@ export function ChatRoomPage() {
       },
 
       {
-        onError: () => {
-          lastMarkedReadId.current =
-            0
-        },
+        onError:
+          () => {
+            lastMarkedReadId.current =
+              0
+          },
       },
     )
   }, [
@@ -254,26 +267,33 @@ export function ChatRoomPage() {
       const content =
         message.trim()
 
-      if (!content) {
+      if (
+        !content
+      ) {
         return
       }
 
       if (
-        publishMessage({
-          messageType:
-            'TEXT',
+        publishMessage(
+          {
+            messageType:
+              'TEXT',
 
-          content,
-        })
+            content,
+          },
+        )
       ) {
-        setMessage('')
+        setMessage(
+          '',
+        )
       }
     }
 
   const sendImage =
     async (
       file:
-        File | undefined,
+        | File
+        | undefined,
     ) => {
       if (
         !file ||
@@ -303,7 +323,9 @@ export function ChatRoomPage() {
         true,
       )
 
-      setImageError('')
+      setImageError(
+        '',
+      )
 
       try {
         const objectKey =
@@ -313,13 +335,15 @@ export function ChatRoomPage() {
           )
 
         if (
-          !publishMessage({
-            messageType:
-              'IMAGE',
+          !publishMessage(
+            {
+              messageType:
+                'IMAGE',
 
-            content:
-              objectKey,
-          })
+              content:
+                objectKey,
+            },
+          )
         ) {
           throw new Error(
             '채팅 연결이 끊어졌습니다.',
@@ -351,7 +375,9 @@ export function ChatRoomPage() {
       <ChatRoomError
         message="잘못된 채팅방 주소예요."
         onBack={() =>
-          navigate(-1)
+          navigate(
+            -1,
+          )
         }
       />
     )
@@ -363,7 +389,9 @@ export function ChatRoomPage() {
         <button
           type="button"
           onClick={() =>
-            navigate(-1)
+            navigate(
+              -1,
+            )
           }
           aria-label="뒤로가기"
           className="flex size-6 shrink-0 items-center justify-center text-primary-700"
@@ -371,7 +399,9 @@ export function ChatRoomPage() {
           <ChevronLeft
             aria-hidden
             size={24}
-            strokeWidth={2}
+            strokeWidth={
+              2
+            }
           />
         </button>
 
@@ -399,15 +429,23 @@ export function ChatRoomPage() {
             <BookOpen
               aria-hidden
               size={28}
-              strokeWidth={2}
+              strokeWidth={
+                2
+              }
             />
           </span>
 
           <span className="min-w-0 flex-1">
             <strong className="block truncate text-base font-bold leading-6 text-neutral-900">
-              {room.itemName}{' '}
-              {room.quantity}
-              {room.unit}
+              {
+                room.itemName
+              }{' '}
+              {
+                room.quantity
+              }
+              {
+                room.unit
+              }
             </strong>
 
             <span className="mt-1 flex items-center gap-1 text-xs font-medium leading-[18px] text-primary-700">
@@ -418,8 +456,12 @@ export function ChatRoomPage() {
 
               <ArrowRight
                 aria-hidden
-                size={14}
-                strokeWidth={2}
+                size={
+                  14
+                }
+                strokeWidth={
+                  2
+                }
               />
             </span>
           </span>
@@ -569,7 +611,9 @@ export function ChatRoomPage() {
           ) =>
             void sendImage(
               event.target
-                .files?.[0],
+                .files?.[
+                  0
+                ],
             )
           }
         />
@@ -589,8 +633,12 @@ export function ChatRoomPage() {
           >
             <Plus
               aria-hidden
-              size={22}
-              strokeWidth={2}
+              size={
+                22
+              }
+              strokeWidth={
+                2
+              }
             />
           </button>
         ) : null}
@@ -612,27 +660,31 @@ export function ChatRoomPage() {
             event,
           ) =>
             setMessage(
-              event.target.value,
+              event.target
+                .value,
             )
           }
           placeholder={
             terminalNotice
               ? terminalNotice.inputMessage
               : socketStatus !==
-            'connected'
-              ? connectionLabel(
-                  socketStatus,
-                )
-              : canSendMessage
-                ? '메시지를 입력하세요'
-                : '현재 거래 상태에서는 메시지를 보낼 수 없어요.'
+                  'connected'
+                ? connectionLabel(
+                    socketStatus,
+                  )
+                : canSendMessage
+                  ? '메시지를 입력하세요'
+                  : '현재 거래 상태에서는 메시지를 보낼 수 없어요.'
           }
           disabled={
             !canSendMessage
           }
           className={cn(
             'h-11 min-w-0 flex-1 rounded-pill bg-neutral-100 text-neutral-900 outline-none',
-            terminalNotice ? 'px-4 text-center text-xs' : 'px-3 text-sm',
+
+            terminalNotice
+              ? 'px-4 text-center text-xs'
+              : 'px-3 text-sm',
           )}
         />
 
@@ -652,15 +704,30 @@ export function ChatRoomPage() {
 
       <Dialog
         open={
-          terminalNotice !== null &&
-          terminalNoticeKey !== dismissedTerminalNotice
+          terminalNotice !==
+            null &&
+          terminalNoticeKey !==
+            dismissedTerminalNotice
         }
-        title={terminalNotice?.title ?? ''}
-        description={terminalNotice?.description}
+        title={
+          terminalNotice?.title ??
+          ''
+        }
+        description={
+          terminalNotice?.description
+        }
         confirmText="확인"
         cancelText="채팅 목록으로"
-        onConfirm={() => setDismissedTerminalNotice(terminalNoticeKey)}
-        onCancel={() => navigate(ROUTES.chatList)}
+        onConfirm={() =>
+          setDismissedTerminalNotice(
+            terminalNoticeKey,
+          )
+        }
+        onCancel={() =>
+          navigate(
+            ROUTES.chatList,
+          )
+        }
       />
     </div>
   )
@@ -671,9 +738,12 @@ function MessageRow({
   isSelf,
   isRead,
 }: {
-  chat: ChatMessage
-  isSelf: boolean
-  isRead: boolean
+  chat:
+    ChatMessage
+  isSelf:
+    boolean
+  isRead:
+    boolean
 }) {
   if (
     chat.messageType ===
@@ -740,7 +810,9 @@ function MessageRow({
           <BookOpen
             aria-hidden
             size={18}
-            strokeWidth={2}
+            strokeWidth={
+              2
+            }
           />
         </span>
       ) : null}
@@ -767,6 +839,8 @@ function MessageRow({
             chat.content
           }
           alt="채팅 이미지"
+          loading="lazy"
+          decoding="async"
           className="max-h-64 max-w-[250px] rounded-control object-cover"
         />
       ) : (
@@ -797,10 +871,13 @@ function MessageRow({
 function MessageDate({
   value,
 }: {
-  value: string
+  value:
+    string
 }) {
   const date =
-    new Date(value)
+    new Date(
+      value,
+    )
 
   const text =
     Number.isNaN(
@@ -812,10 +889,13 @@ function MessageDate({
           {
             year:
               'numeric',
+
             month:
               'long',
+
             day:
               'numeric',
+
             weekday:
               'long',
           },
@@ -825,7 +905,9 @@ function MessageDate({
 
   return (
     <p className="mb-4 text-center text-xs text-neutral-700">
-      {text}
+      {
+        text
+      }
     </p>
   )
 }
@@ -835,12 +917,17 @@ function MessageTime({
   isRead = false,
   showUnread = false,
 }: {
-  value: string
-  isRead?: boolean
-  showUnread?: boolean
+  value:
+    string
+  isRead?:
+    boolean
+  showUnread?:
+    boolean
 }) {
   const date =
-    new Date(value)
+    new Date(
+      value,
+    )
 
   const text =
     Number.isNaN(
@@ -852,8 +939,10 @@ function MessageTime({
           {
             hour:
               'numeric',
+
             minute:
               '2-digit',
+
             hour12:
               true,
           },
@@ -864,11 +953,20 @@ function MessageTime({
   return (
     <p className="flex shrink-0 flex-col items-end whitespace-nowrap pb-1 text-xs text-neutral-700">
       {showUnread ? (
-        <span className="font-bold text-primary-700">1</span>
+        <span className="font-bold text-primary-700">
+          1
+        </span>
       ) : isRead ? (
-        <span className="text-neutral-600">읽음</span>
+        <span className="text-neutral-600">
+          읽음
+        </span>
       ) : null}
-      <span>{text}</span>
+
+      <span>
+        {
+          text
+        }
+      </span>
     </p>
   )
 }
@@ -889,8 +987,10 @@ function ChatRoomError({
   message,
   onBack,
 }: {
-  message: string
-  onBack: () => void
+  message:
+    string
+  onBack:
+    () => void
 }) {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-surface-canvas px-6">
@@ -918,10 +1018,14 @@ function isSameDay(
   second: string,
 ) {
   const firstDate =
-    new Date(first)
+    new Date(
+      first,
+    )
 
   const secondDate =
-    new Date(second)
+    new Date(
+      second,
+    )
 
   return (
     firstDate.toDateString() ===
@@ -933,7 +1037,9 @@ function formatAppointmentDate(
   value: string,
 ) {
   const date =
-    new Date(value)
+    new Date(
+      value,
+    )
 
   if (
     Number.isNaN(
@@ -943,32 +1049,50 @@ function formatAppointmentDate(
     return value
   }
 
-  const parts = new Intl.DateTimeFormat(
-    'ko-KR',
-    {
-      timeZone:
-        'Asia/Seoul',
+  const parts =
+    new Intl.DateTimeFormat(
+      'ko-KR',
+      {
+        timeZone:
+          'Asia/Seoul',
 
-      month:
-        'long',
+        month:
+          'long',
 
-      day:
-        'numeric',
+        day:
+          'numeric',
 
-      hour:
-        'numeric',
+        hour:
+          'numeric',
 
-      minute:
-        '2-digit',
+        minute:
+          '2-digit',
 
-      hour12:
-        true,
-    },
-  ).formatToParts(date)
+        hour12:
+          true,
+      },
+    ).formatToParts(
+      date,
+    )
 
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((item) => item.type === type)?.value ?? ''
-  const minute = part('minute')
+  const part =
+    (
+      type:
+        Intl.DateTimeFormatPartTypes,
+    ) =>
+      parts.find(
+        (
+          item,
+        ) =>
+          item.type ===
+          type,
+      )?.value ??
+      ''
+
+  const minute =
+    part(
+      'minute',
+    )
 
   return `${part('month')} ${part('day')}일 ${part('dayPeriod')} ${part('hour')}시${minute === '00' ? '' : ` ${minute}분`}`
 }
@@ -1028,26 +1152,50 @@ function formatMatchStatus(
   )
 }
 
-function getTerminalChatNotice(status: string | undefined) {
-  switch (status) {
+function getTerminalChatNotice(
+  status:
+    | string
+    | undefined,
+) {
+  switch (
+    status
+  ) {
     case 'COMPLETED':
       return {
-        title: '완료된 거래의 채팅이에요',
-        description: '거래가 완료되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
-        inputMessage: '완료된 거래에서는 메시지를 보낼 수 없어요.',
+        title:
+          '완료된 거래의 채팅이에요',
+
+        description:
+          '거래가 완료되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
+
+        inputMessage:
+          '완료된 거래에서는 메시지를 보낼 수 없어요.',
       }
+
     case 'CANCELED':
       return {
-        title: '취소된 거래의 채팅이에요',
-        description: '거래가 취소되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
-        inputMessage: '취소된 거래에서는 메시지를 보낼 수 없어요.',
+        title:
+          '취소된 거래의 채팅이에요',
+
+        description:
+          '거래가 취소되어 더 이상 메시지를 보낼 수 없어요. 이전 대화는 계속 확인할 수 있어요.',
+
+        inputMessage:
+          '취소된 거래에서는 메시지를 보낼 수 없어요.',
       }
+
     case 'REJECTED':
       return {
-        title: '종료된 제안·요청의 채팅이에요',
-        description: '제안 또는 요청이 거절되어 더 이상 메시지를 보낼 수 없어요.',
-        inputMessage: '종료된 거래에서는 메시지를 보낼 수 없어요.',
+        title:
+          '종료된 제안·요청의 채팅이에요',
+
+        description:
+          '제안 또는 요청이 거절되어 더 이상 메시지를 보낼 수 없어요.',
+
+        inputMessage:
+          '종료된 거래에서는 메시지를 보낼 수 없어요.',
       }
+
     default:
       return null
   }

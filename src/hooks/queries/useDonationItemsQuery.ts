@@ -3,20 +3,29 @@ import {
   useQuery,
 } from '@tanstack/react-query'
 
-import { getDonationItems } from '@/apis/donationItem'
+import {
+  getDonationItems,
+} from '@/apis/donationItem'
 
 import type {
   DonationItemListParams,
 } from '@/types/donationItem'
 
 export const donationItemKeys = {
-  all: ['donation-items'] as const,
+  all: [
+    'donation-items',
+  ] as const,
 
   details: () =>
-    [...donationItemKeys.all, 'detail'] as const,
+    [
+      ...donationItemKeys.all,
+      'detail',
+    ] as const,
 
   detail: (
-    donationItemId: number | null,
+    donationItemId:
+      | number
+      | null,
   ) =>
     [
       ...donationItemKeys.details(),
@@ -24,10 +33,14 @@ export const donationItemKeys = {
     ] as const,
 
   lists: () =>
-    [...donationItemKeys.all, 'list'] as const,
+    [
+      ...donationItemKeys.all,
+      'list',
+    ] as const,
 
   list: (
-    params: DonationItemListParams,
+    params:
+      DonationItemListParams,
   ) =>
     [
       ...donationItemKeys.lists(),
@@ -36,10 +49,11 @@ export const donationItemKeys = {
     ] as const,
 
   infiniteList: (
-    params: Omit<
-      DonationItemListParams,
-      'beforeId'
-    >,
+    params:
+      Omit<
+        DonationItemListParams,
+        'beforeId'
+      >,
   ) =>
     [
       ...donationItemKeys.lists(),
@@ -49,27 +63,37 @@ export const donationItemKeys = {
 }
 
 export function useDonationItemsQuery(
-  params: DonationItemListParams = {},
+  params:
+    DonationItemListParams = {},
   enabled = true,
 ) {
   return useQuery({
     queryKey:
-      donationItemKeys.list(params),
+      donationItemKeys.list(
+        params,
+      ),
 
-    queryFn: () =>
-      getDonationItems(params),
+    queryFn: ({
+      signal,
+    }) =>
+      getDonationItems(
+        params,
+        signal,
+      ),
 
     enabled,
 
-    staleTime: 1000 * 60,
+    staleTime:
+      1000 * 60,
   })
 }
 
 export function useInfiniteDonationItemsQuery(
-  params: Omit<
-    DonationItemListParams,
-    'beforeId'
-  > = {},
+  params:
+    Omit<
+      DonationItemListParams,
+      'beforeId'
+    > = {},
 ) {
   return useInfiniteQuery({
     queryKey:
@@ -79,19 +103,25 @@ export function useInfiniteDonationItemsQuery(
 
     queryFn: ({
       pageParam,
+      signal,
     }) =>
-      getDonationItems({
-        ...params,
+      getDonationItems(
+        {
+          ...params,
 
-        beforeId:
-          pageParam ??
-          undefined,
+          beforeId:
+            pageParam ??
+            undefined,
 
-        size: 20,
-      }),
+          size: 20,
+        },
+        signal,
+      ),
 
     initialPageParam:
-      null as number | null,
+      null as
+        | number
+        | null,
 
     getNextPageParam: (
       lastPage,
@@ -100,7 +130,8 @@ export function useInfiniteDonationItemsQuery(
     ) => {
       if (
         !lastPage.hasNext ||
-        lastPage.nextCursor === null
+        lastPage.nextCursor ===
+          null
       ) {
         return undefined
       }

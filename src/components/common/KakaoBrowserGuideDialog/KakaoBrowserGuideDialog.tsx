@@ -9,11 +9,13 @@ import {
 type KakaoBrowserGuideDialogProps = {
   open: boolean
   onClose: () => void
+  copyUrl?: string
 }
 
 export function KakaoBrowserGuideDialog({
   open,
   onClose,
+  copyUrl,
 }: KakaoBrowserGuideDialogProps) {
   const [
     copying,
@@ -33,7 +35,8 @@ export function KakaoBrowserGuideDialog({
 
       try {
         await copyText(
-          window.location.href,
+          copyUrl ??
+            window.location.href,
         )
 
         onClose()
@@ -83,11 +86,16 @@ async function copyText(
     navigator.clipboard
       ?.writeText
   ) {
-    await navigator.clipboard.writeText(
-      text,
-    )
+    try {
+      await navigator.clipboard.writeText(
+        text,
+      )
 
-    return
+      return
+    } catch {
+      // Clipboard API 사용이 거부되면
+      // textarea 기반 복사를 다시 시도합니다.
+    }
   }
 
   const textarea =

@@ -307,18 +307,18 @@ export function DonorMyPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-3 bg-surface-canvas px-5">
+      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
         <button
           type="button"
           aria-label="뒤로가기"
           onClick={() =>
             navigate(-1)
           }
-          className="flex size-5 shrink-0 items-center justify-center text-primary-700"
+          className="p-2 text-primary-700"
         >
           <ChevronLeft
             aria-hidden
-            size={20}
+            size={24}
             strokeWidth={2}
           />
         </button>

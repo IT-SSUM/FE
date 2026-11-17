@@ -11,7 +11,11 @@ export function useUpdateDonorProfileMutation() {
   return useMutation({
     mutationFn: updateDonorProfile,
 
-    onSuccess: (profile) => {
+    onSuccess: async (profile) => {
+      await queryClient.cancelQueries({
+        queryKey: donorProfileQueryKey,
+      })
+
       queryClient.setQueryData(
         donorProfileQueryKey,
         profile,
