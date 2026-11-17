@@ -10,5 +10,9 @@ export async function login(request: { email: string; password: string }) {
 }
 
 export async function logout(refreshToken: string) {
-  await axiosInstance.post('/api/auth/logout', { refreshToken })
+  await axiosInstance.post(
+    '/api/auth/logout',
+    { refreshToken },
+    { timeout: 5000 },
+  )
 }
