@@ -58,27 +58,39 @@ const PILOT_REGION = {
   name: '경기 부천시',
 } as const
 
-const CONDITION_LABELS: Record<
-  ItemConditionCode,
-  string
-> = {
-  HIGH: '상 · 미개봉',
-  MID: '중 · 사용감 적음',
-  LOW: '하 · 다회 사용',
+const CONDITION_LABELS:
+  Record<
+    ItemConditionCode,
+    string
+  > = {
+  HIGH:
+    '상 · 미개봉',
+
+  MID:
+    '중 · 사용감 적음',
+
+  LOW:
+    '하 · 다회 사용',
 }
 
 function parsePositiveId(
-  value: string | null,
+  value:
+    | string
+    | null,
 ) {
   if (
     !value ||
-    !/^[1-9]\d*$/.test(value)
+    !/^[1-9]\d*$/.test(
+      value,
+    )
   ) {
     return undefined
   }
 
   const id =
-    Number(value)
+    Number(
+      value,
+    )
 
   return Number.isSafeInteger(
     id,
@@ -88,14 +100,19 @@ function parsePositiveId(
 }
 
 function parseCondition(
-  value: string | null,
+  value:
+    | string
+    | null,
 ):
   | ItemConditionCode
   | undefined {
   if (
-    value === 'HIGH' ||
-    value === 'MID' ||
-    value === 'LOW'
+    value ===
+      'HIGH' ||
+    value ===
+      'MID' ||
+    value ===
+      'LOW'
   ) {
     return value
   }
@@ -104,9 +121,12 @@ function parseCondition(
 }
 
 function desiredConditionLabel(
-  condition: ItemConditionCode,
+  condition:
+    ItemConditionCode,
 ) {
-  switch (condition) {
+  switch (
+    condition
+  ) {
     case 'HIGH':
       return '상'
 
@@ -240,7 +260,9 @@ export function NeedListPage() {
 
   const selectedCategoryName =
     categoryQuery.data?.find(
-      (category) =>
+      (
+        category,
+      ) =>
         category.categoryId ===
         categoryId,
     )?.name
@@ -276,7 +298,9 @@ export function NeedListPage() {
     useMemo(
       () =>
         query.data?.pages.flatMap(
-          (page) =>
+          (
+            page,
+          ) =>
             page.items,
         ) ?? [],
 
@@ -286,25 +310,28 @@ export function NeedListPage() {
     )
 
   const fetchNextPage =
-    useCallback(() => {
-      if (
-        !query.hasNextPage ||
-        query.isFetchingNextPage
-      ) {
-        return
-      }
+    useCallback(
+      () => {
+        if (
+          !query.hasNextPage ||
+          query.isFetchingNextPage
+        ) {
+          return
+        }
 
-      void query
-        .fetchNextPage()
-        .catch(
-          () =>
-            undefined,
-        )
-    }, [
-      query.hasNextPage,
-      query.isFetchingNextPage,
-      query.fetchNextPage,
-    ])
+        void query
+          .fetchNextPage()
+          .catch(
+            () =>
+              undefined,
+          )
+      },
+      [
+        query.hasNextPage,
+        query.isFetchingNextPage,
+        query.fetchNextPage,
+      ],
+    )
 
   useEffect(() => {
     const element =
@@ -324,7 +351,9 @@ export function NeedListPage() {
           entries,
         ) => {
           const entry =
-            entries[0]
+            entries[
+              0
+            ]
 
           if (
             entry?.isIntersecting
@@ -352,28 +381,53 @@ export function NeedListPage() {
     fetchNextPage,
   ])
 
-  const updateFilter = (
-    key: 'categoryId' | 'regionId' | 'condition',
-    value: string,
-  ) => {
-    setSearchParams(
-      (previous) => {
-        const next = new URLSearchParams(previous)
+  const updateFilter =
+    (
+      key:
+        | 'categoryId'
+        | 'regionId'
+        | 'condition',
 
-        if (value) next.set(key, value)
-        else next.delete(key)
+      value: string,
+    ) => {
+      setSearchParams(
+        (
+          previous,
+        ) => {
+          const next =
+            new URLSearchParams(
+              previous,
+            )
 
-        return next
-      },
-      { replace: true },
-    )
-  }
+          if (
+            value
+          ) {
+            next.set(
+              key,
+              value,
+            )
+          } else {
+            next.delete(
+              key,
+            )
+          }
+
+          return next
+        },
+
+        {
+          replace:
+            true,
+        },
+      )
+    }
 
   return (
     <DonorPage
       title="물품 탐색"
       back={
-        ROUTES.donor.home
+        ROUTES.donor
+          .home
       }
       footer={
         <BottomNavigation
@@ -390,7 +444,9 @@ export function NeedListPage() {
         <Search
           aria-hidden
           size={18}
-          strokeWidth={2}
+          strokeWidth={
+            2
+          }
           className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700"
         />
 
@@ -405,7 +461,8 @@ export function NeedListPage() {
             event,
           ) =>
             setKeyword(
-              event.target.value,
+              event.target
+                .value,
             )
           }
         />
@@ -414,38 +471,121 @@ export function NeedListPage() {
       <div className="flex w-full gap-2 overflow-x-auto">
         <FilterSelect
           label="카테고리"
-          showMenuLabel={false}
-          value={selectedCategoryName ?? ''}
-          options={(categoryQuery.data ?? []).map((category) => category.name)}
-          disabled={categoryQuery.isPending || categoryQuery.isError}
-          onChange={(value) => {
-            const selected = categoryQuery.data?.find(
-              (category) => category.name === value,
+          showMenuLabel={
+            false
+          }
+          value={
+            selectedCategoryName ??
+            ''
+          }
+          options={(
+            categoryQuery.data ??
+            []
+          ).map(
+            (
+              category,
+            ) =>
+              category.name,
+          )}
+          disabled={
+            categoryQuery.isPending ||
+            categoryQuery.isError
+          }
+          onChange={(
+            value,
+          ) => {
+            const selected =
+              categoryQuery.data?.find(
+                (
+                  category,
+                ) =>
+                  category.name ===
+                  value,
+              )
+
+            updateFilter(
+              'categoryId',
+
+              selected
+                ? String(
+                    selected.categoryId,
+                  )
+                : '',
             )
-            updateFilter('categoryId', selected ? String(selected.categoryId) : '')
           }}
         />
 
         <FilterSelect
           label="지역"
-          showMenuLabel={false}
-          value={regionId === PILOT_REGION.id ? PILOT_REGION.name : ''}
-          options={[PILOT_REGION.name]}
-          onChange={(value) =>
-            updateFilter('regionId', value ? String(PILOT_REGION.id) : '')
+          showMenuLabel={
+            false
+          }
+          value={
+            regionId ===
+            PILOT_REGION.id
+              ? PILOT_REGION.name
+              : ''
+          }
+          options={[
+            PILOT_REGION.name,
+          ]}
+          onChange={(
+            value,
+          ) =>
+            updateFilter(
+              'regionId',
+
+              value
+                ? String(
+                    PILOT_REGION.id,
+                  )
+                : '',
+            )
           }
         />
 
         <FilterSelect
           label="희망 상태"
-          showMenuLabel={false}
-          value={condition ? CONDITION_LABELS[condition] : ''}
-          options={Object.values(CONDITION_LABELS)}
-          onChange={(value) => {
-            const selected = Object.entries(CONDITION_LABELS).find(
-              ([, label]) => label === value,
-            )?.[0] as ItemConditionCode | undefined
-            updateFilter('condition', selected ?? '')
+          showMenuLabel={
+            false
+          }
+          value={
+            condition
+              ? CONDITION_LABELS[
+                  condition
+                ]
+              : ''
+          }
+          options={Object.values(
+            CONDITION_LABELS,
+          )}
+          onChange={(
+            value,
+          ) => {
+            const selected =
+              Object.entries(
+                CONDITION_LABELS,
+              ).find(
+                (
+                  [
+                    ,
+                    label,
+                  ],
+                ) =>
+                  label ===
+                  value,
+              )?.[
+                0
+              ] as
+                | ItemConditionCode
+                | undefined
+
+            updateFilter(
+              'condition',
+
+              selected ??
+              '',
+            )
           }}
         />
       </div>
@@ -592,12 +732,15 @@ function NeededItemCard({
               alt=""
               className="size-full object-cover"
               loading="lazy"
+              decoding="async"
             />
           ) : (
             <Package
               aria-hidden
               size={28}
-              strokeWidth={2}
+              strokeWidth={
+                2
+              }
             />
           )}
         </div>

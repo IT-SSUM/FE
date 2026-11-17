@@ -1,14 +1,12 @@
 import {
+  lazy,
+  type ComponentType,
+} from 'react'
+
+import {
   createBrowserRouter,
+  Outlet,
 } from 'react-router-dom'
-
-import {
-  ProtectedRoute,
-} from '@/routes/ProtectedRoute'
-
-import {
-  ROUTES,
-} from '@/routes/paths'
 
 import {
   DonorLayout,
@@ -23,156 +21,6 @@ import {
 } from '@/layouts/SharedLayout'
 
 import {
-  DonorHomePage,
-} from '@/pages/donor/DonorHomePage'
-
-import {
-  DonorDonationEditPage,
-} from '@/pages/donor/DonorDonationEditPage'
-
-import {
-  DonorDonationHistoryPage,
-} from '@/pages/donor/DonorDonationHistoryPage'
-
-import {
-  DonorDonationManagePage,
-} from '@/pages/donor/DonorDonationManagePage'
-
-import {
-  DonationStatementPage,
-} from '@/pages/donor/DonationStatementPage'
-
-import {
-  DonorMyPage,
-} from '@/pages/donor/DonorMyPage'
-
-import {
-  DonorProfileEditPage,
-} from '@/pages/donor/DonorProfileEditPage'
-
-import {
-  DonorRequestDetailPage,
-} from '@/pages/donor/DonorRequestDetailPage'
-
-import {
-  DonorRequestListPage,
-} from '@/pages/donor/DonorRequestListPage'
-
-import {
-  DonationDetailPage as DonorDonationDetailPage,
-} from '@/pages/donor/DonationDetailPage'
-
-import {
-  DonationRegisterPage,
-} from '@/pages/donor/DonationRegisterPage'
-
-import {
-  DonationProposalCompletePage,
-  DonationProposalPage,
-} from '@/pages/donor/DonationProposalPage'
-
-import {
-  NeedDetailPage as DonorNeedDetailPage,
-} from '@/pages/donor/NeedDetailPage'
-
-import {
-  NeedFilterPage,
-} from '@/pages/donor/NeedFilterPage'
-
-import {
-  NeedListPage,
-} from '@/pages/donor/NeedListPage'
-
-import {
-  RecommendationPage as DonorRecommendationPage,
-} from '@/pages/donor/RecommendationPage'
-
-import {
-  DonationDetailPage as OrganizationDonationDetailPage,
-} from '@/pages/organization/DonationDetailPage'
-
-import {
-  DonationListPage,
-} from '@/pages/organization/DonationListPage'
-
-import {
-  NeedDetailPage as OrganizationNeedDetailPage,
-} from '@/pages/organization/NeedDetailPage'
-
-import {
-  NeedEditPage,
-} from '@/pages/organization/NeedEditPage'
-
-import {
-  NeedManagePage,
-} from '@/pages/organization/NeedManagePage'
-
-import {
-  NeedRegisterPage,
-} from '@/pages/organization/NeedRegisterPage'
-
-import {
-  OrganizationHomePage,
-} from '@/pages/organization/OrganizationHomePage'
-
-import {
-  OrganizationNotificationPage,
-} from '@/pages/organization/OrganizationNotificationPage'
-
-import {
-  OrganizationMyPage,
-} from '@/pages/organization/OrganizationMyPage'
-
-import {
-  OrganizationProfileEditPage,
-} from '@/pages/organization/OrganizationProfileEditPage'
-
-import {
-  OfferDetailPage,
-} from '@/pages/organization/OfferDetailPage'
-
-import {
-  OfferListPage,
-} from '@/pages/organization/OfferListPage'
-
-import {
-  OrganizationTradeStatusPage,
-} from '@/pages/organization/OrganizationTradeStatusPage'
-
-import {
-  IndividualTradeStatusPage,
-} from '@/pages/organization/IndividualTradeStatusPage'
-
-import {
-  OrganizationActiveTradeDetailPage,
-} from '@/pages/organization/OrganizationActiveTradeDetailPage'
-
-import {
-  TradeQuantityEditPage as OrganizationTradeQuantityEditPage,
-} from '@/pages/organization/TradeQuantityEditPage'
-
-import {
-  TradeAppointmentPage as OrganizationTradeAppointmentPage,
-} from '@/pages/organization/TradeAppointmentPage'
-
-import {
-  DonationRequestCompletePage,
-  DonationRequestPage,
-} from '@/pages/organization/DonationRequestPage'
-
-import {
-  RecommendationPage as OrganizationRecommendationPage,
-} from '@/pages/organization/RecommendationPage'
-
-import {
-  ChatListPage,
-} from '@/pages/shared/ChatListPage'
-
-import {
-  ChatRoomPage,
-} from '@/pages/shared/ChatRoomPage'
-
-import {
   HomePage,
 } from '@/pages/shared/HomePage'
 
@@ -181,474 +29,820 @@ import {
 } from '@/pages/shared/NotFoundPage'
 
 import {
-  NotificationPage,
-} from '@/pages/shared/NotificationPage'
+  ProtectedRoute,
+} from '@/routes/ProtectedRoute'
 
 import {
-  TradeAppointmentPage,
-} from '@/pages/shared/TradeAppointmentPage'
+  ROUTES,
+} from '@/routes/paths'
 
-import {
-  TradeDetailPage,
-} from '@/pages/shared/TradeDetailPage'
+function lazyNamed<
+  TModule extends Record<string, unknown>,
+  TKey extends keyof TModule,
+>(
+  loader: () => Promise<TModule>,
+  key: TKey,
+) {
+  return lazy(async () => {
+    const module =
+      await loader()
 
-import {
-  TradeQuantityEditPage,
-} from '@/pages/shared/TradeQuantityEditPage'
+    return {
+      default:
+        module[key] as unknown as ComponentType,
+    }
+  })
+}
 
-import {
-  LoginPage,
-} from '@/pages/login/LoginPage'
+const LoginPage = lazyNamed(
+  () =>
+    import('@/pages/login/LoginPage'),
+  'LoginPage',
+)
 
-import {
-  SignupPage,
-} from '@/pages/onboarding/SignupPage'
+const SignupPage = lazyNamed(
+  () =>
+    import('@/pages/onboarding/SignupPage'),
+  'SignupPage',
+)
+
+const DonationStatementPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationStatementPage'),
+  'DonationStatementPage',
+)
+
+const DonorHomePage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorHomePage'),
+  'DonorHomePage',
+)
+
+const DonationRegisterPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationRegisterPage'),
+  'DonationRegisterPage',
+)
+
+const DonorDonationDetailPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationDetailPage'),
+  'DonationDetailPage',
+)
+
+const DonorDonationEditPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorDonationEditPage'),
+  'DonorDonationEditPage',
+)
+
+const DonorNeedListPage = lazyNamed(
+  () =>
+    import('@/pages/donor/NeedListPage'),
+  'NeedListPage',
+)
+
+const DonorNeedFilterPage = lazyNamed(
+  () =>
+    import('@/pages/donor/NeedFilterPage'),
+  'NeedFilterPage',
+)
+
+const DonorNeedDetailPage = lazyNamed(
+  () =>
+    import('@/pages/donor/NeedDetailPage'),
+  'NeedDetailPage',
+)
+
+const DonationProposalPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationProposalPage'),
+  'DonationProposalPage',
+)
+
+const DonationProposalCompletePage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonationProposalPage'),
+  'DonationProposalCompletePage',
+)
+
+const DonorRecommendationPage = lazyNamed(
+  () =>
+    import('@/pages/donor/RecommendationPage'),
+  'RecommendationPage',
+)
+
+const DonorMyPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorMyPage'),
+  'DonorMyPage',
+)
+
+const DonorDonationManagePage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorDonationManagePage'),
+  'DonorDonationManagePage',
+)
+
+const DonorRequestListPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorRequestListPage'),
+  'DonorRequestListPage',
+)
+
+const DonorDonationHistoryPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorDonationHistoryPage'),
+  'DonorDonationHistoryPage',
+)
+
+const DonorProfileEditPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorProfileEditPage'),
+  'DonorProfileEditPage',
+)
+
+const DonorRequestDetailPage = lazyNamed(
+  () =>
+    import('@/pages/donor/DonorRequestDetailPage'),
+  'DonorRequestDetailPage',
+)
+
+const OrganizationHomePage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationHomePage'),
+  'OrganizationHomePage',
+)
+
+const OrganizationNotificationPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationNotificationPage'),
+  'OrganizationNotificationPage',
+)
+
+const OrganizationNeedManagePage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedManagePage'),
+  'NeedManagePage',
+)
+
+const OrganizationNeedRegisterPage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedRegisterPage'),
+  'NeedRegisterPage',
+)
+
+const OrganizationNeedEditPage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedEditPage'),
+  'NeedEditPage',
+)
+
+const OrganizationNeedDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/NeedDetailPage'),
+  'NeedDetailPage',
+)
+
+const OrganizationDonationListPage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationListPage'),
+  'DonationListPage',
+)
+
+const OrganizationDonationDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationDetailPage'),
+  'DonationDetailPage',
+)
+
+const DonationRequestPage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationRequestPage'),
+  'DonationRequestPage',
+)
+
+const DonationRequestCompletePage = lazyNamed(
+  () =>
+    import('@/pages/organization/DonationRequestPage'),
+  'DonationRequestCompletePage',
+)
+
+const OrganizationRecommendationPage = lazyNamed(
+  () =>
+    import('@/pages/organization/RecommendationPage'),
+  'RecommendationPage',
+)
+
+const OrganizationMyPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationMyPage'),
+  'OrganizationMyPage',
+)
+
+const OrganizationProfileEditPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationProfileEditPage'),
+  'OrganizationProfileEditPage',
+)
+
+const OrganizationOfferListPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OfferListPage'),
+  'OfferListPage',
+)
+
+const OrganizationOfferDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OfferDetailPage'),
+  'OfferDetailPage',
+)
+
+const OrganizationTradeStatusPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationTradeStatusPage'),
+  'OrganizationTradeStatusPage',
+)
+
+const IndividualTradeStatusPage = lazyNamed(
+  () =>
+    import('@/pages/organization/IndividualTradeStatusPage'),
+  'IndividualTradeStatusPage',
+)
+
+const OrganizationActiveTradeDetailPage = lazyNamed(
+  () =>
+    import('@/pages/organization/OrganizationActiveTradeDetailPage'),
+  'OrganizationActiveTradeDetailPage',
+)
+
+const OrganizationTradeQuantityEditPage = lazyNamed(
+  () =>
+    import('@/pages/organization/TradeQuantityEditPage'),
+  'TradeQuantityEditPage',
+)
+
+const OrganizationTradeAppointmentPage = lazyNamed(
+  () =>
+    import('@/pages/organization/TradeAppointmentPage'),
+  'TradeAppointmentPage',
+)
+
+const TradeDetailPage = lazyNamed(
+  () =>
+    import('@/pages/shared/TradeDetailPage'),
+  'TradeDetailPage',
+)
+
+const TradeQuantityEditPage = lazyNamed(
+  () =>
+    import('@/pages/shared/TradeQuantityEditPage'),
+  'TradeQuantityEditPage',
+)
+
+const TradeAppointmentPage = lazyNamed(
+  () =>
+    import('@/pages/shared/TradeAppointmentPage'),
+  'TradeAppointmentPage',
+)
+
+const ChatListPage = lazyNamed(
+  () =>
+    import('@/pages/shared/ChatListPage'),
+  'ChatListPage',
+)
+
+const ChatRoomPage = lazyNamed(
+  () =>
+    import('@/pages/shared/ChatRoomPage'),
+  'ChatRoomPage',
+)
+
+const NotificationPage = lazyNamed(
+  () =>
+    import('@/pages/shared/NotificationPage'),
+  'NotificationPage',
+)
 
 export const router =
   createBrowserRouter([
     {
-      path:
-        ROUTES.root,
-
       element:
-        <HomePage />,
+        <Outlet />,
 
       errorElement:
-        <NotFoundPage />,
-    },
-
-    {
-      path:
-        ROUTES.start,
-
-      element:
-        <HomePage />,
-    },
-
-    {
-      path:
-        ROUTES.login,
-
-      element:
-        <LoginPage />,
-    },
-
-    {
-      path:
-        ROUTES.signup,
-
-      element:
-        <SignupPage />,
-    },
-
-    {
-      path:
-        ROUTES.signupRole,
-
-      element:
-        <SignupPage />,
-    },
-
-    {
-      element:
-        <ProtectedRoute />,
+        <RouteErrorFallback />,
 
       children: [
         {
           path:
-            ROUTES.donor
-              .donationStatement,
+            ROUTES.root,
 
           element:
-            <DonationStatementPage />,
+            <HomePage />,
+
+          errorElement:
+            <NotFoundPage />,
+        },
+
+        {
+          path:
+            ROUTES.start,
+
+          element:
+            <HomePage />,
+        },
+
+        {
+          path:
+            ROUTES.login,
+
+          element:
+            <LoginPage />,
+        },
+
+        {
+          path:
+            ROUTES.signup,
+
+          element:
+            <SignupPage />,
+        },
+
+        {
+          path:
+            ROUTES.signupRole,
+
+          element:
+            <SignupPage />,
         },
 
         {
           element:
-            <DonorLayout />,
+            <ProtectedRoute />,
 
           children: [
             {
               path:
-                ROUTES.donor.home,
+                ROUTES.donor
+                  .donationStatement,
 
               element:
-                <DonorHomePage />,
+                <DonationStatementPage />,
             },
 
             {
-              path:
-                ROUTES.donor.donationNew,
-
               element:
-                <DonationRegisterPage />,
-            },
+                <DonorLayout />,
 
-            {
-              path:
-                ROUTES.donor.donationDetail,
+              children: [
+                {
+                  path:
+                    ROUTES.donor
+                      .home,
 
-              element:
-                <DonorDonationDetailPage />,
-            },
+                  element:
+                    <DonorHomePage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.donationEdit,
+                {
+                  path:
+                    ROUTES.donor
+                      .donationNew,
 
-              element:
-                <DonorDonationEditPage />,
-            },
+                  element:
+                    <DonationRegisterPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.needList,
+                {
+                  path:
+                    ROUTES.donor
+                      .donationDetail,
 
-              element:
-                <NeedListPage />,
-            },
+                  element:
+                    <DonorDonationDetailPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.needFilter,
+                {
+                  path:
+                    ROUTES.donor
+                      .donationEdit,
 
-              element:
-                <NeedFilterPage />,
-            },
+                  element:
+                    <DonorDonationEditPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.needDetail,
+                {
+                  path:
+                    ROUTES.donor
+                      .needList,
 
-              element:
-                <DonorNeedDetailPage />,
-            },
+                  element:
+                    <DonorNeedListPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.donationProposal,
+                {
+                  path:
+                    ROUTES.donor
+                      .needFilter,
 
-              element:
-                <DonationProposalPage />,
-            },
+                  element:
+                    <DonorNeedFilterPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.donationProposalComplete,
+                {
+                  path:
+                    ROUTES.donor
+                      .needDetail,
 
-              element:
-                <DonationProposalCompletePage />,
-            },
+                  element:
+                    <DonorNeedDetailPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.recommendation,
+                {
+                  path:
+                    ROUTES.donor
+                      .donationProposal,
 
-              element:
-                <DonorRecommendationPage />,
-            },
+                  element:
+                    <DonationProposalPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.recommendedOrganization,
+                {
+                  path:
+                    ROUTES.donor
+                      .donationProposalComplete,
 
-              element:
-                <DonorRecommendationPage />,
-            },
+                  element:
+                    <DonationProposalCompletePage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.myPage,
+                {
+                  path:
+                    ROUTES.donor
+                      .recommendation,
 
-              element:
-                <DonorMyPage />,
-            },
+                  element:
+                    <DonorRecommendationPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.myItems,
+                {
+                  path:
+                    ROUTES.donor
+                      .recommendedOrganization,
 
-              element:
-                <DonorDonationManagePage />,
-            },
+                  element:
+                    <DonorRecommendationPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.myRequests,
+                {
+                  path:
+                    ROUTES.donor
+                      .myPage,
 
-              element:
-                <DonorRequestListPage />,
-            },
+                  element:
+                    <DonorMyPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.myHistory,
+                {
+                  path:
+                    ROUTES.donor
+                      .myItems,
 
-              element:
-                <DonorDonationHistoryPage />,
-            },
+                  element:
+                    <DonorDonationManagePage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.myProfile,
+                {
+                  path:
+                    ROUTES.donor
+                      .myRequests,
 
-              element:
-                <DonorProfileEditPage />,
-            },
+                  element:
+                    <DonorRequestListPage />,
+                },
 
-            {
-              path:
-                ROUTES.donor.requestDetail,
+                {
+                  path:
+                    ROUTES.donor
+                      .myHistory,
 
-              element:
-                <DonorRequestDetailPage />,
+                  element:
+                    <DonorDonationHistoryPage />,
+                },
+
+                {
+                  path:
+                    ROUTES.donor
+                      .myProfile,
+
+                  element:
+                    <DonorProfileEditPage />,
+                },
+
+                {
+                  path:
+                    ROUTES.donor
+                      .requestDetail,
+
+                  element:
+                    <DonorRequestDetailPage />,
+                },
+              ],
             },
           ],
         },
-      ],
-    },
 
-    {
-      element:
-        <ProtectedRoute />,
-
-      children: [
         {
           element:
-            <OrganizationLayout />,
+            <ProtectedRoute />,
 
           children: [
             {
-              path:
-                ROUTES.organization.home,
-
               element:
-                <OrganizationHomePage />,
-            },
+                <OrganizationLayout />,
 
-            {
-              path:
-                ROUTES.organization.notifications,
+              children: [
+                {
+                  path:
+                    ROUTES.organization
+                      .home,
 
-              element:
-                <OrganizationNotificationPage />,
-            },
+                  element:
+                    <OrganizationHomePage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.needManage,
+                {
+                  path:
+                    ROUTES.organization
+                      .notifications,
 
-              element:
-                <NeedManagePage />,
-            },
+                  element:
+                    <OrganizationNotificationPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.needNew,
+                {
+                  path:
+                    ROUTES.organization
+                      .needManage,
 
-              element:
-                <NeedRegisterPage />,
-            },
+                  element:
+                    <OrganizationNeedManagePage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.needEdit,
+                {
+                  path:
+                    ROUTES.organization
+                      .needNew,
 
-              element:
-                <NeedEditPage />,
-            },
+                  element:
+                    <OrganizationNeedRegisterPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.needDetail,
+                {
+                  path:
+                    ROUTES.organization
+                      .needEdit,
 
-              element:
-                <OrganizationNeedDetailPage />,
-            },
+                  element:
+                    <OrganizationNeedEditPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.donationList,
+                {
+                  path:
+                    ROUTES.organization
+                      .needDetail,
 
-              element:
-                <DonationListPage />,
-            },
+                  element:
+                    <OrganizationNeedDetailPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.donationDetail,
+                {
+                  path:
+                    ROUTES.organization
+                      .donationList,
 
-              element:
-                <OrganizationDonationDetailPage />,
-            },
+                  element:
+                    <OrganizationDonationListPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.donationRequest,
+                {
+                  path:
+                    ROUTES.organization
+                      .donationDetail,
 
-              element:
-                <DonationRequestPage />,
-            },
+                  element:
+                    <OrganizationDonationDetailPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.donationRequestComplete,
+                {
+                  path:
+                    ROUTES.organization
+                      .donationRequest,
 
-              element:
-                <DonationRequestCompletePage />,
-            },
+                  element:
+                    <DonationRequestPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.recommendation,
+                {
+                  path:
+                    ROUTES.organization
+                      .donationRequestComplete,
 
-              element:
-                <OrganizationRecommendationPage />,
-            },
+                  element:
+                    <DonationRequestCompletePage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.myPage,
+                {
+                  path:
+                    ROUTES.organization
+                      .recommendation,
 
-              element:
-                <OrganizationMyPage />,
-            },
+                  element:
+                    <OrganizationRecommendationPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.myProfile,
+                {
+                  path:
+                    ROUTES.organization
+                      .myPage,
 
-              element:
-                <OrganizationProfileEditPage />,
-            },
+                  element:
+                    <OrganizationMyPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.offerList,
+                {
+                  path:
+                    ROUTES.organization
+                      .myProfile,
 
-              element:
-                <OfferListPage />,
-            },
+                  element:
+                    <OrganizationProfileEditPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.offerDetail,
+                {
+                  path:
+                    ROUTES.organization
+                      .offerList,
 
-              element:
-                <OfferDetailPage />,
-            },
+                  element:
+                    <OrganizationOfferListPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.tradeStatus,
+                {
+                  path:
+                    ROUTES.organization
+                      .offerDetail,
 
-              element:
-                <OrganizationTradeStatusPage />,
-            },
+                  element:
+                    <OrganizationOfferDetailPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.individualTradeStatus,
+                {
+                  path:
+                    ROUTES.organization
+                      .tradeStatus,
 
-              element:
-                <IndividualTradeStatusPage />,
-            },
+                  element:
+                    <OrganizationTradeStatusPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.activeTradeDetail,
+                {
+                  path:
+                    ROUTES.organization
+                      .individualTradeStatus,
 
-              element:
-                <OrganizationActiveTradeDetailPage />,
-            },
+                  element:
+                    <IndividualTradeStatusPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.tradeQuantityEdit,
+                {
+                  path:
+                    ROUTES.organization
+                      .activeTradeDetail,
 
-              element:
-                <OrganizationTradeQuantityEditPage />,
-            },
+                  element:
+                    <OrganizationActiveTradeDetailPage />,
+                },
 
-            {
-              path:
-                ROUTES.organization.tradeAppointment,
+                {
+                  path:
+                    ROUTES.organization
+                      .tradeQuantityEdit,
 
-              element:
-                <OrganizationTradeAppointmentPage />,
+                  element:
+                    <OrganizationTradeQuantityEditPage />,
+                },
+
+                {
+                  path:
+                    ROUTES.organization
+                      .tradeAppointment,
+
+                  element:
+                    <OrganizationTradeAppointmentPage />,
+                },
+              ],
             },
           ],
         },
-      ],
-    },
 
-    {
-      element:
-        <ProtectedRoute />,
-
-      children: [
         {
           element:
-            <SharedLayout />,
+            <ProtectedRoute />,
 
           children: [
             {
-              path:
-                ROUTES.tradeDetail,
-
               element:
-                <TradeDetailPage />,
-            },
+                <SharedLayout />,
 
-            {
-              path:
-                ROUTES.tradeQuantityEdit,
+              children: [
+                {
+                  path:
+                    ROUTES.tradeDetail,
 
-              element:
-                <TradeQuantityEditPage />,
-            },
+                  element:
+                    <TradeDetailPage />,
+                },
 
-            {
-              path:
-                ROUTES.tradeAppointment,
+                {
+                  path:
+                    ROUTES.tradeQuantityEdit,
 
-              element:
-                <TradeAppointmentPage />,
-            },
+                  element:
+                    <TradeQuantityEditPage />,
+                },
 
-            {
-              path:
-                ROUTES.chatList,
+                {
+                  path:
+                    ROUTES.tradeAppointment,
 
-              element:
-                <ChatListPage />,
-            },
+                  element:
+                    <TradeAppointmentPage />,
+                },
 
-            {
-              path:
-                ROUTES.chatRoom,
+                {
+                  path:
+                    ROUTES.chatList,
 
-              element:
-                <ChatRoomPage />,
-            },
+                  element:
+                    <ChatListPage />,
+                },
 
-            {
-              path:
-                ROUTES.notifications,
+                {
+                  path:
+                    ROUTES.chatRoom,
 
-              element:
-                <NotificationPage />,
+                  element:
+                    <ChatRoomPage />,
+                },
+
+                {
+                  path:
+                    ROUTES.notifications,
+
+                  element:
+                    <NotificationPage />,
+                },
+              ],
             },
           ],
         },
+
+        {
+          path:
+            '*',
+
+          element:
+            <NotFoundPage />,
+        },
       ],
-    },
-
-    {
-      path:
-        '*',
-
-      element:
-        <NotFoundPage />,
     },
   ])
+
+function RouteErrorFallback() {
+  return (
+    <main className="flex min-h-dvh items-center justify-center bg-surface-canvas px-5">
+      <section className="w-full max-w-[393px] rounded-card border border-neutral-200 bg-white p-6 text-center">
+        <h1 className="typography-title-2 text-neutral-900">
+          화면을 불러오지 못했어요.
+        </h1>
+
+        <p className="mt-2 typography-body-2 text-neutral-700">
+          네트워크 상태를 확인한 뒤 다시
+          시도해 주세요.
+        </p>
+
+        <button
+          type="button"
+          className="mt-5 h-12 w-full rounded-input bg-primary-700 px-4 typography-label-1 text-white"
+          onClick={() =>
+            window.location.reload()
+          }
+        >
+          다시 불러오기
+        </button>
+      </section>
+    </main>
+  )
+}

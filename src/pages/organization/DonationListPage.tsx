@@ -1,9 +1,15 @@
-import { useDeferredValue } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+
 import {
   ChevronLeft,
   Package,
   Search,
 } from 'lucide-react'
+
 import {
   useNavigate,
   useSearchParams,
@@ -37,7 +43,8 @@ const conditionShortLabels: Record<
 }
 
 export function DonationListPage() {
-  const navigate = useNavigate()
+  const navigate =
+    useNavigate()
 
   const [
     searchParams,
@@ -47,10 +54,101 @@ export function DonationListPage() {
   const query =
     searchParams.get('q') ?? ''
 
-  const deferredQuery =
-    useDeferredValue(
-      query.trim(),
+  const [
+    searchInput,
+    setSearchInput,
+  ] = useState(query)
+
+  /*
+   * 현재 URL의 q가 사용자의 입력을 debounce해서
+   * 직접 반영한 값인지 구분합니다.
+   *
+   * 직접 반영한 값이라면 searchInput을 다시 덮어쓰지 않아
+   * "winter "처럼 입력 중인 공백을 보존합니다.
+   *
+   * 뒤로가기/앞으로가기 등 외부에서 URL이 변경된 경우에는
+   * 검색창을 URL 값과 다시 동기화합니다.
+   */
+  const committedQueryRef =
+    useRef<string | null>(
+      null,
     )
+
+  useEffect(() => {
+    if (
+      committedQueryRef.current ===
+      query
+    ) {
+      committedQueryRef.current =
+        null
+
+      return
+    }
+
+    setSearchInput(
+      query,
+    )
+  }, [
+    query,
+  ])
+
+  useEffect(() => {
+    const timer =
+      window.setTimeout(
+        () => {
+          const nextQuery =
+            searchInput.trim()
+
+          if (
+            nextQuery ===
+            query
+          ) {
+            return
+          }
+
+          committedQueryRef.current =
+            nextQuery
+
+          setSearchParams(
+            (previous) => {
+              const next =
+                new URLSearchParams(
+                  previous,
+                )
+
+              if (
+                nextQuery
+              ) {
+                next.set(
+                  'q',
+                  nextQuery,
+                )
+              } else {
+                next.delete(
+                  'q',
+                )
+              }
+
+              return next
+            },
+            {
+              replace: true,
+            },
+          )
+        },
+        300,
+      )
+
+    return () => {
+      window.clearTimeout(
+        timer,
+      )
+    }
+  }, [
+    query,
+    searchInput,
+    setSearchParams,
+  ])
 
   const selected = {
     category:
@@ -128,7 +226,7 @@ export function DonationListPage() {
   const itemsQuery =
     useInfiniteDonationItemsQuery({
       keyword:
-        deferredQuery ||
+        query.trim() ||
         undefined,
 
       categoryId:
@@ -145,7 +243,8 @@ export function DonationListPage() {
 
   const items =
     itemsQuery.data?.pages.flatMap(
-      (page) => page.items,
+      (page) =>
+        page.items,
     ) ?? []
 
   const updateFilter = (
@@ -159,13 +258,17 @@ export function DonationListPage() {
             previous,
           )
 
-        if (value) {
+        if (
+          value
+        ) {
           next.set(
             key,
             value,
           )
         } else {
-          next.delete(key)
+          next.delete(
+            key,
+          )
         }
 
         return next
@@ -176,33 +279,34 @@ export function DonationListPage() {
     )
   }
 
-  const resetFilters = () => {
-    setSearchParams(
-      (previous) => {
-        const next =
-          new URLSearchParams(
-            previous,
+  const resetFilters =
+    () => {
+      setSearchParams(
+        (previous) => {
+          const next =
+            new URLSearchParams(
+              previous,
+            )
+
+          next.delete(
+            'category',
           )
 
-        next.delete(
-          'category',
-        )
+          next.delete(
+            'location',
+          )
 
-        next.delete(
-          'location',
-        )
+          next.delete(
+            'condition',
+          )
 
-        next.delete(
-          'condition',
-        )
-
-        return next
-      },
-      {
-        replace: true,
-      },
-    )
-  }
+          return next
+        },
+        {
+          replace: true,
+        },
+      )
+    }
 
   const listError =
     itemsQuery.error
@@ -237,7 +341,9 @@ export function DonationListPage() {
           type="button"
           aria-label="뒤로가기"
           onClick={() =>
-            navigate(-1)
+            navigate(
+              -1,
+            )
           }
           className="flex size-6 shrink-0 items-center justify-center text-primary-700"
         >
@@ -270,11 +376,15 @@ export function DonationListPage() {
             id="donation-search"
             type="search"
             aria-label="물품 또는 기부자명 검색"
-            value={query}
-            onChange={(event) =>
-              updateFilter(
-                'q',
-                event.target.value,
+            value={
+              searchInput
+            }
+            onChange={(
+              event,
+            ) =>
+              setSearchInput(
+                event.target
+                  .value,
               )
             }
             placeholder="물품 또는 기부자명 검색"
@@ -298,7 +408,9 @@ export function DonationListPage() {
               (item) =>
                 item.name,
             )}
-            onChange={(value) =>
+            onChange={(
+              value,
+            ) =>
               updateFilter(
                 'category',
                 value,
@@ -317,7 +429,9 @@ export function DonationListPage() {
             options={[
               serviceRegion.name,
             ]}
-            onChange={(value) =>
+            onChange={(
+              value,
+            ) =>
               updateFilter(
                 'location',
                 value,
@@ -340,7 +454,9 @@ export function DonationListPage() {
               (item) =>
                 item.description,
             )}
-            onChange={(value) =>
+            onChange={(
+              value,
+            ) =>
               updateFilter(
                 'condition',
                 value,
@@ -435,7 +551,9 @@ export function DonationListPage() {
               className="rounded-card border border-neutral-200 bg-white px-4 py-10 text-center"
             >
               <p className="typography-body-2 text-error">
-                {listError}
+                {
+                  listError
+                }
               </p>
 
               <Button
@@ -453,7 +571,8 @@ export function DonationListPage() {
           {canRenderItems &&
           !itemsQuery.isPending &&
           !showInitialListError &&
-          items.length === 0 ? (
+          items.length ===
+            0 ? (
             <div className="rounded-card border border-neutral-200 bg-white px-4 py-10 text-center">
               <p className="typography-title-3 text-neutral-900">
                 조건에 맞는 물품이
@@ -468,9 +587,12 @@ export function DonationListPage() {
           ) : null}
 
           {canRenderItems &&
-            items.length > 0 &&
+            items.length >
+              0 &&
             items.map(
-              (item) => (
+              (
+                item,
+              ) => (
                 <ItemRow
                   key={
                     item.donationItemId
@@ -500,7 +622,9 @@ export function DonationListPage() {
                         {
                           item.availableQuantity
                         }
-                        {item.unit}
+                        {
+                          item.unit
+                        }
                       </p>
                     </>
                   }
