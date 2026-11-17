@@ -10,10 +10,13 @@ let pendingRefresh: Promise<AuthSession> | null = null
 
 async function requestNewTokens() {
   const currentSession = getAuthSession()
+
   if (!currentSession?.refreshToken) {
     clearAuthSession()
     throw new Error('저장된 리프레시 토큰이 없습니다.')
   }
+
+  let refreshedSession: AuthSession
 
   try {
     const response = await axios.post<ApiResponse<AuthSession>>(
@@ -24,12 +27,25 @@ async function requestNewTokens() {
         headers: { 'Content-Type': 'application/json' },
       },
     )
-    saveAuthSession(response.data.data)
-    return response.data.data
+
+    refreshedSession = response.data.data
   } catch (error) {
     clearAuthSession()
     throw error
   }
+
+  if (
+    getAuthSession()?.refreshToken !==
+    currentSession.refreshToken
+  ) {
+    throw new Error(
+      '인증 정보가 변경되어 토큰 재발급 결과를 사용하지 않습니다.',
+    )
+  }
+
+  saveAuthSession(refreshedSession)
+
+  return refreshedSession
 }
 
 export function refreshAuthSession() {
