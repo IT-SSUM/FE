@@ -46,7 +46,15 @@ export function SegmentedTabs({
       }
 
       event.preventDefault()
-      tabs.scrollLeft += event.deltaY
+
+      const deltaY =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? event.deltaY * 16
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? event.deltaY * tabs.clientWidth
+            : event.deltaY
+
+      tabs.scrollLeft += deltaY
     }
 
     tabs.addEventListener(
