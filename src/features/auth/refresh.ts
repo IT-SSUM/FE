@@ -30,7 +30,23 @@ async function requestNewTokens() {
 
     refreshedSession = response.data.data
   } catch (error) {
-    clearAuthSession()
+    const status = axios.isAxiosError(error)
+      ? error.response?.status
+      : undefined
+
+    const refreshRejected =
+      status === 400 ||
+      status === 401 ||
+      status === 403
+
+    const sessionUnchanged =
+      getAuthSession()?.refreshToken ===
+      currentSession.refreshToken
+
+    if (refreshRejected && sessionUnchanged) {
+      clearAuthSession()
+    }
+
     throw error
   }
 
