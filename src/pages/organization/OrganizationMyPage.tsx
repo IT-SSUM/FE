@@ -93,14 +93,14 @@ export function OrganizationMyPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-canvas">
-      <header className="flex h-14 items-center gap-3 bg-surface-canvas px-5">
+      <header className="flex h-14 items-center gap-2 bg-surface-canvas px-5">
         <button
           type="button"
           aria-label="뒤로가기"
           onClick={() => navigate(-1)}
-          className="flex size-5 shrink-0 items-center justify-center text-primary-700"
+          className="p-2 text-primary-700"
         >
-          <ChevronLeft aria-hidden size={20} strokeWidth={2} />
+          <ChevronLeft aria-hidden size={24} strokeWidth={2} />
         </button>
         <h1 className="typography-title-3 text-neutral-900">마이페이지</h1>
       </header>
@@ -110,8 +110,16 @@ export function OrganizationMyPage() {
           <div className="min-w-0 flex-1">
             {isError ? (
               <div role="alert">
-                <h2 className="typography-title-3 text-error">기관 정보를 불러오지 못했어요.</h2>
-                <button type="button" className="mt-2 typography-label-2 text-primary-700 underline underline-offset-2" onClick={() => void refetch()}>다시 시도</button>
+                <h2 className="typography-title-3 text-error">
+                  기관 정보를 불러오지 못했어요.
+                </h2>
+                <button
+                  type="button"
+                  className="mt-2 typography-label-2 text-primary-700 underline underline-offset-2"
+                  onClick={() => void refetch()}
+                >
+                  다시 시도
+                </button>
               </div>
             ) : (
               <>
@@ -136,6 +144,7 @@ export function OrganizationMyPage() {
         </section>
 
         <MenuSection title="우리 기관의 물품 지원" items={organizationMenus} />
+
         <MenuSection
           title="계정 관리"
           items={accountMenus}
@@ -177,6 +186,7 @@ export function OrganizationMyPage() {
           if (!isWithdrawing) setWithdrawOpen(false)
         }}
       />
+
       <Dialog
         open={logoutOpen}
         title="로그아웃할까요?"
@@ -189,6 +199,7 @@ export function OrganizationMyPage() {
           if (!isLoggingOut) setLogoutOpen(false)
         }}
       />
+
       {withdrawError ? (
         <div className="pointer-events-none fixed left-1/2 top-4 z-300 w-full max-w-[393px] -translate-x-1/2 px-5">
           <Toast
@@ -222,6 +233,7 @@ function MenuSection({ title, items, onAction }: MenuSectionProps) {
   return (
     <section className="mt-5">
       <h2 className="typography-label-2 text-neutral-700">{title}</h2>
+
       <div className="mt-2 overflow-hidden rounded-card border border-neutral-200 bg-white">
         {items.map((item) => (
           <button
@@ -236,9 +248,11 @@ function MenuSection({ title, items, onAction }: MenuSectionProps) {
             <span className="flex size-9 shrink-0 items-center justify-center rounded-input bg-primary-100 text-primary-700">
               {item.icon}
             </span>
+
             <span className="min-w-0 flex-1 truncate text-base font-semibold leading-6 text-neutral-900">
               {item.title}
             </span>
+
             <ChevronRight
               aria-hidden
               size={20}
