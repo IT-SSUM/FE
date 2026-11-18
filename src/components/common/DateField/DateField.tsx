@@ -99,6 +99,10 @@ export function DateField({
     (_, index) =>
       yearOrder === "ascending" ? minimumYear + index : maximumYear - index,
   );
+  const popoverMaxHeight =
+    typeof popoverStyle.maxHeight === "number" ? popoverStyle.maxHeight : 390;
+
+  const yearListMaxHeight = Math.max(0, Math.min(224, popoverMaxHeight - 64));
 
   useEffect(() => {
     if (!open) return;
@@ -260,7 +264,8 @@ export function DateField({
               <div
                 role="listbox"
                 aria-label="연도 선택"
-                className="absolute left-0 top-11 z-10 grid max-h-[224px] w-[132px] gap-1 overflow-y-auto overscroll-contain rounded-control border border-neutral-200 bg-white p-2 shadow-xl"
+                className="absolute left-0 top-11 z-10 grid w-[132px] gap-1 overflow-y-auto overscroll-contain rounded-control border border-neutral-200 bg-white p-2 shadow-xl"
+                style={{ maxHeight: yearListMaxHeight }}
               >
                 {years.map((year) => {
                   const selected = year === viewDate.getFullYear();
