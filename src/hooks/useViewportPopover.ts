@@ -37,6 +37,7 @@ export function useViewportPopover<T extends HTMLElement>(
   const placement = options?.placement ?? "auto";
   const lockPlacement = options?.lockPlacement ?? false;
   const ignoreInternalScroll = options?.ignoreInternalScroll ?? false;
+
   const minimumHeight = Math.min(
     options?.minimumHeight ?? preferredHeight,
     preferredHeight,
