@@ -20,6 +20,7 @@ type UseViewportPopoverOptions = {
   placement?: PopoverPlacement;
   lockPlacement?: boolean;
   ignoreInternalScroll?: boolean;
+  minimumHeight?: number;
 };
 
 export function useViewportPopover<T extends HTMLElement>(
@@ -36,6 +37,10 @@ export function useViewportPopover<T extends HTMLElement>(
   const placement = options?.placement ?? "auto";
   const lockPlacement = options?.lockPlacement ?? false;
   const ignoreInternalScroll = options?.ignoreInternalScroll ?? false;
+  const minimumHeight = Math.min(
+    options?.minimumHeight ?? preferredHeight,
+    preferredHeight,
+  );
 
   const updatePosition = useCallback(() => {
     const anchor = anchorRef.current;
@@ -53,7 +58,8 @@ export function useViewportPopover<T extends HTMLElement>(
     if (lockPlacement && placementRef.current) {
       placeBelow = placementRef.current === "below";
     } else if (placement === "bottom") {
-      placeBelow = true;
+      placeBelow =
+        availableBelow >= minimumHeight || availableBelow >= availableAbove;
     } else {
       placeBelow =
         availableBelow >= preferredHeight || availableBelow >= availableAbove;
@@ -92,13 +98,12 @@ export function useViewportPopover<T extends HTMLElement>(
             bottom: window.innerHeight - rect.top + POPOVER_GAP,
           }),
     });
-  }, [lockPlacement, placement, preferredHeight]);
+  }, [lockPlacement, minimumHeight, placement, preferredHeight]);
 
   const handleScroll = useCallback(
     (event: Event) => {
       if (ignoreInternalScroll) {
         const anchor = anchorRef.current;
-
         const target = event.target;
 
         if (anchor && target instanceof Node && anchor.contains(target)) {
@@ -114,23 +119,18 @@ export function useViewportPopover<T extends HTMLElement>(
   useLayoutEffect(() => {
     if (!open) {
       placementRef.current = null;
-
       setPopoverStyle(HIDDEN_POPOVER_STYLE);
-
       return;
     }
 
     updatePosition();
 
     window.addEventListener("resize", updatePosition);
-
     window.addEventListener("scroll", handleScroll, true);
 
     return () => {
       window.removeEventListener("resize", updatePosition);
-
       window.removeEventListener("scroll", handleScroll, true);
-
       placementRef.current = null;
     };
   }, [handleScroll, open, updatePosition]);
