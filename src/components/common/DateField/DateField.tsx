@@ -81,19 +81,28 @@ export function DateField({
     null,
   );
   const [viewDate, setViewDate] = useState(selectedDate ?? today);
+
   const { anchorRef: containerRef, popoverStyle } =
     useViewportPopover<HTMLDivElement>(open, 390, {
       placement: "bottom",
       lockPlacement: true,
+      ignoreInternalScroll: true,
+      minimumHeight: 220,
     });
+
   const calendarDays = buildCalendarDays(viewDate);
   const minimumYear = minDate?.getFullYear() ?? 1900;
   const maximumYear = maxDate?.getFullYear() ?? today.getFullYear() + 10;
+
   const years = Array.from(
     { length: maximumYear - minimumYear + 1 },
     (_, index) =>
       yearOrder === "ascending" ? minimumYear + index : maximumYear - index,
   );
+  const popoverMaxHeight =
+    typeof popoverStyle.maxHeight === "number" ? popoverStyle.maxHeight : 390;
+
+  const yearListMaxHeight = Math.max(0, Math.min(224, popoverMaxHeight - 64));
 
   useEffect(() => {
     if (!open) return;
@@ -104,6 +113,7 @@ export function DateField({
         setSelectorOpen(null);
       }
     };
+
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
@@ -113,6 +123,7 @@ export function DateField({
 
     document.addEventListener("pointerdown", closeOnOutsideClick);
     document.addEventListener("keydown", closeOnEscape);
+
     return () => {
       document.removeEventListener("pointerdown", closeOnOutsideClick);
       document.removeEventListener("keydown", closeOnEscape);
@@ -126,8 +137,10 @@ export function DateField({
         current.getMonth() + amount,
         1,
       );
+
       if (next.getFullYear() < minimumYear || next.getFullYear() > maximumYear)
         return current;
+
       return next;
     });
   };
@@ -140,6 +153,7 @@ export function DateField({
       onInvalidSelection?.();
       return;
     }
+
     onChange(formatDate(date));
     setViewDate(date);
     setOpen(false);
@@ -161,6 +175,7 @@ export function DateField({
       >
         {label}
       </label>
+
       <button
         id={id}
         type="button"
@@ -178,6 +193,7 @@ export function DateField({
         }}
       >
         <CalendarDays aria-hidden size={18} />
+
         <span className={value ? "" : "text-neutral-600"}>
           {formatDisplayDate(value)}
         </span>
@@ -185,7 +201,7 @@ export function DateField({
 
       {open ? (
         <section
-          className="z-100 overflow-y-auto rounded-[18px] border border-neutral-300 bg-white p-3.5 shadow-[0_18px_42px_rgb(18_61_49/16%)]"
+          className="z-100 overflow-y-auto overscroll-contain rounded-[18px] border border-neutral-300 bg-white p-3.5 shadow-[0_18px_42px_rgb(18_61_49/16%)]"
           style={popoverStyle}
           role="dialog"
           aria-modal="false"
@@ -207,6 +223,7 @@ export function DateField({
                 {viewDate.getFullYear()}년
                 <ChevronDown aria-hidden size={15} />
               </button>
+
               <button
                 type="button"
                 aria-haspopup="listbox"
@@ -222,6 +239,7 @@ export function DateField({
                 <ChevronDown aria-hidden size={15} />
               </button>
             </div>
+
             <div className="flex items-center gap-0.5">
               <button
                 className="inline-flex size-9 items-center justify-center rounded-[10px] border-0 bg-transparent text-neutral-800 hover:bg-primary-100 hover:text-primary-700"
@@ -231,6 +249,7 @@ export function DateField({
               >
                 <ChevronLeft aria-hidden size={19} />
               </button>
+
               <button
                 className="inline-flex size-9 items-center justify-center rounded-[10px] border-0 bg-transparent text-neutral-800 hover:bg-primary-100 hover:text-primary-700"
                 type="button"
@@ -245,10 +264,12 @@ export function DateField({
               <div
                 role="listbox"
                 aria-label="연도 선택"
-                className="absolute left-0 top-11 z-10 grid max-h-[224px] w-[132px] gap-1 overflow-y-auto rounded-control border border-neutral-200 bg-white p-2 shadow-xl"
+                className="absolute left-0 top-11 z-10 grid w-[132px] gap-1 overflow-y-auto overscroll-contain rounded-control border border-neutral-200 bg-white p-2 shadow-xl"
+                style={{ maxHeight: yearListMaxHeight }}
               >
                 {years.map((year) => {
                   const selected = year === viewDate.getFullYear();
+
                   return (
                     <button
                       key={year}
@@ -282,6 +303,7 @@ export function DateField({
               >
                 {Array.from({ length: 12 }, (_, month) => {
                   const selected = month === viewDate.getMonth();
+
                   return (
                     <button
                       key={month}
@@ -317,12 +339,15 @@ export function DateField({
               </span>
             ))}
           </div>
+
           <div className="grid grid-cols-7 gap-y-0.5">
             {calendarDays.map((date) => {
               const currentMonth = date.getMonth() === viewDate.getMonth();
+
               const selected = Boolean(
                 selectedDate && isSameDay(date, selectedDate),
               );
+
               const currentDay = isSameDay(date, today);
               const disabled = isDisabled(date);
 
@@ -364,6 +389,7 @@ export function DateField({
             >
               초기화
             </button>
+
             <button
               type="button"
               onClick={chooseToday}
