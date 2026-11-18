@@ -52,7 +52,7 @@
   <tr align="center">
     <td>
       기부자 서비스 · 물품 관리 · 추천 · 프로필<br/>
-      프로젝트 기반 구축 및 API 연동
+      프로젝트 기반 구축 · API 연동 · 배포 및 이슈 관리
     </td>
     <td>
       기관 서비스 · 인증 · 매칭 · 채팅 · 알림<br/>
@@ -127,6 +127,8 @@ Backend API
 - 동시에 발생한 여러 `401` 응답의 중복 Refresh 요청 방지
 
 - 네트워크 오류와 Refresh Token 거절을 구분해 불필요한 로그아웃 방지
+
+- 이전 인증 세션에서 시작된 Refresh 응답이 새로운 로그인 세션을 덮어쓰지 않도록 세션 일관성 보호
 
 
 <br/>
@@ -350,7 +352,7 @@ pnpm preview   # 빌드 결과 미리보기
 - **커밋:** `type: 작업 내용` 또는 `[Type] 작업 내용` 형식을 사용하며, `feat` / `[Feat]`, `fix` / `[Fix]`, `refactor` / `[Refactor]`, `design` / `[Design]`, `docs` / `[Docs]`, `test` / `[Test]`, `chore` / `[Chore]` 등 작업 유형과 내용을 명시
 
 - **PR:** 변경 내용, 관련 이슈, 검증 결과를 기록한 뒤 리뷰를 거쳐 `develop`에 통합
-
+- **리뷰:** CodeRabbit과 팀 리뷰를 통해 PR 단위로 변경사항을 점검하고, 유효한 리뷰 사항은 후속 커밋으로 반영
 - **검증:** Merge 전 `pnpm lint`, `pnpm build` 및 변경 기능 확인
 
 <details>
